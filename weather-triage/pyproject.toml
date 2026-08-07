@@ -1,0 +1,16 @@
+[project]
+name = "weather-triage"
+version = "0.1.0"
+description = "Weather-aware job scheduling risk assessment for outdoor field service businesses."
+requires-python = ">=3.10"
+dependencies = ["requests>=2.31", "fastapi>=0.110", "uvicorn[standard]>=0.27"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+include = ["weather_triage*"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

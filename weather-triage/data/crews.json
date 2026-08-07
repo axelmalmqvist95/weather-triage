@@ -1,0 +1,82 @@
+[
+  {
+    "crew_id": "C101",
+    "name": "Nordvind",
+    "latitude": 55.7054,
+    "longitude": 13.1827,
+    "skills": [
+      "facade_wash",
+      "roof_wash"
+    ]
+  },
+  {
+    "crew_id": "C102",
+    "name": "Kustlaget",
+    "latitude": 56.0462,
+    "longitude": 12.6969,
+    "skills": [
+      "deck_wash",
+      "gutter_clean"
+    ]
+  },
+  {
+    "crew_id": "C103",
+    "name": "Bergman & Co",
+    "latitude": 57.7139,
+    "longitude": 11.9686,
+    "skills": [
+      "painting",
+      "facade_wash"
+    ]
+  },
+  {
+    "crew_id": "C104",
+    "name": "Team Alpha",
+    "latitude": 59.3375,
+    "longitude": 18.0821,
+    "skills": [
+      "roof_wash",
+      "gutter_clean"
+    ]
+  },
+  {
+    "crew_id": "C105",
+    "name": "Solgruppen",
+    "latitude": 59.8774,
+    "longitude": 17.6426,
+    "skills": [
+      "painting",
+      "deck_wash"
+    ]
+  },
+  {
+    "crew_id": "C106",
+    "name": "Fasadteamet",
+    "latitude": 55.6175,
+    "longitude": 12.9989,
+    "skills": [
+      "facade_wash",
+      "painting"
+    ]
+  },
+  {
+    "crew_id": "C107",
+    "name": "Team Bravo",
+    "latitude": 55.6874,
+    "longitude": 13.1774,
+    "skills": [
+      "deck_wash",
+      "facade_wash"
+    ]
+  },
+  {
+    "crew_id": "C108",
+    "name": "H\u00f6jdteamet",
+    "latitude": 56.0522,
+    "longitude": 12.6876,
+    "skills": [
+      "roof_wash",
+      "gutter_clean"
+    ]
+  }
+]

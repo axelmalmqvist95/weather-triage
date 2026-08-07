@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "leaflet/dist/leaflet.css";
+
+body {
+  background: #f5f6f8;
+}
+
+/* Visible keyboard focus everywhere interactive — never remove this without
+   replacing it. Relying on color alone (as the status pills already avoid
+   doing) is not enough; keyboard users need a clear, consistent indicator. */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid #2557d6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
