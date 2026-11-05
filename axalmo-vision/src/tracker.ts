@@ -20,6 +20,16 @@ const POS_ALPHA = 0.5;
 const VEL_ALPHA = 0.25;
 const MAX_GAP_MS = 1000;
 
+const LM_ALPHA = 0.6; // utjämning av kroppspunkter mot darr
+
+function smoothLandmarks(prev: NormalizedLandmark[], cur: NormalizedLandmark[]): NormalizedLandmark[] {
+  if (prev.length !== cur.length) return cur;
+  return cur.map((c, i) => {
+    const p = prev[i];
+    return { ...c, x: p.x + LM_ALPHA * (c.x - p.x), y: p.y + LM_ALPHA * (c.y - p.y), z: p.z + LM_ALPHA * (c.z - p.z) };
+  });
+}
+
 const visible = (l?: NormalizedLandmark) => !!l && (l.visibility ?? 1) > VIS;
 
 function anchorOf(lm: NormalizedLandmark[], w: number, h: number) {
@@ -92,7 +102,7 @@ export class Tracker {
             best.width = nw;
           } else if (sw > 0) best.width = sw;
         }
-        Object.assign(best, { x: nx, y: ny, box, landmarks: lm, lastT: t, age: best.age + 1 });
+        Object.assign(best, { x: nx, y: ny, box, landmarks: smoothLandmarks(best.landmarks, lm), lastT: t, age: best.age + 1 });
         next.push(best);
       } else {
         next.push({ id: this.nextId++, x: a.x, y: a.y, vx: 0, vy: 0, width: sw, depthRate: 0, box, landmarks: lm, lastT: t, age: 1 });
