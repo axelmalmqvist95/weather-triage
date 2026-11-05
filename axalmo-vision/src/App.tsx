@@ -573,6 +573,7 @@ export default function App() {
       <header className="topbar">
         <div className="brand">
           AXALMO<span>VISION</span>
+          <a className="intel-link" href="#/intelligence">INTEL ›</a>
         </div>
         <div className="chips">
           <span className={`chip ${running ? 'on' : ''}`}>{running ? `${hud.fps.toFixed(0)} FPS` : 'AV'}</span>

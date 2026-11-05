@@ -143,3 +143,23 @@ därefter fungerar den offline.
 Prestanda: överlägget ritas varje skärmuppdatering och förflyttas med uppmätt hastighet mellan analyserna;
 inferensen får använda högst ~50 % av huvudtråden så att video och knappar förblir mjuka. Kroppspunkter jämnas ut mot darr. HUD uppdateras 4 ggr/s, canvasupplösning begränsad till 2× och kameran stoppas när appen
 hamnar i bakgrunden.
+
+## Axalmo Intelligence v0.1 (förhandsversion)
+
+Separat vy för strukturerad fastighetsanalys. Öppnas via **INTEL ›** i Vision-vyns sidhuvud (eller `#/intelligence`).
+Vision-delen och kamerans inferensflöde är oförändrade; Intelligence laddas som en egen kodbit först när den öppnas.
+
+- **Ontologi** (`src/ontology/`): Fastighet → Yta (kan vara del av annan yta) → Observation, plus en append-only
+  **händelselogg** som revisionsspår. Alla ändringar sker via *actions* som validerar schema, referenser,
+  statusövergångar och en integritetspolicy (avvisar t.ex. personnummer, e-post, mobilnummer och persondatafält).
+  Aktören är alltid en roll (inspektör/system) – ontologin har ingen persontyp.
+- **Lagring**: lokal IndexedDB-databas `axalmo-intelligence` (separat från Vision). Export/import som JSON med
+  schemaversion; import ersätter all data atomiskt.
+- **Vy**: sökbar och filtrerbar händelselogg, detaljpanel och relationsgraf (SVG, ingen grafmotor) per fastighet.
+- **Syntetisk testdata**: påhittade fastigheter skapas via samma actions som riktig data.
+
+Tester (Node `node:test`, IndexedDB simuleras med utvecklingsberoendet `fake-indexeddb`):
+
+```bash
+npm test
+```
