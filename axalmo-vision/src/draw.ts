@@ -29,6 +29,7 @@ export function drawFrame(
   tracks: Track[],
   labels: Map<number, string[]>,
   calib: { x: number; y: number }[],
+  extrapMs = 0,
 ) {
   ctx.clearRect(0, 0, v.cw, v.ch);
   ctx.lineCap = 'round';
@@ -37,7 +38,10 @@ export function drawFrame(
   for (const tr of tracks) {
     const col = COLORS[(tr.id - 1) % COLORS.length];
     const lm = tr.landmarks;
-    const P = (i: number) => toScreen(v, lm[i].x * v.vw, lm[i].y * v.vh);
+    // Flytta ritningen med uppmätt hastighet mellan inferenserna -> mjukare rörelse.
+    const ex = Math.min(extrapMs, 120) / 1000;
+    const dx = tr.vx * ex, dy = tr.vy * ex;
+    const P = (i: number) => toScreen(v, lm[i].x * v.vw + dx, lm[i].y * v.vh + dy);
     const ok = (i: number) => (lm[i]?.visibility ?? 1) > 0.5;
 
     // Skelett
@@ -63,7 +67,7 @@ export function drawFrame(
     }
 
     // Markeringsruta med hörn
-    const a = toScreen(v, tr.box.x0, tr.box.y0), b = toScreen(v, tr.box.x1, tr.box.y1);
+    const a = toScreen(v, tr.box.x0 + dx, tr.box.y0 + dy), b = toScreen(v, tr.box.x1 + dx, tr.box.y1 + dy);
     const x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = a.y, y1 = b.y;
     const c = Math.min(22, (x1 - x0) / 4);
     ctx.strokeStyle = col;
@@ -80,13 +84,13 @@ export function drawFrame(
     ctx.stroke();
 
     // Rörelsepil från ankarpunkten (0,4 s framåt)
-    const o = toScreen(v, tr.x, tr.y);
+    const o = toScreen(v, tr.x + dx, tr.y + dy);
     ctx.fillStyle = col;
     ctx.beginPath();
     ctx.arc(o.x, o.y, 6, 0, Math.PI * 2);
     ctx.fill();
     if (Math.hypot(tr.vx, tr.vy) >= STILL_PX_S) {
-      const e = toScreen(v, tr.x + tr.vx * 0.4, tr.y + tr.vy * 0.4);
+      const e = toScreen(v, tr.x + dx + tr.vx * 0.4, tr.y + dy + tr.vy * 0.4);
       const ang = Math.atan2(e.y - o.y, e.x - o.x);
       ctx.strokeStyle = col;
       ctx.lineWidth = 4;

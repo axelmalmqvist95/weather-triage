@@ -33,7 +33,7 @@ till `public/`. Därefter serveras allt från appens egen adress.
 3. **1P / 2P / 3P** väljer hur många personer modellen letar efter. 1P är snabbast och rekommenderas på iPhone.
 4. Varje person får skelett, markeringsruta, en pil för rörelseriktningen och hastighet i **px/s**.
    Riktning visas som höger/vänster/upp/ner samt "närmar sig/avlägsnar sig" (via ändrad axelbredd).
-5. Överst visas FPS och modellstatus (GPU eller CPU). Under bilden visas inferenstid.
+5. Överst visas FPS (analyser per sekund) och modellstatus. **GPU / CPU** väljer var modellen körs. Under bilden visas inferenstid.
 
 ### km/h (uppskattning)
 
@@ -104,7 +104,7 @@ därefter fungerar den offline.
 | "Kameran kräver säker anslutning" | Använd HTTPS enligt ovan. |
 | "Kameran används redan av en annan app" | Stäng FaceTime/kamera-appen och försök igen. |
 | "Modellen kunde inte laddas" | Första start kräver internet. Kontrollera anslutningen. |
-| Låg FPS | Välj 1P, använd bakkameran och god belysning. Appen kör 640×480 för att spara prestanda. |
+| Låg FPS / hackigt | Testa **GPU** och **CPU** – olika iPhone-modeller är snabbast med olika val (valet sparas). Välj 1P och god belysning. Appen kör 480×360. |
 
 ## Teknik i korthet
 
@@ -117,6 +117,6 @@ därefter fungerar den offline.
 | `sw/sw.js` | Service worker-mall; precache-listan genereras vid build (`vite.config.ts`) |
 | `scripts/setup-assets.mjs` | Kopierar WASM och laddar ner modellen till `public/` |
 
-Prestanda: en inferens per ny videobildruta (`requestVideoFrameCallback` med `requestAnimationFrame`
-som reserv), HUD uppdateras 4 ggr/s, canvasupplösning begränsad till 2× och kameran stoppas när appen
+Prestanda: överlägget ritas varje skärmuppdatering och förflyttas med uppmätt hastighet mellan analyserna;
+inferensen får använda högst ~50 % av huvudtråden så att video och knappar förblir mjuka. Kroppspunkter jämnas ut mot darr. HUD uppdateras 4 ggr/s, canvasupplösning begränsad till 2× och kameran stoppas när appen
 hamnar i bakgrunden.

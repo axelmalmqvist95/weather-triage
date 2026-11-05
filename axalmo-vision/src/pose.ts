@@ -4,10 +4,10 @@ export type Delegate = 'GPU' | 'CPU';
 const BASE = import.meta.env.BASE_URL;
 
 /** Laddar Pose Landmarker från egna filer (ingen CDN). Försöker GPU först, sedan CPU. */
-export async function createPoseLandmarker(numPoses: number): Promise<{ landmarker: PoseLandmarker; delegate: Delegate }> {
+export async function createPoseLandmarker(numPoses: number, preferred: Delegate = 'GPU'): Promise<{ landmarker: PoseLandmarker; delegate: Delegate }> {
   const fileset = await FilesetResolver.forVisionTasks(`${BASE}mediapipe`);
   let lastErr: unknown;
-  for (const delegate of ['GPU', 'CPU'] as const) {
+  for (const delegate of preferred === 'GPU' ? (['GPU', 'CPU'] as const) : (['CPU', 'GPU'] as const)) {
     try {
       const landmarker = await PoseLandmarker.createFromOptions(fileset, {
         baseOptions: { modelAssetPath: `${BASE}models/pose_landmarker_lite.task`, delegate },

@@ -111,7 +111,7 @@ body {
 .btn.danger { background: transparent; color: var(--danger); border-color: var(--danger); }
 .btn.active { color: var(--warn); border-color: var(--warn); }
 .btn.secondary { min-height: 48px; }
-.seg { grid-column: 1 / -1; display: flex; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
 .seg button { flex: 1; min-height: 44px; background: transparent; color: var(--muted); border: 0; font-weight: 700; font-size: 15px; }
 .seg button.sel { background: rgba(0, 229, 255, 0.15); color: var(--cyan); }
 

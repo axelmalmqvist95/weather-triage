@@ -60,6 +60,13 @@ export default function App() {
   const [modelStatus, setModelStatus] = useState<ModelStatus>('ej laddad');
   const [delegate, setDelegate] = useState<Delegate | null>(null);
   const [numPoses, setNumPoses] = useState(1);
+  const [prefDelegate, setPrefDelegate] = useState<Delegate>(() => {
+    try {
+      return localStorage.getItem('axalmo-delegate') === 'CPU' ? 'CPU' : 'GPU';
+    } catch {
+      return 'GPU';
+    }
+  });
   const [error, setError] = useState<string | null>(null);
   const [hud, setHud] = useState<{ fps: number; inferMs: number; people: HudPerson[] }>({ fps: 0, inferMs: 0, people: [] });
   const [calibMode, setCalibMode] = useState(false);
@@ -80,41 +87,45 @@ export default function App() {
     return { cw: st.clientWidth, ch: st.clientHeight, vw: v.videoWidth, vh: v.videoHeight, mirrored: facingRef.current === 'user' };
   }, []);
 
-  // Huvudloop: en inferens per videobildruta.
+  // Huvudloop: ritar varje skärmuppdatering, men kör inferens bara när huvudtråden har tid över.
+  // Inferensen får ta högst ~50 % av tiden så att video och UI förblir mjuka på iPhone.
   const loop = useCallback(() => {
     const myId = ++loopIdRef.current;
     const video = videoRef.current!;
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext('2d')!;
     let lastVideoTime = -1;
+    let nextInferAt = 0;
+    let lastInferT = 0;
+    let labels = new Map<number, string[]>();
+    let tracks: Track[] = [];
 
     const step = () => {
       if (!runningRef.current || myId !== loopIdRef.current) return;
+      requestAnimationFrame(step);
       const lmk = landmarkerRef.current;
       const v = view();
-      if (lmk && v && video.readyState >= 2 && video.currentTime !== lastVideoTime) {
-        lastVideoTime = video.currentTime;
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        if (canvas.width !== Math.round(v.cw * dpr) || canvas.height !== Math.round(v.ch * dpr)) {
-          canvas.width = Math.round(v.cw * dpr);
-          canvas.height = Math.round(v.ch * dpr);
-        }
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (!lmk || !v || video.readyState < 2) return;
+      const now = performance.now();
 
-        const t0 = performance.now();
+      if (now >= nextInferAt && video.currentTime !== lastVideoTime) {
+        lastVideoTime = video.currentTime;
         let poses: Track['landmarks'][] = [];
         try {
-          poses = lmk.detectForVideo(video, t0).landmarks;
+          poses = lmk.detectForVideo(video, now).landmarks;
         } catch (e) {
           console.error(e);
           setError(`Modellfel under körning: ${(e as Error).message}`);
         }
         const t1 = performance.now();
-        const tracks = trackerRef.current.update(poses, t0, v.vw, v.vh);
+        const cost = t1 - now;
+        nextInferAt = t1 + cost; // ~50 % arbetscykel
+        lastInferT = now;
+        tracks = trackerRef.current.update(poses, now, v.vw, v.vh);
 
         const cal = calibRef.current;
         const calOk = !!cal && stillRef.current && cal.vw === v.vw && cal.vh === v.vh && cal.facing === facingRef.current;
-        const labels = new Map<number, string[]>();
+        labels = new Map();
         const people: HudPerson[] = [];
         for (const tr of tracks) {
           const pxs = Math.hypot(tr.vx, tr.vy);
@@ -125,20 +136,26 @@ export default function App() {
           if (kmh !== null) l.push(`≈ ${kmh.toFixed(1)} km/h (uppsk.)`);
           labels.set(tr.id, l);
         }
-        drawFrame(ctx, v, tracks, labels, calibPtsRef.current.length ? calibPtsRef.current : cal?.pts ?? []);
         hudRef.current = people;
 
         const f = fpsRef.current;
         f.frames++;
-        f.inferMs += (t1 - t0 - f.inferMs) * 0.1;
+        f.inferMs += (cost - f.inferMs) * 0.1;
         if (t1 - f.since >= 1000) {
           f.fps = (f.frames * 1000) / (t1 - f.since);
           f.frames = 0;
           f.since = t1;
         }
       }
-      if ('requestVideoFrameCallback' in video) video.requestVideoFrameCallback(step);
-      else requestAnimationFrame(step);
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (canvas.width !== Math.round(v.cw * dpr) || canvas.height !== Math.round(v.ch * dpr)) {
+        canvas.width = Math.round(v.cw * dpr);
+        canvas.height = Math.round(v.ch * dpr);
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const cal = calibRef.current;
+      drawFrame(ctx, v, tracks, labels, calibPtsRef.current.length ? calibPtsRef.current : cal?.pts ?? [], now - lastInferT);
     };
     step();
   }, [view]);
@@ -170,7 +187,7 @@ export default function App() {
     if (landmarkerRef.current) return;
     setModelStatus('laddar…');
     try {
-      const { landmarker, delegate } = await createPoseLandmarker(numPoses);
+      const { landmarker, delegate } = await createPoseLandmarker(numPoses, prefDelegate);
       landmarkerRef.current = landmarker;
       setDelegate(delegate);
       setModelStatus('redo');
@@ -178,7 +195,7 @@ export default function App() {
       setModelStatus('fel');
       throw new Error(`Modellen kunde inte laddas (${(e as Error).message}). Kontrollera anslutningen första gången appen öppnas.`);
     }
-  }, [numPoses]);
+  }, [numPoses, prefDelegate]);
 
   const startCamera = useCallback(
     async (face: Facing) => {
@@ -193,7 +210,7 @@ export default function App() {
         const camPromise = navigator.mediaDevices
           .getUserMedia({
             audio: false,
-            video: { facingMode: { ideal: face }, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30, max: 30 } },
+            video: { facingMode: { ideal: face }, width: { ideal: 480 }, height: { ideal: 360 }, frameRate: { ideal: 30, max: 30 } },
           })
           .catch((e) => {
             if ((e as { name?: string }).name === 'OverconstrainedError')
@@ -239,6 +256,35 @@ export default function App() {
       await landmarkerRef.current?.setOptions({ numPoses: n });
     } catch (e) {
       setError(`Kunde inte ändra antal personer: ${(e as Error).message}`);
+    }
+  };
+
+  // Byt GPU/CPU: stäng modellen och ladda om med nytt val.
+  const changeDelegate = async (d: Delegate) => {
+    if (d === prefDelegate || busy) return;
+    setPrefDelegate(d);
+    try {
+      localStorage.setItem('axalmo-delegate', d);
+    } catch {
+      /* ignorera */
+    }
+    setBusy(true);
+    const old = landmarkerRef.current;
+    landmarkerRef.current = null;
+    old?.close();
+    setModelStatus('laddar…');
+    try {
+      const { landmarker, delegate } = await createPoseLandmarker(numPoses, d);
+      landmarkerRef.current = landmarker;
+      setDelegate(delegate);
+      setModelStatus('redo');
+      trackerRef.current.reset();
+      fpsRef.current = { frames: 0, since: performance.now(), fps: 0, inferMs: 0 };
+    } catch (e) {
+      setModelStatus('fel');
+      setError(`Kunde inte ladda modellen med ${d}: ${(e as Error).message}`);
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -382,6 +428,13 @@ export default function App() {
         <button className={`btn ${kmhActive ? 'active' : ''}`} onClick={() => setShowCalibPanel((s) => !s)}>
           {kmhActive ? 'km/h på' : calibValid ? 'km/h: stilla?' : 'Kalibrera'}
         </button>
+        <div className="seg" role="group" aria-label="Beräkning">
+          {(['GPU', 'CPU'] as const).map((d) => (
+            <button key={d} className={prefDelegate === d ? 'sel' : ''} disabled={busy} onClick={() => changeDelegate(d)}>
+              {d}
+            </button>
+          ))}
+        </div>
         <div className="seg" role="group" aria-label="Antal personer">
           {[1, 2, 3].map((n) => (
             <button key={n} className={numPoses === n ? 'sel' : ''} onClick={() => changeNumPoses(n)}>
