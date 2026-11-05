@@ -1,133 +1,173 @@
-import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
+import type { Detection, NormalizedLandmark } from '@mediapipe/tasks-vision';
+import { OneEuro } from './filter';
+import { describe, type Category } from './labels';
 
-/** Spårad person. Positioner i videopixlar (ej spegelvända). Ingen identifiering – bara löpnummer. */
-export interface Track {
+export interface Box { x0: number; y0: number; x1: number; y1: number }
+
+/** Spårat objekt. Koordinater i videopixlar (ej spegelvända). Bara löpnummer – ingen identifiering. */
+export interface Obj {
   id: number;
+  label: string;
+  name: string;
+  cat: Category;
+  score: number;
+  box: Box;
   x: number;
   y: number;
   vx: number; // px/s
-  vy: number; // px/s
-  width: number; // axelbredd px (för närmar sig/avlägsnar sig)
-  depthRate: number; // relativ storleksändring per sekund
-  box: { x0: number; y0: number; x1: number; y1: number };
-  landmarks: NormalizedLandmark[];
+  vy: number;
+  sizeRate: number; // relativ storleksändring per sekund (+ = närmar sig)
+  firstSeen: number;
   lastT: number;
-  age: number; // antal uppdateringar
+  hits: number;
+  maxSpeed: number; // px/s
+  dist: number; // tillryggalagd sträcka i px
+  landmarks?: NormalizedLandmark[];
+  poseT?: number;
+  filt: OneEuro[];
 }
 
-const VIS = 0.5;
-const POS_ALPHA = 0.5;
-const VEL_ALPHA = 0.25;
-const MAX_GAP_MS = 1000;
+export interface TrackEvent { kind: 'in' | 'ut'; obj: Obj; t: number }
 
-const LM_ALPHA = 0.6; // utjämning av kroppspunkter mot darr
+const VEL_ALPHA = 0.3;
+const MAX_GAP_MS = 800;
+const CONFIRM_HITS = 4;
+export const STILL_PX_S = 20;
 
-function smoothLandmarks(prev: NormalizedLandmark[], cur: NormalizedLandmark[]): NormalizedLandmark[] {
-  if (prev.length !== cur.length) return cur;
-  return cur.map((c, i) => {
-    const p = prev[i];
-    return { ...c, x: p.x + LM_ALPHA * (c.x - p.x), y: p.y + LM_ALPHA * (c.y - p.y), z: p.z + LM_ALPHA * (c.z - p.z) };
-  });
-}
+const iou = (a: Box, b: Box) => {
+  const ix = Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0));
+  const iy = Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
+  const inter = ix * iy;
+  const u = (a.x1 - a.x0) * (a.y1 - a.y0) + (b.x1 - b.x0) * (b.y1 - b.y0) - inter;
+  return u > 0 ? inter / u : 0;
+};
 
-const visible = (l?: NormalizedLandmark) => !!l && (l.visibility ?? 1) > VIS;
+export const isConfirmed = (o: Obj) => o.hits >= CONFIRM_HITS;
+export const speedOf = (o: Obj) => Math.hypot(o.vx, o.vy);
 
-function anchorOf(lm: NormalizedLandmark[], w: number, h: number) {
-  const [ls, rs, lh, rh] = [lm[11], lm[12], lm[23], lm[24]];
-  if (visible(lh) && visible(rh)) return { x: ((lh.x + rh.x) / 2) * w, y: ((lh.y + rh.y) / 2) * h };
-  if (visible(ls) && visible(rs)) return { x: ((ls.x + rs.x) / 2) * w, y: ((ls.y + rs.y) / 2) * h };
-  return null;
-}
-
-function boxOf(lm: NormalizedLandmark[], w: number, h: number) {
-  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  for (const l of lm) {
-    if (!visible(l)) continue;
-    x0 = Math.min(x0, l.x); y0 = Math.min(y0, l.y); x1 = Math.max(x1, l.x); y1 = Math.max(y1, l.y);
-  }
-  if (!isFinite(x0)) return null;
-  const px = (x1 - x0) * 0.08, py = (y1 - y0) * 0.06;
-  return {
-    x0: Math.max(0, (x0 - px) * w), y0: Math.max(0, (y0 - py) * h),
-    x1: Math.min(w, (x1 + px) * w), y1: Math.min(h, (y1 + py) * h),
-  };
-}
-
-export class Tracker {
-  tracks: Track[] = [];
+export class ObjectTracker {
+  objs: Obj[] = [];
   private nextId = 1;
 
   reset() {
-    this.tracks = [];
+    this.objs = [];
     this.nextId = 1;
   }
 
-  update(poses: NormalizedLandmark[][], t: number, w: number, h: number): Track[] {
-    const used = new Set<Track>();
-    // En person i bild och ett spår: behåll samma ID oavsett hopp.
-    const maxDist = poses.length === 1 && this.tracks.length === 1 ? Infinity : Math.max(w, h) * 0.3;
-    const next: Track[] = [];
+  /** Uppdaterar med nya detektioner. Returnerar händelser (in/ut ur bild). */
+  update(dets: Detection[], t: number): TrackEvent[] {
+    const events: TrackEvent[] = [];
+    const used = new Set<Obj>();
 
-    for (const lm of poses) {
-      const box = boxOf(lm, w, h);
-      if (!box) continue;
-      const a = anchorOf(lm, w, h) ?? { x: (box.x0 + box.x1) / 2, y: (box.y0 + box.y1) / 2 };
-      const sw = visible(lm[11]) && visible(lm[12]) ? Math.hypot((lm[11].x - lm[12].x) * w, (lm[11].y - lm[12].y) * h) : 0;
+    // Högst poäng först -> stabilare matchning.
+    const sorted = [...dets].sort((a, b) => (b.categories[0]?.score ?? 0) - (a.categories[0]?.score ?? 0));
+    for (const d of sorted) {
+      const bb = d.boundingBox;
+      const c = d.categories[0];
+      if (!bb || !c) continue;
+      const raw: Box = { x0: bb.originX, y0: bb.originY, x1: bb.originX + bb.width, y1: bb.originY + bb.height };
+      const cx = (raw.x0 + raw.x1) / 2, cy = (raw.y0 + raw.y1) / 2;
+      const diag = Math.hypot(bb.width, bb.height);
 
-      // Närmaste befintliga spår (enkel girig matchning – räcker för 1–3 personer).
-      let best: Track | null = null;
-      let bestD = maxDist;
-      for (const tr of this.tracks) {
-        if (used.has(tr)) continue;
-        const d = Math.hypot(tr.x - a.x, tr.y - a.y);
-        if (d < bestD) { bestD = d; best = tr; }
+      let best: Obj | null = null;
+      let bestScore = 0;
+      for (const o of this.objs) {
+        if (used.has(o) || o.label !== c.categoryName) continue;
+        let s = iou(o.box, raw);
+        if (s === 0) {
+          const dd = Math.hypot(o.x - cx, o.y - cy);
+          if (dd < diag * 0.6) s = 0.01 * (1 - dd / (diag * 0.6));
+        }
+        if (s > bestScore) { bestScore = s; best = o; }
       }
 
-      if (best && t - best.lastT >= MAX_GAP_MS) {
-        // För långt glapp (t.ex. första långsamma GPU-bildrutan): behåll ID, nollställ hastighet.
+      if (best) {
         used.add(best);
-        Object.assign(best, { x: a.x, y: a.y, vx: 0, vy: 0, depthRate: 0, width: sw, box, landmarks: lm, lastT: t, age: 1 });
-        next.push(best);
-      } else if (best) {
-        used.add(best);
+        const f = best.filt;
+        const box = { x0: f[0].filter(raw.x0, t), y0: f[1].filter(raw.y0, t), x1: f[2].filter(raw.x1, t), y1: f[3].filter(raw.y1, t) };
+        const nx = (box.x0 + box.x1) / 2, ny = (box.y0 + box.y1) / 2;
         const dt = (t - best.lastT) / 1000;
-        const nx = best.x + POS_ALPHA * (a.x - best.x);
-        const ny = best.y + POS_ALPHA * (a.y - best.y);
         if (dt > 0.001) {
           best.vx += VEL_ALPHA * ((nx - best.x) / dt - best.vx);
           best.vy += VEL_ALPHA * ((ny - best.y) / dt - best.vy);
-          if (sw > 0 && best.width > 0) {
-            const nw = best.width + POS_ALPHA * (sw - best.width);
-            best.depthRate += VEL_ALPHA * ((nw - best.width) / best.width / dt - best.depthRate);
-            best.width = nw;
-          } else if (sw > 0) best.width = sw;
+          const s0 = Math.sqrt(Math.max(1, (best.box.x1 - best.box.x0) * (best.box.y1 - best.box.y0)));
+          const s1 = Math.sqrt(Math.max(1, (box.x1 - box.x0) * (box.y1 - box.y0)));
+          best.sizeRate += VEL_ALPHA * ((s1 - s0) / s0 / dt - best.sizeRate);
+          const sp = speedOf(best);
+          if (sp >= STILL_PX_S) best.dist += sp * dt;
+          if (best.hits > 5) best.maxSpeed = Math.max(best.maxSpeed, sp);
         }
-        Object.assign(best, { x: nx, y: ny, box, landmarks: smoothLandmarks(best.landmarks, lm), lastT: t, age: best.age + 1 });
-        next.push(best);
+        Object.assign(best, { box, x: nx, y: ny, score: c.score, lastT: t, hits: best.hits + 1 });
+        if (best.hits === CONFIRM_HITS) events.push({ kind: 'in', obj: best, t });
       } else {
-        next.push({ id: this.nextId++, x: a.x, y: a.y, vx: 0, vy: 0, width: sw, depthRate: 0, box, landmarks: lm, lastT: t, age: 1 });
+        const { name, cat } = describe(c.categoryName);
+        const filt = [0, 1, 2, 3].map(() => new OneEuro(1.0, 0.02));
+        [raw.x0, raw.y0, raw.x1, raw.y1].forEach((v, i) => filt[i].filter(v, t));
+        const o: Obj = {
+          id: this.nextId++, label: c.categoryName, name, cat, score: c.score, box: raw, x: cx, y: cy,
+          vx: 0, vy: 0, sizeRate: 0, firstSeen: t, lastT: t, hits: 1, maxSpeed: 0, dist: 0, filt,
+        };
+        this.objs.push(o);
+        used.add(o);
       }
     }
-    // Behåll kortvarigt tappade spår så att ID inte hoppar vid en missad bildruta.
-    for (const tr of this.tracks) if (!used.has(tr) && !next.includes(tr) && t - tr.lastT < MAX_GAP_MS) next.push(tr);
-    this.tracks = next;
-    return next.filter((tr) => tr.lastT === t);
+
+    // Ta bort objekt som varit borta för länge.
+    this.objs = this.objs.filter((o) => {
+      if (t - o.lastT < MAX_GAP_MS) return true;
+      // Korta flimmer (< 1 s) loggas inte som att något lämnat bilden.
+      if (isConfirmed(o) && o.lastT - o.firstSeen >= 1000) events.push({ kind: 'ut', obj: o, t });
+      return false;
+    });
+    return events;
+  }
+
+  /** Synliga, bekräftade objekt (sedda nyligen). */
+  visible(t: number) {
+    return this.objs.filter((o) => isConfirmed(o) && t - o.lastT < 400);
+  }
+
+  /** Kopplar skelett till närmaste person vars ruta innehåller höftmitten. */
+  attachPoses(poses: NormalizedLandmark[][], t: number, w: number, h: number) {
+    for (const lm of poses) {
+      const hx = ((lm[23].x + lm[24].x) / 2) * w, hy = ((lm[23].y + lm[24].y) / 2) * h;
+      let best: Obj | null = null;
+      let bestD = Infinity;
+      for (const o of this.objs) {
+        if (o.label !== 'person') continue;
+        const pad = (o.box.x1 - o.box.x0) * 0.15;
+        if (hx < o.box.x0 - pad || hx > o.box.x1 + pad || hy < o.box.y0 - pad || hy > o.box.y1 + pad) continue;
+        const d = Math.hypot(o.x - hx, o.y - hy);
+        if (d < bestD) { bestD = d; best = o; }
+      }
+      if (!best) continue;
+      best.landmarks = smoothLandmarks(best, lm, t, w, h);
+      best.poseT = t;
+    }
   }
 }
 
-export const STILL_PX_S = 20;
+// One Euro per kroppspunkt (i pixlar) – stabilt men utan att släpa efter.
+const poseFilters = new WeakMap<Obj, OneEuro[]>();
+function smoothLandmarks(o: Obj, lm: NormalizedLandmark[], t: number, w: number, h: number) {
+  let f = poseFilters.get(o);
+  if (!f || f.length !== lm.length * 2) {
+    f = lm.flatMap(() => [new OneEuro(1.2, 0.03), new OneEuro(1.2, 0.03)]);
+    poseFilters.set(o, f);
+  }
+  return lm.map((l, i) => ({ ...l, x: f![2 * i].filter(l.x * w, t) / w, y: f![2 * i + 1].filter(l.y * h, t) / h }));
+}
 
 /** Riktning som användaren ser den (hänsyn till spegling). */
-export function directionLabel(tr: Track, mirrored: boolean): string {
-  const vx = mirrored ? -tr.vx : tr.vx;
-  const speed = Math.hypot(vx, tr.vy);
+export function directionLabel(o: Obj, mirrored: boolean): string {
+  const vx = mirrored ? -o.vx : o.vx;
   const parts: string[] = [];
-  if (speed >= STILL_PX_S) {
-    const ang = (Math.atan2(tr.vy, vx) * 180) / Math.PI; // 0 = höger, 90 = ner
+  if (Math.hypot(vx, o.vy) >= STILL_PX_S) {
+    const ang = (Math.atan2(o.vy, vx) * 180) / Math.PI;
     const dirs = ['→ höger', '↘ höger/ner', '↓ ner', '↙ vänster/ner', '← vänster', '↖ vänster/upp', '↑ upp', '↗ höger/upp'];
     parts.push(dirs[((Math.round(ang / 45) % 8) + 8) % 8]);
   }
-  if (tr.depthRate > 0.15) parts.push('närmar sig');
-  else if (tr.depthRate < -0.15) parts.push('avlägsnar sig');
+  if (o.sizeRate > 0.15) parts.push('närmar sig');
+  else if (o.sizeRate < -0.15) parts.push('avlägsnar sig');
   return parts.length ? parts.join(' · ') : 'stilla';
 }
