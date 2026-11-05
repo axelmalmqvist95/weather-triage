@@ -5,7 +5,7 @@ Mobilanpassad PWA (React + Vite + TypeScript) som visar livekamera med **lokal**
 
 - Ingen backend, ingen API-nyckel, ingen molntjänst vid körning.
 - All bildbehandling sker i telefonens webbläsare. Inga bilder sparas eller skickas.
-- Ingen ansiktsigenkänning eller biometrisk identifiering. Personer får bara löpnummer (P1, P2 …).
+- Ingen ansiktsigenkänning eller biometrisk identifiering. Objekt får bara löpnummer (t.ex. Människa 3).
 - Fungerar offline efter första laddningen (service worker cachar app, modell och WASM).
 
 ## Kom igång
@@ -42,12 +42,16 @@ till `public/`. Därefter serveras allt från appens egen adress.
    - Händelser loggas: "började springa", "satte sig", "Två personer möts" och **⚠ Möjligt fall**.
    - **Röst** (⚙︎) läser upp händelserna på svenska.
    Analysen är regelbaserad och körs lokalt – den kan ha fel och är ingen larmtjänst.
-6. Överst i bilden visas en sammanfattning, t.ex. "1 människa · 2 djur".
-7. **Logg** visar allt som dykt upp och lämnat bilden med klockslag, tid i bild och toppfart, plus
-   antal per kategori och snabbaste rörelsen hittills. Inget sparas när appen stängs.
+6. **Handhållen användning:** appen mäter din egen kamerarörelse (📷 stilla / rör sig / snabb rörelse) och
+   drar bort den från objektens fart. km/h visas bara när kameran står stilla. Skärmen hålls tänd medan appen kör.
+7. **◎ Skanna** samlar i 3 sekunder in allt som syns och visar en **lägesrapport** (vad, hur många, vad de gör,
+   miljö, ljus, snabbast). Rapporten sparas i tidslinjen och kan läsas upp med rösten.
+8. Överst i bilden visas en sammanfattning, t.ex. "1 människa · 2 djur".
+9. **Tidslinje** visar allt som dykt upp, lämnat bilden, händelser, larm och rapporter. Den sparas i telefonen
+   (bara text, aldrig bilder), kan filtreras och **exporteras som CSV** till Excel. **Rensa** tömmer den.
    En person som går ut och in räknas två gånger – appen identifierar aldrig individer.
-8. **⚙︎ Inställningar**: röst på/av, CPU/GPU, skelett på/av, Snabb/Exakt skelettmodell, antal skelett och kalibrering.
-9. **Bak ⇄ / Fram** byter kamera. Framkameran visas spegelvänd.
+10. **⚙︎ Inställningar**: röst på/av, CPU/GPU, skelett på/av, Snabb/Exakt skelettmodell, antal skelett och kalibrering.
+11. **Bak ⇄ / Fram** byter kamera. Framkameran visas spegelvänd.
 
 ### km/h (uppskattning)
 
@@ -127,6 +131,8 @@ därefter fungerar den offline.
 | `src/App.tsx` | UI, kamera (getUserMedia), huvudloop, kalibrering |
 | `src/vision.ts` | Laddar objektdetektor och Pose Landmarker, vald delegat med den andra som reserv |
 | `src/analyze.ts` | Lokal AI-analys: aktivitet, samspel, miljö, ljus, händelser och fall |
+| `src/egomotion.ts` | Mäter kamerans egen rörelse (handhållen) för att kompensera objektens fart |
+| `src/scan.ts` | Skanning och lägesrapport |
 | `src/labels.ts` | Svenska namn och kategorier för de 80 klasserna |
 | `src/filter.ts` | One Euro-filter som stabiliserar rutor och kroppspunkter |
 | `src/tracker.ts` | Spårning per klass (IoU), hastighet, riktning, tid i bild, in/ut-händelser |

@@ -39,3 +39,12 @@ export function describe(label: string): { name: string; cat: Category } {
   const cat: Category = label === 'person' ? 'människa' : ANIMALS.includes(label) ? 'djur' : VEHICLES.includes(label) ? 'fordon' : 'föremål';
   return { name: SV[label] ?? label, cat };
 }
+
+const PLURAL: Record<string, string> = {
+  Hund: 'hundar', Katt: 'katter', Fågel: 'fåglar', Häst: 'hästar', Får: 'får', Ko: 'kor', Elefant: 'elefanter',
+  Björn: 'björnar', Zebra: 'zebror', Giraff: 'giraffer', Cykel: 'cyklar', Bil: 'bilar', Motorcykel: 'motorcyklar',
+  Flygplan: 'flygplan', Buss: 'bussar', Tåg: 'tåg', Lastbil: 'lastbilar', Båt: 'båtar',
+};
+
+/** "1 hund", "2 hundar" */
+export const countName = (name: string, n: number) => `${n} ${n === 1 ? name.toLowerCase() : PLURAL[name] ?? name.toLowerCase()}`;

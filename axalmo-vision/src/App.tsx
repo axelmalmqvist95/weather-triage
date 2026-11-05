@@ -5,6 +5,8 @@ import { ObjectTracker, directionLabel, speedOf, type Obj, type TrackEvent } fro
 import { CATEGORY_COLOR, CATEGORY_PLURAL, type Category } from './labels';
 import { drawFrame, toVideo, type View } from './draw';
 import { Analyzer, measureLuma, type Insight } from './analyze';
+import { EgoMotion, type CamState } from './egomotion';
+import { Scan, SCAN_MS, type ScanReport } from './scan';
 
 type Facing = 'user' | 'environment';
 type ModelStatus = 'ej laddad' | 'laddar…' | 'redo' | 'fel';
@@ -12,10 +14,28 @@ type Panel = 'settings' | 'calib' | 'log' | null;
 
 interface Calibration { metersPerPx: number; pts: { x: number; y: number }[]; vw: number; vh: number; facing: Facing }
 interface HudObj { id: number; name: string; cat: Category; score: number; pxs: number; kmh: number | null; dir: string; secs: number }
-type LogCat = Insight['cat'];
-interface LogEntry { id: number; time: string; text: string; cat: LogCat }
+type LogCat = Insight['cat'] | 'report';
+interface LogEntry { id: number; time: string; iso: string; text: string; cat: LogCat }
+type LogFilter = 'alla' | 'människa' | 'djur' | 'fordon' | 'larm' | 'rapport';
+const FILTERS: { id: LogFilter; label: string; match: (c: LogCat) => boolean }[] = [
+  { id: 'alla', label: 'Alla', match: () => true },
+  { id: 'människa', label: 'Människor', match: (c) => c === 'människa' },
+  { id: 'djur', label: 'Djur', match: (c) => c === 'djur' },
+  { id: 'fordon', label: 'Fordon', match: (c) => c === 'fordon' },
+  { id: 'larm', label: 'Larm', match: (c) => c === 'alert' },
+  { id: 'rapport', label: 'Rapporter', match: (c) => c === 'report' },
+];
+const TIMELINE_KEY = 'axalmo-timeline';
+function loadTimeline(): LogEntry[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(TIMELINE_KEY) ?? '[]');
+    return Array.isArray(v) ? (v as LogEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
 interface AnalysisView { scene: string; light: string; level: string; lines: Insight[] }
-const colorOf = (c: LogCat) => (c === 'ai' ? '#c9b6ff' : c === 'alert' ? '#ff4d6d' : CATEGORY_COLOR[c]);
+const colorOf = (c: LogCat) => (c === 'ai' ? '#c9b6ff' : c === 'alert' ? '#ff4d6d' : c === 'report' ? '#ffd23d' : CATEGORY_COLOR[c]);
 interface Fastest { name: string; pxs: number; kmh: number | null }
 
 const CATS: Category[] = ['människa', 'djur', 'fordon', 'föremål'];
@@ -76,10 +96,14 @@ export default function App() {
   const stillRef = useRef(false);
   const facingRef = useRef<Facing>('environment');
   const skeletonRef = useRef(true);
-  const logRef = useRef<LogEntry[]>([]);
+  const logRef = useRef<LogEntry[]>(loadTimeline());
+  const savedLogIdRef = useRef(-1);
+  const egoRef = useRef(new EgoMotion());
+  const scanRef = useRef(new Scan());
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const seenRef = useRef<Record<Category, number>>({ människa: 0, djur: 0, fordon: 0, föremål: 0 });
   const fastestRef = useRef<Fastest | null>(null);
-  const logIdRef = useRef(0);
+  const logIdRef = useRef(logRef.current.reduce((m, l) => Math.max(m, l.id), 0));
   const analyzerRef = useRef(new Analyzer());
   const analysisRef = useRef<AnalysisView>({ scene: '–', light: '–', level: '–', lines: [] });
   const voiceRef = useRef(false);
@@ -102,9 +126,13 @@ export default function App() {
     objs: [] as HudObj[],
     seen: { ...seenRef.current },
     fastest: null as Fastest | null,
-    log: [] as LogEntry[],
+    log: logRef.current,
     analysis: analysisRef.current,
+    cam: 'stilla' as CamState,
+    scanLeft: 0,
   });
+  const [scanReport, setScanReport] = useState<ScanReport | null>(null);
+  const [logFilter, setLogFilter] = useState<LogFilter>('alla');
   const [panel, setPanel] = useState<Panel>(null);
   const [calibMode, setCalibMode] = useState(false);
   const [calibPts, setCalibPts] = useState<{ x: number; y: number }[]>([]);
@@ -126,7 +154,7 @@ export default function App() {
   }, []);
 
   const pushLog = useCallback((text: string, cat: LogCat) => {
-    logRef.current = [{ id: ++logIdRef.current, time: clock(), text, cat }, ...logRef.current].slice(0, 80);
+    logRef.current = [{ id: ++logIdRef.current, time: clock(), iso: new Date().toISOString(), text, cat }, ...logRef.current].slice(0, 300);
   }, []);
 
   /** Läser upp text på svenska (lokal talsyntes). Larm går alltid före. */
@@ -159,7 +187,7 @@ export default function App() {
 
     const kmhFor = (pxs: number, v: View) => {
       const cal = calibRef.current;
-      const ok = !!cal && stillRef.current && cal.vw === v.vw && cal.vh === v.vh && cal.facing === facingRef.current;
+      const ok = !!cal && stillRef.current && egoRef.current.state === 'stilla' && cal.vw === v.vw && cal.vh === v.vh && cal.facing === facingRef.current;
       return ok ? pxs * cal!.metersPerPx * 3.6 : null;
     };
 
@@ -192,11 +220,12 @@ export default function App() {
         const personVisible = tracker.visible(now).some((o) => o.label === 'person');
         const runPose = skeletonRef.current && !!pose && personVisible && tick % 2 === 1;
         tick++;
+        egoRef.current.update(video, now);
         try {
           if (runPose) {
             tracker.attachPoses(pose!.detectForVideo(video, now).landmarks, now, v.vw, v.vh);
           } else {
-            onEvents(tracker.update(det.detectForVideo(video, now).detections, now), v);
+            onEvents(tracker.update(det.detectForVideo(video, now).detections, now, egoRef.current), v);
           }
         } catch (e) {
           console.error(e);
@@ -217,6 +246,18 @@ export default function App() {
           speak(ev.text, ev.cat === 'alert');
         }
         analysisRef.current = { scene: an.scene, light: an.light, level: an.level, lines: an.lines };
+
+        // Skanning -> lägesrapport
+        const scan = scanRef.current;
+        if (scan.active) {
+          scan.add(tracker.visible(now), an.acts, an.scene, an.light, egoRef.current.state);
+          if (now >= scan.endsAt) {
+            const rep = scan.finish();
+            pushLog(`Lägesrapport – ${rep.title}\n${rep.lines.join('\n')}`, 'report');
+            setScanReport(rep);
+            speak(`Rapport: ${rep.summary}`, true);
+          }
+        }
 
         // Etiketter och HUD-data
         labels = new Map();
@@ -274,7 +315,19 @@ export default function App() {
         fastest: fastestRef.current,
         log: logRef.current,
         analysis: analysisRef.current,
+        cam: egoRef.current.state,
+        scanLeft: scanRef.current.active ? Math.max(0, scanRef.current.endsAt - performance.now()) : 0,
       });
+      // Spara tidslinjen i telefonen när något nytt tillkommit (bara text, inga bilder).
+      const top = logRef.current[0]?.id ?? 0;
+      if (top !== savedLogIdRef.current) {
+        savedLogIdRef.current = top;
+        try {
+          localStorage.setItem(TIMELINE_KEY, JSON.stringify(logRef.current));
+        } catch {
+          /* fullt/privat läge */
+        }
+      }
     }, 250);
     return () => clearInterval(id);
   }, [running]);
@@ -288,6 +341,10 @@ export default function App() {
     c?.getContext('2d')?.clearRect(0, 0, c.width, c.height);
     trackerRef.current.reset();
     analyzerRef.current.reset();
+    egoRef.current.reset();
+    scanRef.current.endsAt = 0;
+    wakeLockRef.current?.release().catch(() => {});
+    wakeLockRef.current = null;
     hudRef.current = [];
     setHud((h) => ({ ...h, fps: 0, inferMs: 0, objs: [] }));
     setRunning(false);
@@ -353,6 +410,8 @@ export default function App() {
         runningRef.current = true;
         setRunning(true);
         loop();
+        // Håll skärmen tänd medan appen kör (stöds i iOS 16.4+).
+        navigator.wakeLock?.request('screen').then((l) => (wakeLockRef.current = l)).catch(() => {});
       } catch (e) {
         streamRef.current?.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
@@ -423,8 +482,40 @@ export default function App() {
     }
   };
 
+  const startScan = () => {
+    if (!running) return;
+    setScanReport(null);
+    scanRef.current.start(performance.now());
+  };
+
+  const exportCsv = async () => {
+    const esc = (t: string) => `"${t.replace(/"/g, '""').replace(/\n/g, ' | ')}"`;
+    const rows = ['datum;tid;typ;händelse', ...[...logRef.current].reverse().map((l) => [l.iso.slice(0, 10), l.time, l.cat, esc(l.text)].join(';'))];
+    const blob = new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const name = `axalmo-tidslinje-${new Date().toISOString().slice(0, 10)}.csv`;
+    const file = new File([blob], name, { type: 'text/csv' });
+    try {
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Axalmo tidslinje' });
+        return;
+      }
+    } catch {
+      /* avbrutet – fall tillbaka till nedladdning */
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  };
+
   const resetStats = () => {
     logRef.current = [];
+    try {
+      localStorage.removeItem(TIMELINE_KEY);
+    } catch {
+      /* ignorera */
+    }
     seenRef.current = { människa: 0, djur: 0, fordon: 0, föremål: 0 };
     fastestRef.current = null;
     setHud((h) => ({ ...h, log: [], seen: { ...seenRef.current }, fastest: null }));
@@ -488,6 +579,7 @@ export default function App() {
           <span className={`chip model-${modelStatus === 'redo' ? 'ok' : modelStatus === 'fel' ? 'err' : 'idle'}`}>
             {modelStatus === 'redo' && activeDelegate ? `AI · ${activeDelegate}` : `Modell: ${modelStatus}`}
           </span>
+          {running && <span className={`chip cam-${hud.cam === 'stilla' ? 'ok' : 'move'}`}>📷 {hud.cam}</span>}
           {kmhActive && <span className="chip warn-chip">km/h</span>}
         </div>
       </header>
@@ -506,6 +598,26 @@ export default function App() {
           <div className="placeholder">
             <div className="spinner" />
             <p>{modelStatus === 'laddar…' ? 'Laddar AI-modeller…' : 'Startar kamera…'}</p>
+          </div>
+        )}
+        {hud.scanLeft > 0 && (
+          <div className="scan-overlay">
+            <div className="scan-line" />
+            <div className="banner scan">Skannar… {Math.ceil(hud.scanLeft / 1000)} s – håll kameran mot området</div>
+            <div className="scan-bar" style={{ width: `${100 - (hud.scanLeft / SCAN_MS) * 100}%` }} />
+          </div>
+        )}
+        {scanReport && (
+          <div className="report" onPointerDown={(e) => e.stopPropagation()}>
+            <div className="report-head">
+              <span>✦ LÄGESRAPPORT {clock()}</span>
+              <button onClick={() => setScanReport(null)} aria-label="Stäng">✕</button>
+            </div>
+            <div className="report-title">{scanReport.title}</div>
+            {scanReport.lines.map((l, i) => (
+              <div key={i} className="report-line">{l}</div>
+            ))}
+            <div className="small">Sparad i tidslinjen.</div>
           </div>
         )}
         {calibMode && <div className="banner">Tryck på punkt {calibPts.length + 1} av 2 med känd sträcka</div>}
@@ -527,7 +639,7 @@ export default function App() {
                 <div className="ai-head">
                   <span>✦ AI-ANALYS</span>
                   <span className="muted">
-                    {hud.analysis.scene} · ljus {hud.analysis.light} · aktivitet {hud.analysis.level}
+                    {hud.analysis.scene} · ljus {hud.analysis.light} · aktivitet {hud.analysis.level} · kamera {hud.cam}
                   </span>
                 </div>
                 {hud.analysis.lines.length === 0 ? (
@@ -650,7 +762,7 @@ export default function App() {
 
       {panel === 'log' && (
         <div className="panel log">
-          <h3>Logg & statistik</h3>
+          <h3>Tidslinje & statistik</h3>
           <div className="stats">
             {CATS.map((c) => (
               <div key={c} className="stat" style={{ color: CATEGORY_COLOR[c] }}>
@@ -664,9 +776,18 @@ export default function App() {
               ? `Snabbast hittills: ${hud.fastest.name}, ${Math.round(hud.fastest.pxs)} px/s${fmtKmh(hud.fastest.kmh)}${hud.fastest.kmh !== null ? ' (uppskattning)' : ''}`
               : 'Ingen rörelse uppmätt än.'}
           </p>
+          <div className="filters">
+            {FILTERS.map((f) => (
+              <button key={f.id} className={logFilter === f.id ? 'sel' : ''} onClick={() => setLogFilter(f.id)}>
+                {f.label}
+              </button>
+            ))}
+          </div>
           <ul>
-            {hud.log.length === 0 && <li className="small">Inget registrerat än.</li>}
-            {hud.log.map((l) => (
+            {hud.log.filter((l) => FILTERS.find((f) => f.id === logFilter)!.match(l.cat)).length === 0 && (
+              <li className="small">Inget registrerat här än.</li>
+            )}
+            {hud.log.filter((l) => FILTERS.find((f) => f.id === logFilter)!.match(l.cat)).map((l) => (
               <li key={l.id}>
                 <span className="time">{l.time}</span>
                 <span style={{ color: colorOf(l.cat) }}>●</span> {l.text}
@@ -674,7 +795,8 @@ export default function App() {
             ))}
           </ul>
           <div className="row">
-            <button className="btn danger" onClick={resetStats}>Nollställ</button>
+            <button className="btn secondary" disabled={!hud.log.length} onClick={exportCsv}>Exportera CSV</button>
+            <button className="btn danger" onClick={resetStats}>Rensa</button>
             <button className="btn secondary" onClick={() => setPanel(null)}>Stäng</button>
           </div>
         </div>
@@ -684,11 +806,14 @@ export default function App() {
         <button className={`btn big ${running ? 'danger' : 'primary'}`} disabled={busy} onClick={toggleRun}>
           {busy ? '…' : running ? 'Stopp' : 'Starta'}
         </button>
+        <button className="btn big scan-btn" disabled={!running || hud.scanLeft > 0} onClick={startScan}>
+          ◎ Skanna
+        </button>
         <button className="btn" disabled={busy} onClick={switchCamera}>
           {facing === 'user' ? 'Fram' : 'Bak'} ⇄
         </button>
         <button className={`btn ${panel === 'log' ? 'active' : ''}`} onClick={() => togglePanel('log')}>
-          Logg{hud.log.length ? ` (${hud.log.length})` : ''}
+          Tidslinje{hud.log.length ? ` (${hud.log.length})` : ''}
         </button>
         <button className={`btn ${panel === 'settings' || panel === 'calib' ? 'active' : ''}`} onClick={() => togglePanel('settings')}>
           ⚙︎
