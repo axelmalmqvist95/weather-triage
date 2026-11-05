@@ -4,6 +4,7 @@ import { createDetector, createPose, type Delegate, type ModelVariant } from './
 import { ObjectTracker, directionLabel, speedOf, type Obj, type TrackEvent } from './tracker';
 import { CATEGORY_COLOR, CATEGORY_PLURAL, type Category } from './labels';
 import { drawFrame, toVideo, type View } from './draw';
+import { Analyzer, measureLuma, type Insight } from './analyze';
 
 type Facing = 'user' | 'environment';
 type ModelStatus = 'ej laddad' | 'laddar…' | 'redo' | 'fel';
@@ -11,7 +12,10 @@ type Panel = 'settings' | 'calib' | 'log' | null;
 
 interface Calibration { metersPerPx: number; pts: { x: number; y: number }[]; vw: number; vh: number; facing: Facing }
 interface HudObj { id: number; name: string; cat: Category; score: number; pxs: number; kmh: number | null; dir: string; secs: number }
-interface LogEntry { id: number; time: string; text: string; cat: Category }
+type LogCat = Insight['cat'];
+interface LogEntry { id: number; time: string; text: string; cat: LogCat }
+interface AnalysisView { scene: string; light: string; level: string; lines: Insight[] }
+const colorOf = (c: LogCat) => (c === 'ai' ? '#c9b6ff' : c === 'alert' ? '#ff4d6d' : CATEGORY_COLOR[c]);
 interface Fastest { name: string; pxs: number; kmh: number | null }
 
 const CATS: Category[] = ['människa', 'djur', 'fordon', 'föremål'];
@@ -76,6 +80,10 @@ export default function App() {
   const seenRef = useRef<Record<Category, number>>({ människa: 0, djur: 0, fordon: 0, föremål: 0 });
   const fastestRef = useRef<Fastest | null>(null);
   const logIdRef = useRef(0);
+  const analyzerRef = useRef(new Analyzer());
+  const analysisRef = useRef<AnalysisView>({ scene: '–', light: '–', level: '–', lines: [] });
+  const voiceRef = useRef(false);
+  const lastSpeakRef = useRef(0);
 
   const [running, setRunning] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -86,6 +94,7 @@ export default function App() {
   const [variant, setVariant] = useState<ModelVariant>(() => load('axalmo-variant', ['lite', 'full'] as const, 'lite'));
   const [skeleton, setSkeleton] = useState(() => load('axalmo-skeleton', ['on', 'off'] as const, 'on') === 'on');
   const [numPoses, setNumPoses] = useState(1);
+  const [voice, setVoice] = useState(() => load('axalmo-voice', ['on', 'off'] as const, 'off') === 'on');
   const [error, setError] = useState<string | null>(null);
   const [hud, setHud] = useState({
     fps: 0,
@@ -94,6 +103,7 @@ export default function App() {
     seen: { ...seenRef.current },
     fastest: null as Fastest | null,
     log: [] as LogEntry[],
+    analysis: analysisRef.current,
   });
   const [panel, setPanel] = useState<Panel>(null);
   const [calibMode, setCalibMode] = useState(false);
@@ -107,6 +117,7 @@ export default function App() {
   stillRef.current = cameraStill;
   facingRef.current = facing;
   skeletonRef.current = skeleton;
+  voiceRef.current = voice;
 
   const view = useCallback((): View | null => {
     const v = videoRef.current, st = stageRef.current;
@@ -114,8 +125,21 @@ export default function App() {
     return { cw: st.clientWidth, ch: st.clientHeight, vw: v.videoWidth, vh: v.videoHeight, mirrored: facingRef.current === 'user' };
   }, []);
 
-  const pushLog = useCallback((text: string, cat: Category) => {
-    logRef.current = [{ id: ++logIdRef.current, time: clock(), text, cat }, ...logRef.current].slice(0, 60);
+  const pushLog = useCallback((text: string, cat: LogCat) => {
+    logRef.current = [{ id: ++logIdRef.current, time: clock(), text, cat }, ...logRef.current].slice(0, 80);
+  }, []);
+
+  /** Läser upp text på svenska (lokal talsyntes). Larm går alltid före. */
+  const speak = useCallback((text: string, urgent = false) => {
+    if (!voiceRef.current || !('speechSynthesis' in window)) return;
+    const now = performance.now();
+    if (!urgent && now - lastSpeakRef.current < 2500) return;
+    lastSpeakRef.current = now;
+    const u = new SpeechSynthesisUtterance(text.replace('⚠', 'Varning,'));
+    u.lang = 'sv-SE';
+    u.rate = 1.1;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
   }, []);
 
   // Huvudloop: ritar varje skärmuppdatering; inferens bara när huvudtråden har tid över (~60 %).
@@ -129,6 +153,9 @@ export default function App() {
     let nextInferAt = 0;
     let tick = 0;
     let labels = new Map<number, string[]>();
+    const lumaCanvas = document.createElement('canvas');
+    let luma: number | null = null;
+    let lastLumaAt = 0;
 
     const kmhFor = (pxs: number, v: View) => {
       const cal = calibRef.current;
@@ -179,6 +206,18 @@ export default function App() {
         const cost = t1 - now;
         nextInferAt = t1 + cost * 0.6;
 
+        // AI-analys (lokal, regelbaserad)
+        if (now - lastLumaAt > 1500) {
+          lastLumaAt = now;
+          luma = measureLuma(video, lumaCanvas);
+        }
+        const an = analyzerRef.current.analyze(tracker.visible(now), now, v.vw, v.vh, v.mirrored, luma);
+        for (const ev of an.events) {
+          pushLog(ev.text, ev.cat);
+          speak(ev.text, ev.cat === 'alert');
+        }
+        analysisRef.current = { scene: an.scene, light: an.light, level: an.level, lines: an.lines };
+
         // Etiketter och HUD-data
         labels = new Map();
         const hudObjs: HudObj[] = [];
@@ -190,7 +229,10 @@ export default function App() {
           if (o.hits > 5 && (!fastestRef.current || o.maxSpeed > fastestRef.current.pxs) && o.maxSpeed >= 20) {
             fastestRef.current = { name: o.name, pxs: o.maxSpeed, kmh: kmhFor(o.maxSpeed, v) };
           }
-          const l = [`${o.name} ${Math.round(o.score * 100)}%`, `${Math.round(pxs)} px/s · ${dir}`];
+          const act = an.acts.get(o.id);
+          const l = [`${o.name} ${o.id} · ${Math.round(o.score * 100)}%`];
+          if (act && o.cat !== 'föremål') l.push(act);
+          l.push(`${Math.round(pxs)} px/s · ${dir}`);
           if (kmh !== null) l.push(`≈ ${kmh.toFixed(1)} km/h (uppsk.)`);
           labels.set(o.id, l);
           hudObjs.push({ id: o.id, name: o.name, cat: o.cat, score: o.score, pxs, kmh, dir, secs });
@@ -217,7 +259,7 @@ export default function App() {
       drawFrame(ctx, v, objs, labels, calibPtsRef.current.length ? calibPtsRef.current : calibRef.current?.pts ?? [], now);
     };
     step();
-  }, [view, pushLog]);
+  }, [view, pushLog, speak]);
 
   // HUD uppdateras 4 ggr/s (billigare än React-render per bildruta).
   useEffect(() => {
@@ -231,6 +273,7 @@ export default function App() {
         seen: { ...seenRef.current },
         fastest: fastestRef.current,
         log: logRef.current,
+        analysis: analysisRef.current,
       });
     }, 250);
     return () => clearInterval(id);
@@ -244,6 +287,7 @@ export default function App() {
     const c = canvasRef.current;
     c?.getContext('2d')?.clearRect(0, 0, c.width, c.height);
     trackerRef.current.reset();
+    analyzerRef.current.reset();
     hudRef.current = [];
     setHud((h) => ({ ...h, fps: 0, inferMs: 0, objs: [] }));
     setRunning(false);
@@ -367,6 +411,18 @@ export default function App() {
     }
   };
 
+  const toggleVoice = (on: boolean) => {
+    setVoice(on);
+    voiceRef.current = on;
+    save('axalmo-voice', on ? 'on' : 'off');
+    // iOS kräver att talsyntesen startas från en knapptryckning.
+    if (on && 'speechSynthesis' in window) {
+      const u = new SpeechSynthesisUtterance('Röstanalys på');
+      u.lang = 'sv-SE';
+      window.speechSynthesis.speak(u);
+    }
+  };
+
   const resetStats = () => {
     logRef.current = [];
     seenRef.current = { människa: 0, djur: 0, fordon: 0, föremål: 0 };
@@ -467,18 +523,31 @@ export default function App() {
               )}
             </div>
             <div className="hud">
-              {[...hud.objs]
-                .sort((a, b) => b.pxs - a.pxs)
-                .slice(0, 4)
-                .map((o) => (
-                  <div key={o.id} className="hud-row" style={{ borderLeftColor: CATEGORY_COLOR[o.cat] }}>
-                    <b style={{ color: CATEGORY_COLOR[o.cat] }}>{o.name}</b> {Math.round(o.pxs)} px/s · {o.dir} · {o.secs.toFixed(0)} s
-                    {o.kmh !== null && <span className="kmh"> ≈ {o.kmh.toFixed(1)} km/h (uppskattning)</span>}
+              <div className="ai-card">
+                <div className="ai-head">
+                  <span>✦ AI-ANALYS</span>
+                  <span className="muted">
+                    {hud.analysis.scene} · ljus {hud.analysis.light} · aktivitet {hud.analysis.level}
+                  </span>
+                </div>
+                {hud.analysis.lines.length === 0 ? (
+                  <div className="ai-line muted">Söker efter människor, djur, fordon och föremål…</div>
+                ) : (
+                  hud.analysis.lines.map((l, i) => (
+                    <div key={i} className="ai-line" style={{ borderLeftColor: colorOf(l.cat) }}>
+                      {l.text}
+                    </div>
+                  ))
+                )}
+                {hud.log[0] && (
+                  <div className="ai-event" style={{ color: colorOf(hud.log[0].cat) }}>
+                    {hud.log[0].time} · {hud.log[0].text}
                   </div>
-                ))}
-              <div className="hud-row muted">
-                Inferens {hud.inferMs.toFixed(0)} ms
-                {hud.fastest && ` · Snabbast: ${hud.fastest.name} ${Math.round(hud.fastest.pxs)} px/s${fmtKmh(hud.fastest.kmh)}`}
+                )}
+                <div className="ai-foot">
+                  {hud.inferMs.toFixed(0)} ms
+                  {hud.fastest && ` · Snabbast: ${hud.fastest.name} ${Math.round(hud.fastest.pxs)} px/s${fmtKmh(hud.fastest.kmh)}`}
+                </div>
               </div>
             </div>
           </>
@@ -503,6 +572,13 @@ export default function App() {
                   {d}
                 </button>
               ))}
+            </div>
+          </div>
+          <div className="setting">
+            <span>Röst läser upp analysen</span>
+            <div className="seg">
+              <button className={voice ? 'sel' : ''} onClick={() => toggleVoice(true)}>På</button>
+              <button className={!voice ? 'sel' : ''} onClick={() => toggleVoice(false)}>Av</button>
             </div>
           </div>
           <div className="setting">
@@ -593,7 +669,7 @@ export default function App() {
             {hud.log.map((l) => (
               <li key={l.id}>
                 <span className="time">{l.time}</span>
-                <span style={{ color: CATEGORY_COLOR[l.cat] }}>●</span> {l.text}
+                <span style={{ color: colorOf(l.cat) }}>●</span> {l.text}
               </li>
             ))}
           </ul>

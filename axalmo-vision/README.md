@@ -34,12 +34,20 @@ till `public/`. Därefter serveras allt från appens egen adress.
 3. Varje sak får namn och säkerhet (t.ex. "Hund 86 %"), hastighet i **px/s**, riktning
    (höger/vänster/upp/ner), **närmar sig/avlägsnar sig** och hur länge den varit i bild.
 4. Personer får dessutom ett **skelett** (MediaPipe Pose).
-5. Överst i bilden visas en sammanfattning, t.ex. "1 människa · 2 djur".
-6. **Logg** visar allt som dykt upp och lämnat bilden med klockslag, tid i bild och toppfart, plus
+5. **✦ AI-analys** (kortet nederst) beskriver i klartext vad som händer, t.ex.
+   "Människa 1 går åt vänster, mot kameran och håller i en mobil" eller "Hund 3 springer åt höger".
+   - Aktivitet för personer: står still, går, springer, sitter, ligger ner, är på huk, hoppar, räcker upp handen.
+   - Samspel: håller i föremål, cyklar, sitter i soffan/på stol, går med hunden, vid en bil, personer nära varandra.
+   - Miljö gissas från föremålen (kök, vardagsrum, kontor, badrum, gata, natur …), ljusnivå och aktivitetsnivå.
+   - Händelser loggas: "började springa", "satte sig", "Två personer möts" och **⚠ Möjligt fall**.
+   - **Röst** (⚙︎) läser upp händelserna på svenska.
+   Analysen är regelbaserad och körs lokalt – den kan ha fel och är ingen larmtjänst.
+6. Överst i bilden visas en sammanfattning, t.ex. "1 människa · 2 djur".
+7. **Logg** visar allt som dykt upp och lämnat bilden med klockslag, tid i bild och toppfart, plus
    antal per kategori och snabbaste rörelsen hittills. Inget sparas när appen stängs.
    En person som går ut och in räknas två gånger – appen identifierar aldrig individer.
-7. **⚙︎ Inställningar**: CPU/GPU, skelett på/av, Snabb/Exakt skelettmodell, antal skelett och kalibrering.
-8. **Bak ⇄ / Fram** byter kamera. Framkameran visas spegelvänd.
+8. **⚙︎ Inställningar**: röst på/av, CPU/GPU, skelett på/av, Snabb/Exakt skelettmodell, antal skelett och kalibrering.
+9. **Bak ⇄ / Fram** byter kamera. Framkameran visas spegelvänd.
 
 ### km/h (uppskattning)
 
@@ -118,6 +126,7 @@ därefter fungerar den offline.
 |---|---|
 | `src/App.tsx` | UI, kamera (getUserMedia), huvudloop, kalibrering |
 | `src/vision.ts` | Laddar objektdetektor och Pose Landmarker, vald delegat med den andra som reserv |
+| `src/analyze.ts` | Lokal AI-analys: aktivitet, samspel, miljö, ljus, händelser och fall |
 | `src/labels.ts` | Svenska namn och kategorier för de 80 klasserna |
 | `src/filter.ts` | One Euro-filter som stabiliserar rutor och kroppspunkter |
 | `src/tracker.ts` | Spårning per klass (IoU), hastighet, riktning, tid i bild, in/ut-händelser |
