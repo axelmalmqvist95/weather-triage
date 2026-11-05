@@ -6,19 +6,21 @@ import { countByKind, filterEvents } from '../ontology/search.ts';
 import { buildGraph, neighbours, type GraphNode } from '../ontology/graph.ts';
 import {
   EVENT_KINDS, SEVERITY_LABEL,
-  type EventKind, type Observation, type OntologyEvent, type Property, type Space, type SubjectType,
+  workspaceKind, type EventKind, type SubjectType,
 } from '../ontology/schema.ts';
+import MemoryPanel from '../memory/MemoryPanel.tsx';
+import type { MemoryData } from '../memory/recall.ts';
 import './intelligence.css';
 
-interface Data { properties: Property[]; spaces: Space[]; observations: Observation[]; events: OntologyEvent[] }
-const EMPTY: Data = { properties: [], spaces: [], observations: [], events: [] };
-type Tab = 'logg' | 'graf';
+type Data = MemoryData;
+const EMPTY: Data = { properties: [], spaces: [], items: [], observations: [], relations: [], events: [] };
+type Tab = 'logg' | 'graf' | 'minne';
 
 const KIND_COLOR: Record<EventKind, string> = {
-  skapad: '#00e5ff', uppdaterad: '#7d97a3', 'status-ändrad': '#b6ff3d', inspektion: '#ffd23d', 'ai-förslag': '#c9b6ff', kommentar: '#ff9f1c',
+  skapad: '#00e5ff', uppdaterad: '#7d97a3', 'status-ändrad': '#b6ff3d', inspektion: '#ffd23d', 'ai-förslag': '#c9b6ff', kommentar: '#ff9f1c', flyttad: '#ff3df2', relation: '#7fd1ff',
 };
 const SEV_COLOR = { 1: '#7d97a3', 2: '#ffd23d', 3: '#ff9f1c', 4: '#ff4d6d' } as const;
-const SUBJECT_LABEL: Record<SubjectType, string> = { property: 'Fastighet', space: 'Yta', observation: 'Observation' };
+const SUBJECT_LABEL: Record<SubjectType, string> = { property: 'Arbetsyta', space: 'Plats', item: 'Föremål', observation: 'Observation', relation: 'Relation' };
 
 const fmt = (iso: string) =>
   new Date(iso).toLocaleString('sv-SE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
@@ -29,7 +31,7 @@ export default function IntelligenceView() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [persisted, setPersisted] = useState<boolean | null>(null);
-  const [tab, setTab] = useState<Tab>('logg');
+  const [tab, setTab] = useState<Tab>(() => (window.location.hash.includes('/minne') ? 'minne' : 'logg'));
   const [text, setText] = useState('');
   const [kinds, setKinds] = useState<EventKind[]>([]);
   const [subjects, setSubjects] = useState<SubjectType[]>([]);
@@ -37,8 +39,10 @@ export default function IntelligenceView() {
   const [selected, setSelected] = useState<string | null>(null);
 
   const reload = useCallback(async (s: OntologyStore) => {
-    const [properties, spaces, observations, events] = await Promise.all([s.all('property'), s.all('space'), s.all('observation'), s.events()]);
-    setData({ properties, spaces, observations, events });
+    const [properties, spaces, items, observations, relations, events] = await Promise.all([
+      s.all('property'), s.all('space'), s.all('item'), s.all('observation'), s.all('relation'), s.events(),
+    ]);
+    setData({ properties, spaces, items, observations, relations, events });
   }, []);
 
   useEffect(() => {
@@ -99,6 +103,7 @@ export default function IntelligenceView() {
     const m = new Map<string, string>();
     for (const p of data.properties) m.set(p.id, p.name);
     for (const s of data.spaces) m.set(s.id, s.name);
+    for (const i of data.items) m.set(i.id, i.name);
     for (const o of data.observations) m.set(o.id, o.title);
     return m;
   }, [data]);
@@ -136,7 +141,7 @@ export default function IntelligenceView() {
 
       <main className="intel-main">
         <section className="intel-stats">
-          <Stat n={data.properties.length} label="fastigheter" />
+          <Stat n={data.properties.length} label="arbetsytor" />
           <Stat n={data.spaces.length} label="ytor" />
           <Stat n={openCount} label="aktiva obs." />
           <Stat n={critical} label="kritiska" danger={critical > 0} />
@@ -156,12 +161,13 @@ export default function IntelligenceView() {
           <>
             <nav className="intel-tabs" role="tablist">
               <button role="tab" aria-selected={tab === 'logg'} className={tab === 'logg' ? 'sel' : ''} onClick={() => setTab('logg')}>Händelselogg</button>
-              <button role="tab" aria-selected={tab === 'graf'} className={tab === 'graf' ? 'sel' : ''} onClick={() => setTab('graf')}>Relationsgraf</button>
+              <button role="tab" aria-selected={tab === 'graf'} className={tab === 'graf' ? 'sel' : ''} onClick={() => setTab('graf')}>Graf</button>
+              <button role="tab" aria-selected={tab === 'minne'} className={tab === 'minne' ? 'sel' : ''} onClick={() => { setTab('minne'); setSelected(null); }}>Minne</button>
             </nav>
 
-            <div className="intel-filters">
+            {tab !== 'minne' && <div className="intel-filters">
               <select value={propertyId} onChange={(e) => { setPropertyId(e.target.value); setSelected(null); }} aria-label="Fastighet">
-                {tab === 'logg' && <option value="">Alla fastigheter</option>}
+                {tab === 'logg' && <option value="">Alla arbetsytor</option>}
                 {data.properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
               {tab === 'logg' && (
@@ -184,9 +190,11 @@ export default function IntelligenceView() {
                   </div>
                 </>
               )}
-            </div>
+            </div>}
 
-            {tab === 'logg' ? (
+            {tab === 'minne' ? (
+              <MemoryPanel data={data} labels={labels} />
+            ) : tab === 'logg' ? (
               <section>
                 <p className="intel-muted">{filtered.length} av {data.events.length} händelser</p>
                 <ul className="intel-log">
@@ -225,7 +233,7 @@ export default function IntelligenceView() {
               </section>
             )}
 
-            {selected && <Detail id={selected} data={data} labels={labels} onClose={() => setSelected(null)} onGraph={tab === 'logg' ? () => showInGraph(selected) : undefined} />}
+            {selected && tab !== 'minne' && <Detail id={selected} data={data} labels={labels} onClose={() => setSelected(null)} onGraph={tab === 'logg' ? () => showInGraph(selected) : undefined} />}
 
             <footer className="intel-actions">
               <button className="intel-btn" disabled={busy} onClick={exportJson}>Exportera JSON</button>
@@ -273,13 +281,13 @@ function Detail({ id, data, labels, onClose, onGraph }: { id: string; data: Data
   const o = data.observations.find((x) => x.id === id);
   const events = filterEvents(data.events, { subjectId: id });
   const rows: [string, string][] = p
-    ? [['Typ', 'Fastighet'], ['Adress', p.address], ['Kommun', p.municipality ?? '–'], ['Byggår', String(p.buildYear ?? '–')],
+    ? [['Typ', `Arbetsyta (${workspaceKind(p)})`], ['Adress', p.address ?? '–'], ['Kommun', p.municipality ?? '–'], ['Byggår', String(p.buildYear ?? '–')],
        ['Ytor', String(data.spaces.filter((x) => x.propertyId === p.id).length)], ['Observationer', String(data.observations.filter((x) => x.propertyId === p.id).length)]]
     : s
       ? [['Typ', `Yta (${s.kind})`], ['Fastighet', labels.get(s.propertyId) ?? '–'], ['Del av', s.parentSpaceId ? labels.get(s.parentSpaceId) ?? '–' : '–'],
          ['Plan', String(s.floor ?? '–')], ['Yta', s.areaM2 ? `${s.areaM2} m²` : '–'], ['Observationer', String(data.observations.filter((x) => x.spaceId === s.id).length)]]
       : o
-        ? [['Typ', `Observation (${o.category})`], ['Yta', labels.get(o.spaceId) ?? '–'], ['Allvarlighet', `${o.severity} – ${SEVERITY_LABEL[o.severity]}`],
+        ? [['Typ', `Observation (${o.category})`], ['Plats', o.spaceId ? labels.get(o.spaceId) ?? '–' : '–'], ['Föremål', o.itemId ? labels.get(o.itemId) ?? '–' : '–'], ['Allvarlighet', `${o.severity} – ${SEVERITY_LABEL[o.severity]}`],
            ['Status', o.status], ['Källa', o.source + (o.confidence !== undefined ? ` (${Math.round(o.confidence * 100)} %)` : '')], ['Observerad', fmt(o.observedAt)], ...(o.note ? [['Anteckning', o.note] as [string, string]] : [])]
         : [];
   return (

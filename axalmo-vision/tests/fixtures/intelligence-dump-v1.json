@@ -1,0 +1,186 @@
+{
+  "format": "axalmo-intelligence",
+  "schemaVersion": 1,
+  "exportedAt": "2026-01-10T12:00:00.000Z",
+  "properties": [
+    {
+      "type": "property",
+      "id": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "createdAt": "2026-01-10T08:01:00.000Z",
+      "updatedAt": "2026-01-10T08:01:00.000Z",
+      "name": "Brf Fixtur (v1)",
+      "address": "Testgatan 1",
+      "municipality": "Exempelstad",
+      "buildYear": 1970
+    }
+  ],
+  "spaces": [
+    {
+      "type": "space",
+      "id": "space_60dbf6d4-f9c1-408e-8b74-449e1c59e7de",
+      "createdAt": "2026-01-10T08:05:00.000Z",
+      "updatedAt": "2026-01-10T08:05:00.000Z",
+      "propertyId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "name": "Tvättstuga",
+      "kind": "tvättstuga",
+      "parentSpaceId": "space_9d329e22-58c1-470c-9aad-4c31fd17d83e",
+      "areaM2": 12
+    },
+    {
+      "type": "space",
+      "id": "space_9d329e22-58c1-470c-9aad-4c31fd17d83e",
+      "createdAt": "2026-01-10T08:03:00.000Z",
+      "updatedAt": "2026-01-10T08:03:00.000Z",
+      "propertyId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "name": "Källare",
+      "kind": "källare",
+      "floor": -1
+    }
+  ],
+  "observations": [
+    {
+      "spaceId": "space_60dbf6d4-f9c1-408e-8b74-449e1c59e7de",
+      "title": "Fukt vid golvbrunn",
+      "category": "fukt",
+      "severity": 3,
+      "note": "18 % RF",
+      "type": "observation",
+      "id": "obs_68190c3e-3c4b-42fb-a5d7-49aec82a9d5b",
+      "createdAt": "2026-01-10T08:07:00.000Z",
+      "updatedAt": "2026-01-10T08:11:00.000Z",
+      "propertyId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "status": "bekräftad",
+      "source": "manuell",
+      "observedAt": "2026-01-10T08:07:00.000Z"
+    },
+    {
+      "spaceId": "space_9d329e22-58c1-470c-9aad-4c31fd17d83e",
+      "title": "Rost på rör",
+      "category": "rost",
+      "severity": 2,
+      "source": "ai-förslag",
+      "confidence": 0.72,
+      "type": "observation",
+      "id": "obs_7b8986d6-8156-4268-aef8-ea8e38cd9c26",
+      "createdAt": "2026-01-10T08:09:00.000Z",
+      "updatedAt": "2026-01-10T08:13:00.000Z",
+      "propertyId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "status": "avvisad",
+      "observedAt": "2026-01-10T08:09:00.000Z"
+    }
+  ],
+  "events": [
+    {
+      "type": "event",
+      "id": "evt_64890e5d-a1f2-4eb0-8564-aef5fccacde2",
+      "at": "2026-01-10T08:02:00.000Z",
+      "kind": "skapad",
+      "subjectType": "property",
+      "subjectId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "propertyId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "summary": "Fastighet skapad: Brf Fixtur (v1)",
+      "actor": "inspektör"
+    },
+    {
+      "type": "event",
+      "id": "evt_812599b1-1ad1-4fe2-9edb-8fcb049ade7e",
+      "at": "2026-01-10T08:04:00.000Z",
+      "kind": "skapad",
+      "subjectType": "space",
+      "subjectId": "space_9d329e22-58c1-470c-9aad-4c31fd17d83e",
+      "propertyId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "summary": "Yta skapad: Källare (källare)",
+      "actor": "inspektör",
+      "data": {
+        "kind": "källare"
+      }
+    },
+    {
+      "type": "event",
+      "id": "evt_98ac3e4d-7639-49e7-9ceb-f813493ba7d9",
+      "at": "2026-01-10T08:06:00.000Z",
+      "kind": "skapad",
+      "subjectType": "space",
+      "subjectId": "space_60dbf6d4-f9c1-408e-8b74-449e1c59e7de",
+      "propertyId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "summary": "Yta skapad: Tvättstuga (tvättstuga)",
+      "actor": "inspektör",
+      "data": {
+        "kind": "tvättstuga"
+      }
+    },
+    {
+      "type": "event",
+      "id": "evt_522d63e3-4fba-475c-98c4-216dbb149249",
+      "at": "2026-01-10T08:08:00.000Z",
+      "kind": "skapad",
+      "subjectType": "observation",
+      "subjectId": "obs_68190c3e-3c4b-42fb-a5d7-49aec82a9d5b",
+      "propertyId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "summary": "Observation i Tvättstuga: Fukt vid golvbrunn",
+      "actor": "inspektör",
+      "data": {
+        "category": "fukt",
+        "severity": 3,
+        "spaceId": "space_60dbf6d4-f9c1-408e-8b74-449e1c59e7de"
+      }
+    },
+    {
+      "type": "event",
+      "id": "evt_52e37bb9-217b-4eb9-83d8-db91cb24ac9e",
+      "at": "2026-01-10T08:10:00.000Z",
+      "kind": "ai-förslag",
+      "subjectType": "observation",
+      "subjectId": "obs_7b8986d6-8156-4268-aef8-ea8e38cd9c26",
+      "propertyId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "summary": "AI-förslag i Källare: Rost på rör (72 %)",
+      "actor": "inspektör",
+      "data": {
+        "category": "rost",
+        "severity": 2,
+        "spaceId": "space_9d329e22-58c1-470c-9aad-4c31fd17d83e"
+      }
+    },
+    {
+      "type": "event",
+      "id": "evt_b75d27d1-5e3d-44a0-99f1-d88e44764169",
+      "at": "2026-01-10T08:12:00.000Z",
+      "kind": "status-ändrad",
+      "subjectType": "observation",
+      "subjectId": "obs_68190c3e-3c4b-42fb-a5d7-49aec82a9d5b",
+      "propertyId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "summary": "Fukt vid golvbrunn: öppen → bekräftad",
+      "actor": "inspektör",
+      "data": {
+        "från": "öppen",
+        "till": "bekräftad"
+      }
+    },
+    {
+      "type": "event",
+      "id": "evt_16e294bd-d1fd-48be-bf40-39922f145760",
+      "at": "2026-01-10T08:14:00.000Z",
+      "kind": "status-ändrad",
+      "subjectType": "observation",
+      "subjectId": "obs_7b8986d6-8156-4268-aef8-ea8e38cd9c26",
+      "propertyId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "summary": "Rost på rör: öppen → avvisad – Felaktigt förslag",
+      "actor": "inspektör",
+      "data": {
+        "från": "öppen",
+        "till": "avvisad"
+      }
+    },
+    {
+      "type": "event",
+      "id": "evt_a11cd196-56ed-4fc4-a4e7-4a4f350826cb",
+      "at": "2026-01-10T08:15:00.000Z",
+      "kind": "kommentar",
+      "subjectType": "property",
+      "subjectId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "propertyId": "prop_4daeee09-4fa1-4574-9f9a-18ba469193e4",
+      "summary": "Uppföljning planerad",
+      "actor": "inspektör"
+    }
+  ]
+}

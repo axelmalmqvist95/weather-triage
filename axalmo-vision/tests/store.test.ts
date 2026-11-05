@@ -13,7 +13,7 @@ const space = (propertyId: string, parentSpaceId?: string): Space => ({
 
 test('skapar objektlager och index vid första öppning', async () => {
   const { store } = await freshStore();
-  assert.deepEqual(await store.counts(), { property: 0, space: 0, observation: 0, event: 0 });
+  assert.deepEqual(await store.counts(), { property: 0, space: 0, item: 0, observation: 0, relation: 0, event: 0 });
   store.close();
 });
 
@@ -32,7 +32,7 @@ test('referensintegritet: yta utan fastighet avvisas och inget skrivs (atomiskt)
   const p = prop();
   const orphan = space(newId('property'));
   await assert.rejects(store.commit([p, orphan]), (e: unknown) => e instanceof ValidationError && e.issues.some((i) => i.includes('finns inte')));
-  assert.deepEqual(await store.counts(), { property: 0, space: 0, observation: 0, event: 0 });
+  assert.deepEqual(await store.counts(), { property: 0, space: 0, item: 0, observation: 0, relation: 0, event: 0 });
 });
 
 test('referensintegritet: underyta måste tillhöra samma fastighet', async () => {
@@ -40,7 +40,7 @@ test('referensintegritet: underyta måste tillhöra samma fastighet', async () =
   const a = prop(), b = prop();
   const parent = space(a.id);
   await store.commit([a, b, parent]);
-  await assert.rejects(store.commit([space(b.id, parent.id)]), /annan fastighet/);
+  await assert.rejects(store.commit([space(b.id, parent.id)]), /annan (fastighet|arbetsyta)/);
 });
 
 test('observation på yta i annan fastighet avvisas', async () => {
@@ -51,7 +51,7 @@ test('observation på yta i annan fastighet avvisas', async () => {
     type: 'observation', id: newId('observation'), createdAt: T, updatedAt: T, propertyId: b.id, spaceId: s.id, title: 'X',
     category: 'fukt', severity: 2, status: 'öppen', source: 'manuell', observedAt: T,
   };
-  await assert.rejects(store.commit([o]), /annan fastighet/);
+  await assert.rejects(store.commit([o]), /annan (fastighet|arbetsyta)/);
 });
 
 test('schemafel och integritetsfel avvisas innan transaktion', async () => {
@@ -121,5 +121,5 @@ test('clear tömmer alla lager', async () => {
   const { ont, store } = await freshOntology();
   await sampleTree(ont);
   await store.clear();
-  assert.deepEqual(await store.counts(), { property: 0, space: 0, observation: 0, event: 0 });
+  assert.deepEqual(await store.counts(), { property: 0, space: 0, item: 0, observation: 0, relation: 0, event: 0 });
 });

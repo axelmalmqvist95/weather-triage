@@ -13,18 +13,22 @@ const PATTERNS: { re: RegExp; what: string }[] = [
 ];
 
 function textFields(o: OntologyObject): string[] {
+  const str = (v: unknown) => (typeof v === 'string' ? v : '');
   switch (o.type) {
-    case 'property': return [o.name, o.address, o.municipality ?? ''];
+    case 'property': return [o.name, str(o.address), str(o.municipality)];
     case 'space': return [o.name];
-    case 'observation': return [o.title, o.note ?? ''];
-    case 'event': return [o.summary, ...Object.values(o.data ?? {}).filter((v): v is string => typeof v === 'string')];
+    case 'item': return [o.name, str(o.brand), str(o.model), str(o.note)];
+    case 'observation': return [o.title, str(o.note), ...Object.values(o.metadata ?? {}).map(str)];
+    case 'relation': return [str(o.note)];
+    case 'event': return [o.summary, ...Object.values(o.data ?? {}).map(str)];
   }
 }
 
 export function privacyIssues(o: OntologyObject): string[] {
   const issues: string[] = [];
-  if (o.type === 'event' && o.data) {
-    for (const k of Object.keys(o.data)) if (FORBIDDEN_KEY.test(k)) issues.push(`fältet "${k}" är inte tillåtet (persondata)`);
+  const keyed = o.type === 'event' ? o.data : o.type === 'observation' ? o.metadata : undefined;
+  if (keyed) {
+    for (const k of Object.keys(keyed)) if (FORBIDDEN_KEY.test(k)) issues.push(`fältet "${k}" är inte tillåtet (persondata)`);
   }
   for (const t of textFields(o)) {
     for (const p of PATTERNS) if (p.re.test(t)) issues.push(`text verkar innehålla ${p.what}`);

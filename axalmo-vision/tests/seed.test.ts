@@ -10,7 +10,7 @@ const BASE = new Date('2026-11-01T12:00:00.000Z');
 test('syntetisk data är giltig, integritetssäker och konsekvent', async () => {
   const { ont, store } = await freshOntology();
   const r = await seedSyntheticData(ont, { seed: 7, base: BASE });
-  assert.equal(r.properties, 3);
+  assert.equal(r.properties, 5, '3 fastigheter + 2 minnes-arbetsytor');
   assert.ok(r.spaces >= 15);
   assert.ok(r.observations >= 8);
   const dump = await store.exportDump();

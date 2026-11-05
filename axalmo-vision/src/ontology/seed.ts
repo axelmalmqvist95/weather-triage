@@ -153,9 +153,52 @@ export async function seedSyntheticData(ont: Ontology, opts: { seed?: number; ba
         }
       }
     }
+    // v2: minnes-demo (hem, bil, förråd) via samma capture-action som kameran använder
+    const mem = await seedMemoryDemo(ont, () => tick(30));
+    props += mem.properties;
+    spaces += mem.spaces;
+    observations += mem.observations;
   } finally {
     ont.now = prevNow;
     ont.actor = prevActor;
   }
   return { properties: props, spaces, observations };
+}
+
+/** Syntetiska minnen: samma föremål registrerat vid olika tillfällen för att demonstrera Recall/Compare. */
+async function seedMemoryDemo(ont: Ontology, next: () => Date) {
+  ont.now = next;
+  const det = (label: string, score: number) => ({ label, score, model: 'efficientdet_lite0' });
+  const first = await ont.capture({
+    workspace: { new: { name: 'Hemma (syntetisk)', kind: 'hem' } },
+    place: { new: { name: 'Kontor', kind: 'kontor' } },
+    item: { new: { name: 'Laptop', category: 'elektronik', brand: 'Exempelmärke', model: 'X1 demo' } },
+    observation: { title: 'Registrerad: Laptop', category: 'inventering', note: 'Laddare finns i lådan.' },
+    detection: det('laptop', 0.86),
+  });
+  const ws = first.workspace.id;
+  const vardagsrum = await ont.createSpace({ propertyId: ws, name: 'Vardagsrum', kind: 'rum' });
+  const forrad = await ont.createSpace({ propertyId: ws, name: 'Förråd', kind: 'förråd' });
+  await ont.capture({
+    workspace: { id: ws }, place: { id: vardagsrum.id }, item: { id: first.item.id },
+    observation: { title: 'Kontroll: Laptop', category: 'skick', severity: 2, note: 'Repa på locket. Laddare saknas.', metadata: { batteri: 'sämre' } },
+    detection: det('laptop', 0.71),
+  });
+  await ont.capture({
+    workspace: { id: ws }, place: { id: vardagsrum.id }, item: { new: { name: 'TV', category: 'elektronik' } },
+    observation: { title: 'Registrerad: TV', category: 'inventering' }, detection: det('tv', 0.9),
+  });
+  const cykel = await ont.capture({
+    workspace: { id: ws }, place: { id: forrad.id }, item: { new: { name: 'Cykel', category: 'fordon' } },
+    observation: { title: 'Registrerad: Cykel', category: 'inventering', note: 'Bakdäck lite luft.' }, detection: det('bicycle', 0.78),
+  });
+  await ont.createObservation({ itemId: cykel.item.id, title: 'Service', category: 'underhåll', severity: 1, note: 'Kedja smord, däck pumpade.' });
+  const bil = await ont.createWorkspace({ name: 'Bilen (syntetisk)', kind: 'bil' });
+  const bagage = await ont.createSpace({ propertyId: bil.id, name: 'Bagageutrymme', kind: 'fordon' });
+  const vaska = await ont.capture({
+    workspace: { id: bil.id }, place: { id: bagage.id }, item: { new: { name: 'Ryggsäck', category: 'kläder' } },
+    observation: { title: 'Registrerad: Ryggsäck', category: 'inventering', note: 'Första hjälpen-kit i ytterficka.' }, detection: det('backpack', 0.64),
+  });
+  await ont.relate({ fromType: 'item', fromId: vaska.item.id, toType: 'property', toId: bil.id, kind: 'tillhör' });
+  return { properties: 2, spaces: 5, observations: 6 };
 }

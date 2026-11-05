@@ -7,7 +7,7 @@ test('varje action skriver objekt och händelse', async () => {
   const { ont, store } = await freshOntology();
   const { p, tvätt, obs } = await sampleTree(ont);
   const c = await store.counts();
-  assert.deepEqual(c, { property: 1, space: 2, observation: 1, event: 4 });
+  assert.deepEqual(c, { property: 1, space: 2, item: 0, observation: 1, relation: 0, event: 4 });
   assert.equal(obs.propertyId, p.id, 'observation ärver fastighet från ytan');
   const evObs = await store.byIndex('event', 'subjectId', obs.id);
   assert.equal(evObs.length, 1);

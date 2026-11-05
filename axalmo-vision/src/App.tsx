@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import type { ObjectDetector, PoseLandmarker } from '@mediapipe/tasks-vision';
 import { createDetector, createPose, type Delegate, type ModelVariant } from './vision';
 import { ObjectTracker, directionLabel, speedOf, type Obj, type TrackEvent } from './tracker';
@@ -8,6 +8,11 @@ import { Analyzer, measureLuma, type Insight } from './analyze';
 import { EgoMotion, type CamState } from './egomotion';
 import { Scan, SCAN_MS, type ScanReport } from './scan';
 import { ResourcePool } from './resourcePool';
+import { ErrorBoundary } from './ErrorBoundary';
+import type { SeenObject } from './memory/capture';
+
+// Capture-formuläret laddas först när användaren trycker på ett föremål.
+const CaptureSheet = lazy(() => import('./memory/CaptureSheet.tsx'));
 
 /**
  * Modellerna lever utanför komponenten: lämnar man Vision parkeras de i 60 s och stängs sedan (close()).
@@ -147,6 +152,8 @@ export default function App() {
   const [calibMeters, setCalibMeters] = useState('2');
   const [calib, setCalib] = useState<Calibration | null>(null);
   const [cameraStill, setCameraStill] = useState(false);
+  const [captureTarget, setCaptureTarget] = useState<SeenObject | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   calibRef.current = calib;
   calibPtsRef.current = calibPts;
@@ -562,11 +569,26 @@ export default function App() {
 
   // Kalibrering: tryck två punkter i bilden.
   const onStageTap = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!calibMode) return;
     const v = view();
     if (!v) return;
     const r = stageRef.current!.getBoundingClientRect();
     const p = toVideo(v, e.clientX - r.left, e.clientY - r.top);
+    if (!calibMode) {
+      // CAPTURE: tryck på ett föremål. Minsta rutan som innehåller punkten vinner (mest specifik).
+      if (!running || captureTarget) return;
+      const hit = trackerRef.current
+        .visible(performance.now())
+        .filter((o) => p.x >= o.box.x0 && p.x <= o.box.x1 && p.y >= o.box.y0 && p.y <= o.box.y1)
+        .sort((a, b) => (a.box.x1 - a.box.x0) * (a.box.y1 - a.box.y0) - (b.box.x1 - b.box.x0) * (b.box.y1 - b.box.y0))[0];
+      if (!hit) return;
+      if (hit.label === 'person') {
+        setToast('Personer sparas inte i minnet.');
+        window.setTimeout(() => setToast(null), 2500);
+        return;
+      }
+      setCaptureTarget({ label: hit.label, name: hit.name, score: hit.score, scene: analysisRef.current.scene });
+      return;
+    }
     const pts = calibPts.length >= 2 ? [p] : [...calibPts, p];
     setCalibPts(pts);
     if (pts.length === 2) setCalibMode(false);
@@ -649,6 +671,14 @@ export default function App() {
             <div className="small">Sparad i tidslinjen.</div>
           </div>
         )}
+        {toast && <div className="banner">{toast}</div>}
+        {captureTarget && (
+          <ErrorBoundary fallback={() => <div className="capture-sheet"><p>Formuläret kunde inte laddas.</p><button className="btn" onClick={() => setCaptureTarget(null)}>Stäng</button></div>}>
+            <Suspense fallback={<div className="capture-sheet">Laddar…</div>}>
+              <CaptureSheet seen={captureTarget} onClose={() => setCaptureTarget(null)} />
+            </Suspense>
+          </ErrorBoundary>
+        )}
         {calibMode && <div className="banner">Tryck på punkt {calibPts.length + 1} av 2 med känd sträcka</div>}
         {running && (
           <>
@@ -686,7 +716,7 @@ export default function App() {
                   </div>
                 )}
                 <div className="ai-foot">
-                  {hud.inferMs.toFixed(0)} ms
+                  Tryck på ett föremål för att spara det i minnet · {hud.inferMs.toFixed(0)} ms
                   {hud.fastest && ` · Snabbast: ${hud.fastest.name} ${Math.round(hud.fastest.pxs)} px/s${fmtKmh(hud.fastest.kmh)}`}
                 </div>
               </div>

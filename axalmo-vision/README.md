@@ -163,3 +163,22 @@ Tester (Node `node:test`, IndexedDB simuleras med utvecklingsberoendet `fake-ind
 ```bash
 npm test
 ```
+
+## Axalmo OS v0.2 – Vision Memory (förhandsversion)
+
+Arbetsflöde: **CAPTURE → MEMORY → RECALL → COMPARE**, för hem, bil, elektronik, förråd och egna projekt.
+
+1. **Capture** – i Vision: starta kameran och **tryck på ett föremål** i bilden. Ett förslag visas med det
+   kameran faktiskt såg (klass + säkerhet). Rätta arbetsyta, plats, föremål, observation och anteckning.
+   Inget sparas förrän du trycker **Spara i minnet**. Personer kan inte sparas. Inga bilder sparas.
+2. **Memory** – observationen kopplas till arbetsyta, plats och föremål med källa (`kamera`), tid och
+   modellens säkerhet. Allt skrivs i en transaktion i samma lokala databas och händelselogg som Intelligence.
+   Sparas ett befintligt föremål på en ny plats registreras en flytt.
+3. **Recall** – Intelligence › **Minne**: sök bland godkända observationer och filtrera på arbetsyta, plats
+   (inkl. underplatser), föremål och datum. Tryck på en rad för föremålets historik och relationer.
+4. **Compare** – markera två observationer av samma föremål. Bara registrerade fält jämförs (status, plats,
+   anteckning, metadata, modellens säkerhet). Visuella skillnader jämförs inte eftersom inga bilder finns.
+
+**Datamodell v2** (bakåtkompatibel): fastigheter är arbetsytor (`kind`, standard `fastighet`), ytor är platser,
+nya typer *föremål* och *relation*. IndexedDB uppgraderas v1 → v2 genom att bara lägga till lager och index;
+v1-exporter (JSON) kan fortfarande importeras.
