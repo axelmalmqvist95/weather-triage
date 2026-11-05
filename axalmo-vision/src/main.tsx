@@ -1,11 +1,24 @@
-import { StrictMode } from 'react';
+import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import IntelligenceRoute from './IntelligenceRoute';
 import './styles.css';
+
+function Shell() {
+  const [hash, setHash] = useState(() => window.location.hash);
+  useEffect(() => {
+    const on = () => setHash(window.location.hash);
+    window.addEventListener('hashchange', on);
+    return () => window.removeEventListener('hashchange', on);
+  }, []);
+  // Intelligence laddas först när den öppnas (egen koddel) – Vision-delen påverkas inte.
+  if (hash.startsWith('#/intelligence')) return <IntelligenceRoute />;
+  return <App />;
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <Shell />
   </StrictMode>,
 );
 

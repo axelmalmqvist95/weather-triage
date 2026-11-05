@@ -12,11 +12,14 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  # Per gren: en (överhoppad) körning från en annan gren får inte avbryta en pågående publicering från main.
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
+    # Publicering får bara ske från main – även vid manuell start (workflow_dispatch kan väljas mot valfri gren).
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -37,6 +40,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
