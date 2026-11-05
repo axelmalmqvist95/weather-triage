@@ -191,3 +191,8 @@ body {
   text-decoration: none; border: 1px solid rgba(201, 182, 255, 0.5); border-radius: 999px; padding: 4px 8px;
 }
 .intel-loading { padding: 40px; text-align: center; color: var(--muted); }
+.load-error { max-width: 420px; margin: 0 auto; padding: calc(40px + env(safe-area-inset-top)) 20px 20px; text-align: center; }
+.load-error h2 { color: var(--danger); font-size: 18px; }
+.load-error p { color: var(--muted); }
+.load-error-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+.load-error-actions .btn { display: flex; align-items: center; justify-content: center; text-decoration: none; }

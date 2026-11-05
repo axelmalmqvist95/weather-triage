@@ -1,10 +1,8 @@
-import { StrictMode, Suspense, lazy, useEffect, useState } from 'react';
+import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import IntelligenceRoute from './IntelligenceRoute';
 import './styles.css';
-
-// Intelligence-vyn laddas först när den öppnas – Vision-delen påverkas inte.
-const IntelligenceView = lazy(() => import('./intelligence/IntelligenceView.tsx'));
 
 function Shell() {
   const [hash, setHash] = useState(() => window.location.hash);
@@ -13,13 +11,8 @@ function Shell() {
     window.addEventListener('hashchange', on);
     return () => window.removeEventListener('hashchange', on);
   }, []);
-  if (hash.startsWith('#/intelligence')) {
-    return (
-      <Suspense fallback={<div className="intel-loading">Laddar Intelligence…</div>}>
-        <IntelligenceView />
-      </Suspense>
-    );
-  }
+  // Intelligence laddas först när den öppnas (egen koddel) – Vision-delen påverkas inte.
+  if (hash.startsWith('#/intelligence')) return <IntelligenceRoute />;
   return <App />;
 }
 

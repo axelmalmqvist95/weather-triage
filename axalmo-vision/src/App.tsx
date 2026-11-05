@@ -7,6 +7,13 @@ import { drawFrame, toVideo, type View } from './draw';
 import { Analyzer, measureLuma, type Insight } from './analyze';
 import { EgoMotion, type CamState } from './egomotion';
 import { Scan, SCAN_MS, type ScanReport } from './scan';
+import { ResourcePool } from './resourcePool';
+
+/**
+ * Modellerna lever utanför komponenten: lämnar man Vision parkeras de i 60 s och stängs sedan (close()).
+ * Kommer man tillbaka inom tiden återanvänds de utan ny initiering.
+ */
+const visionModels = new ResourcePool(60_000);
 
 type Facing = 'user' | 'environment';
 type ModelStatus = 'ej laddad' | 'laddar…' | 'redo' | 'fel';
@@ -84,8 +91,9 @@ export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const detectorRef = useRef<ObjectDetector | null>(null);
-  const poseRef = useRef<PoseLandmarker | null>(null);
+  const detectorRef = useRef<ObjectDetector | null>(visionModels.get<ObjectDetector>('detector'));
+  const poseRef = useRef<PoseLandmarker | null>(visionModels.get<PoseLandmarker>('pose'));
+  const mountedRef = useRef(true);
   const trackerRef = useRef(new ObjectTracker());
   const runningRef = useRef(false);
   const loopIdRef = useRef(0);
@@ -112,12 +120,12 @@ export default function App() {
   const [running, setRunning] = useState(false);
   const [busy, setBusy] = useState(false);
   const [facing, setFacing] = useState<Facing>('environment');
-  const [modelStatus, setModelStatus] = useState<ModelStatus>('ej laddad');
-  const [activeDelegate, setActiveDelegate] = useState<Delegate | null>(null);
+  const [modelStatus, setModelStatus] = useState<ModelStatus>(() => (visionModels.get('detector') ? 'redo' : 'ej laddad'));
+  const [activeDelegate, setActiveDelegate] = useState<Delegate | null>(() => visionModels.meta<Delegate>('detector') ?? null);
   const [prefDelegate, setPrefDelegate] = useState<Delegate>(() => load('axalmo-delegate', ['GPU', 'CPU'] as const, 'CPU'));
   const [variant, setVariant] = useState<ModelVariant>(() => load('axalmo-variant', ['lite', 'full'] as const, 'lite'));
   const [skeleton, setSkeleton] = useState(() => load('axalmo-skeleton', ['on', 'off'] as const, 'on') === 'on');
-  const [numPoses, setNumPoses] = useState(1);
+  const [numPoses, setNumPoses] = useState(() => visionModels.meta<{ numPoses: number }>('pose')?.numPoses ?? 1);
   const [voice, setVoice] = useState(() => load('axalmo-voice', ['on', 'off'] as const, 'off') === 'on');
   const [error, setError] = useState<string | null>(null);
   const [hud, setHud] = useState({
@@ -356,20 +364,23 @@ export default function App() {
       setModelStatus('laddar…');
       try {
         if (opts.reloadDetector) {
-          detectorRef.current?.close();
           detectorRef.current = null;
+          visionModels.delete('detector');
         }
         if (opts.reloadPose || !opts.skeleton) {
-          poseRef.current?.close();
           poseRef.current = null;
+          visionModels.delete('pose');
         }
         if (!detectorRef.current) {
           const { model, delegate } = await createDetector(opts.delegate);
+          visionModels.set('detector', model, delegate); // poolen äger modellen även om vyn hunnit lämnas
           detectorRef.current = model;
           setActiveDelegate(delegate);
         }
         if (opts.skeleton && !poseRef.current) {
-          poseRef.current = (await createPose(numPoses, opts.delegate, opts.variant)).model;
+          const { model } = await createPose(numPoses, opts.delegate, opts.variant);
+          visionModels.set('pose', model, { numPoses });
+          poseRef.current = model;
         }
         setModelStatus('redo');
       } catch (e) {
@@ -402,6 +413,11 @@ export default function App() {
           })
           .catch((e) => Promise.reject(new Error(cameraError(e))));
         const [stream] = await Promise.all([cam, loadModels({ delegate: prefDelegate, variant, skeleton })]);
+        if (!mountedRef.current) {
+          // Användaren lämnade Vision medan kameran startade – släpp strömmen direkt.
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
         streamRef.current = stream;
         const video = videoRef.current!;
         video.srcObject = stream;
@@ -465,6 +481,7 @@ export default function App() {
     setNumPoses(n);
     try {
       await poseRef.current?.setOptions({ numPoses: n });
+      visionModels.setMeta('pose', { numPoses: n });
     } catch (e) {
       setError(`Kunde inte ändra antal skelett: ${(e as Error).message}`);
     }
@@ -523,12 +540,23 @@ export default function App() {
 
   // Stoppa kameran när appen hamnar i bakgrunden (sparar batteri, iOS pausar ändå).
   useEffect(() => {
+    mountedRef.current = true;
+    visionModels.resume(); // tillbaka i Vision: avbryt schemalagd frigörning av modellerna
     const onVis = () => document.hidden && runningRef.current && stopCamera();
     document.addEventListener('visibilitychange', onVis);
     return () => {
+      // Lämnar Vision: släpp kamera, ström, skärmlås och röst direkt; parkera modellerna.
+      mountedRef.current = false;
       document.removeEventListener('visibilitychange', onVis);
       runningRef.current = false;
+      loopIdRef.current++;
       streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      if (videoRef.current) videoRef.current.srcObject = null;
+      wakeLockRef.current?.release().catch(() => {});
+      wakeLockRef.current = null;
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      visionModels.park();
     };
   }, [stopCamera]);
 
