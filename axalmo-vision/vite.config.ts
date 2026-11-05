@@ -21,6 +21,7 @@ function serviceWorker(): Plugin {
         'icons/icon-512.png',
         'icons/apple-touch-icon.png',
         'models/pose_landmarker_lite.task',
+        'models/efficientdet_lite0.tflite',
         'mediapipe/vision_wasm_internal.js',
         'mediapipe/vision_wasm_internal.wasm',
       ];

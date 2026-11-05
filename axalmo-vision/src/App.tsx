@@ -1,25 +1,39 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { PoseLandmarker } from '@mediapipe/tasks-vision';
-import { createPoseLandmarker, type Delegate } from './pose';
-import { Tracker, directionLabel, type Track } from './tracker';
+import type { ObjectDetector, PoseLandmarker } from '@mediapipe/tasks-vision';
+import { createDetector, createPose, type Delegate, type ModelVariant } from './vision';
+import { ObjectTracker, directionLabel, speedOf, type Obj, type TrackEvent } from './tracker';
+import { CATEGORY_COLOR, CATEGORY_PLURAL, type Category } from './labels';
 import { drawFrame, toVideo, type View } from './draw';
 
 type Facing = 'user' | 'environment';
 type ModelStatus = 'ej laddad' | 'laddar…' | 'redo' | 'fel';
+type Panel = 'settings' | 'calib' | 'log' | null;
 
-interface Calibration {
-  metersPerPx: number;
-  pts: { x: number; y: number }[];
-  vw: number;
-  vh: number;
-  facing: Facing;
+interface Calibration { metersPerPx: number; pts: { x: number; y: number }[]; vw: number; vh: number; facing: Facing }
+interface HudObj { id: number; name: string; cat: Category; score: number; pxs: number; kmh: number | null; dir: string; secs: number }
+interface LogEntry { id: number; time: string; text: string; cat: Category }
+interface Fastest { name: string; pxs: number; kmh: number | null }
+
+const CATS: Category[] = ['människa', 'djur', 'fordon', 'föremål'];
+
+function load<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
+  try {
+    const v = localStorage.getItem(key) as T | null;
+    return v && allowed.includes(v) ? v : fallback;
+  } catch {
+    return fallback;
+  }
+}
+function save(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* privat läge – ignorera */
+  }
 }
 
-interface HudPerson { id: number; pxs: number; dir: string; kmh: number | null }
-
 function cameraError(e: unknown): string {
-  const name = (e as { name?: string })?.name ?? '';
-  switch (name) {
+  switch ((e as { name?: string })?.name ?? '') {
     case 'NotAllowedError':
     case 'PermissionDeniedError':
       return 'Kamerabehörighet nekades. Gå till Inställningar › Safari › Kamera och välj "Fråga" eller "Tillåt", ladda sedan om sidan.';
@@ -38,48 +52,61 @@ function cameraError(e: unknown): string {
   }
 }
 
+const clock = () => new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const fmtKmh = (k: number | null) => (k === null ? '' : ` ≈ ${k.toFixed(1)} km/h`);
+
 export default function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const landmarkerRef = useRef<PoseLandmarker | null>(null);
-  const trackerRef = useRef(new Tracker());
+  const detectorRef = useRef<ObjectDetector | null>(null);
+  const poseRef = useRef<PoseLandmarker | null>(null);
+  const trackerRef = useRef(new ObjectTracker());
   const runningRef = useRef(false);
   const loopIdRef = useRef(0);
   const fpsRef = useRef({ frames: 0, since: performance.now(), fps: 0, inferMs: 0 });
-  const hudRef = useRef<HudPerson[]>([]);
+  const hudRef = useRef<HudObj[]>([]);
   const calibRef = useRef<Calibration | null>(null);
   const calibPtsRef = useRef<{ x: number; y: number }[]>([]);
   const stillRef = useRef(false);
   const facingRef = useRef<Facing>('environment');
+  const skeletonRef = useRef(true);
+  const logRef = useRef<LogEntry[]>([]);
+  const seenRef = useRef<Record<Category, number>>({ människa: 0, djur: 0, fordon: 0, föremål: 0 });
+  const fastestRef = useRef<Fastest | null>(null);
+  const logIdRef = useRef(0);
 
   const [running, setRunning] = useState(false);
   const [busy, setBusy] = useState(false);
   const [facing, setFacing] = useState<Facing>('environment');
   const [modelStatus, setModelStatus] = useState<ModelStatus>('ej laddad');
-  const [delegate, setDelegate] = useState<Delegate | null>(null);
+  const [activeDelegate, setActiveDelegate] = useState<Delegate | null>(null);
+  const [prefDelegate, setPrefDelegate] = useState<Delegate>(() => load('axalmo-delegate', ['GPU', 'CPU'] as const, 'CPU'));
+  const [variant, setVariant] = useState<ModelVariant>(() => load('axalmo-variant', ['lite', 'full'] as const, 'lite'));
+  const [skeleton, setSkeleton] = useState(() => load('axalmo-skeleton', ['on', 'off'] as const, 'on') === 'on');
   const [numPoses, setNumPoses] = useState(1);
-  const [prefDelegate, setPrefDelegate] = useState<Delegate>(() => {
-    try {
-      return localStorage.getItem('axalmo-delegate') === 'CPU' ? 'CPU' : 'GPU';
-    } catch {
-      return 'GPU';
-    }
-  });
   const [error, setError] = useState<string | null>(null);
-  const [hud, setHud] = useState<{ fps: number; inferMs: number; people: HudPerson[] }>({ fps: 0, inferMs: 0, people: [] });
+  const [hud, setHud] = useState({
+    fps: 0,
+    inferMs: 0,
+    objs: [] as HudObj[],
+    seen: { ...seenRef.current },
+    fastest: null as Fastest | null,
+    log: [] as LogEntry[],
+  });
+  const [panel, setPanel] = useState<Panel>(null);
   const [calibMode, setCalibMode] = useState(false);
   const [calibPts, setCalibPts] = useState<{ x: number; y: number }[]>([]);
   const [calibMeters, setCalibMeters] = useState('2');
   const [calib, setCalib] = useState<Calibration | null>(null);
   const [cameraStill, setCameraStill] = useState(false);
-  const [showCalibPanel, setShowCalibPanel] = useState(false);
 
   calibRef.current = calib;
   calibPtsRef.current = calibPts;
   stillRef.current = cameraStill;
   facingRef.current = facing;
+  skeletonRef.current = skeleton;
 
   const view = useCallback((): View | null => {
     const v = videoRef.current, st = stageRef.current;
@@ -87,8 +114,12 @@ export default function App() {
     return { cw: st.clientWidth, ch: st.clientHeight, vw: v.videoWidth, vh: v.videoHeight, mirrored: facingRef.current === 'user' };
   }, []);
 
-  // Huvudloop: ritar varje skärmuppdatering, men kör inferens bara när huvudtråden har tid över.
-  // Inferensen får ta högst ~50 % av tiden så att video och UI förblir mjuka på iPhone.
+  const pushLog = useCallback((text: string, cat: Category) => {
+    logRef.current = [{ id: ++logIdRef.current, time: clock(), text, cat }, ...logRef.current].slice(0, 60);
+  }, []);
+
+  // Huvudloop: ritar varje skärmuppdatering; inferens bara när huvudtråden har tid över (~60 %).
+  // Objektdetektorn körs varannan gång och skelettmodellen varannan – men bara när en person syns.
   const loop = useCallback(() => {
     const myId = ++loopIdRef.current;
     const video = videoRef.current!;
@@ -96,47 +127,75 @@ export default function App() {
     const ctx = canvas.getContext('2d')!;
     let lastVideoTime = -1;
     let nextInferAt = 0;
-    let lastInferT = 0;
+    let tick = 0;
     let labels = new Map<number, string[]>();
-    let tracks: Track[] = [];
+
+    const kmhFor = (pxs: number, v: View) => {
+      const cal = calibRef.current;
+      const ok = !!cal && stillRef.current && cal.vw === v.vw && cal.vh === v.vh && cal.facing === facingRef.current;
+      return ok ? pxs * cal!.metersPerPx * 3.6 : null;
+    };
+
+    const onEvents = (events: TrackEvent[], v: View) => {
+      for (const e of events) {
+        const o = e.obj;
+        if (e.kind === 'in') {
+          seenRef.current[o.cat]++;
+          pushLog(`${o.name} dök upp (${Math.round(o.score * 100)} %)`, o.cat);
+        } else {
+          const secs = ((o.lastT - o.firstSeen) / 1000).toFixed(1);
+          const top = o.maxSpeed >= 20 ? ` · topp ${Math.round(o.maxSpeed)} px/s${fmtKmh(kmhFor(o.maxSpeed, v))}` : '';
+          pushLog(`${o.name} lämnade bilden · ${secs} s${top}`, o.cat);
+        }
+      }
+    };
 
     const step = () => {
       if (!runningRef.current || myId !== loopIdRef.current) return;
       requestAnimationFrame(step);
-      const lmk = landmarkerRef.current;
+      const det = detectorRef.current;
       const v = view();
-      if (!lmk || !v || video.readyState < 2) return;
+      if (!det || !v || video.readyState < 2) return;
       const now = performance.now();
+      const tracker = trackerRef.current;
 
       if (now >= nextInferAt && video.currentTime !== lastVideoTime) {
         lastVideoTime = video.currentTime;
-        let poses: Track['landmarks'][] = [];
+        const pose = poseRef.current;
+        const personVisible = tracker.visible(now).some((o) => o.label === 'person');
+        const runPose = skeletonRef.current && !!pose && personVisible && tick % 2 === 1;
+        tick++;
         try {
-          poses = lmk.detectForVideo(video, now).landmarks;
+          if (runPose) {
+            tracker.attachPoses(pose!.detectForVideo(video, now).landmarks, now, v.vw, v.vh);
+          } else {
+            onEvents(tracker.update(det.detectForVideo(video, now).detections, now), v);
+          }
         } catch (e) {
           console.error(e);
           setError(`Modellfel under körning: ${(e as Error).message}`);
         }
         const t1 = performance.now();
         const cost = t1 - now;
-        nextInferAt = t1 + cost; // ~50 % arbetscykel
-        lastInferT = now;
-        tracks = trackerRef.current.update(poses, now, v.vw, v.vh);
+        nextInferAt = t1 + cost * 0.6;
 
-        const cal = calibRef.current;
-        const calOk = !!cal && stillRef.current && cal.vw === v.vw && cal.vh === v.vh && cal.facing === facingRef.current;
+        // Etiketter och HUD-data
         labels = new Map();
-        const people: HudPerson[] = [];
-        for (const tr of tracks) {
-          const pxs = Math.hypot(tr.vx, tr.vy);
-          const kmh = calOk && tr.age > 5 ? pxs * cal!.metersPerPx * 3.6 : null;
-          const dir = directionLabel(tr, v.mirrored);
-          people.push({ id: tr.id, pxs, dir, kmh });
-          const l = [`P${tr.id}  ${Math.round(pxs)} px/s`, dir];
+        const hudObjs: HudObj[] = [];
+        for (const o of tracker.visible(now)) {
+          const pxs = speedOf(o);
+          const kmh = kmhFor(pxs, v);
+          const dir = directionLabel(o, v.mirrored);
+          const secs = (now - o.firstSeen) / 1000;
+          if (o.hits > 5 && (!fastestRef.current || o.maxSpeed > fastestRef.current.pxs) && o.maxSpeed >= 20) {
+            fastestRef.current = { name: o.name, pxs: o.maxSpeed, kmh: kmhFor(o.maxSpeed, v) };
+          }
+          const l = [`${o.name} ${Math.round(o.score * 100)}%`, `${Math.round(pxs)} px/s · ${dir}`];
           if (kmh !== null) l.push(`≈ ${kmh.toFixed(1)} km/h (uppsk.)`);
-          labels.set(tr.id, l);
+          labels.set(o.id, l);
+          hudObjs.push({ id: o.id, name: o.name, cat: o.cat, score: o.score, pxs, kmh, dir, secs });
         }
-        hudRef.current = people;
+        hudRef.current = hudObjs;
 
         const f = fpsRef.current;
         f.frames++;
@@ -154,18 +213,25 @@ export default function App() {
         canvas.height = Math.round(v.ch * dpr);
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const cal = calibRef.current;
-      drawFrame(ctx, v, tracks, labels, calibPtsRef.current.length ? calibPtsRef.current : cal?.pts ?? [], now - lastInferT);
+      const objs: Obj[] = tracker.visible(now);
+      drawFrame(ctx, v, objs, labels, calibPtsRef.current.length ? calibPtsRef.current : calibRef.current?.pts ?? [], now);
     };
     step();
-  }, [view]);
+  }, [view, pushLog]);
 
   // HUD uppdateras 4 ggr/s (billigare än React-render per bildruta).
   useEffect(() => {
     if (!running) return;
     const id = window.setInterval(() => {
       const f = fpsRef.current;
-      setHud({ fps: f.fps, inferMs: f.inferMs, people: hudRef.current });
+      setHud({
+        fps: f.fps,
+        inferMs: f.inferMs,
+        objs: hudRef.current,
+        seen: { ...seenRef.current },
+        fastest: fastestRef.current,
+        log: logRef.current,
+      });
     }, 250);
     return () => clearInterval(id);
   }, [running]);
@@ -179,23 +245,39 @@ export default function App() {
     c?.getContext('2d')?.clearRect(0, 0, c.width, c.height);
     trackerRef.current.reset();
     hudRef.current = [];
-    setHud({ fps: 0, inferMs: 0, people: [] });
+    setHud((h) => ({ ...h, fps: 0, inferMs: 0, objs: [] }));
     setRunning(false);
   }, []);
 
-  const ensureModel = useCallback(async () => {
-    if (landmarkerRef.current) return;
-    setModelStatus('laddar…');
-    try {
-      const { landmarker, delegate } = await createPoseLandmarker(numPoses, prefDelegate);
-      landmarkerRef.current = landmarker;
-      setDelegate(delegate);
-      setModelStatus('redo');
-    } catch (e) {
-      setModelStatus('fel');
-      throw new Error(`Modellen kunde inte laddas (${(e as Error).message}). Kontrollera anslutningen första gången appen öppnas.`);
-    }
-  }, [numPoses, prefDelegate]);
+  /** Laddar de modeller som behövs. force = stäng och ladda om (t.ex. efter byte av GPU/CPU). */
+  const loadModels = useCallback(
+    async (opts: { delegate: Delegate; variant: ModelVariant; skeleton: boolean; reloadDetector?: boolean; reloadPose?: boolean }) => {
+      setModelStatus('laddar…');
+      try {
+        if (opts.reloadDetector) {
+          detectorRef.current?.close();
+          detectorRef.current = null;
+        }
+        if (opts.reloadPose || !opts.skeleton) {
+          poseRef.current?.close();
+          poseRef.current = null;
+        }
+        if (!detectorRef.current) {
+          const { model, delegate } = await createDetector(opts.delegate);
+          detectorRef.current = model;
+          setActiveDelegate(delegate);
+        }
+        if (opts.skeleton && !poseRef.current) {
+          poseRef.current = (await createPose(numPoses, opts.delegate, opts.variant)).model;
+        }
+        setModelStatus('redo');
+      } catch (e) {
+        setModelStatus('fel');
+        throw new Error(`Modellen kunde inte laddas (${(e as Error).message}). Första starten kräver internet.`);
+      }
+    },
+    [numPoses],
+  );
 
   const startCamera = useCallback(
     async (face: Facing) => {
@@ -207,7 +289,7 @@ export default function App() {
       setBusy(true);
       try {
         // Behörighet begärs först här – när användaren tryckt Starta.
-        const camPromise = navigator.mediaDevices
+        const cam = navigator.mediaDevices
           .getUserMedia({
             audio: false,
             video: { facingMode: { ideal: face }, width: { ideal: 480 }, height: { ideal: 360 }, frameRate: { ideal: 30, max: 30 } },
@@ -216,8 +298,9 @@ export default function App() {
             if ((e as { name?: string }).name === 'OverconstrainedError')
               return navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: face } });
             throw e;
-          });
-        const [stream] = await Promise.all([camPromise.catch((e) => Promise.reject(new Error(cameraError(e)))), ensureModel()]);
+          })
+          .catch((e) => Promise.reject(new Error(cameraError(e))));
+        const [stream] = await Promise.all([cam, loadModels({ delegate: prefDelegate, variant, skeleton })]);
         streamRef.current = stream;
         const video = videoRef.current!;
         video.srcObject = stream;
@@ -234,7 +317,7 @@ export default function App() {
         setBusy(false);
       }
     },
-    [ensureModel, loop],
+    [loadModels, loop, prefDelegate, variant, skeleton],
   );
 
   const toggleRun = () => (running ? stopCamera() : startCamera(facing));
@@ -249,43 +332,46 @@ export default function App() {
     }
   };
 
-  const changeNumPoses = async (n: number) => {
-    setNumPoses(n);
-    trackerRef.current.reset();
-    try {
-      await landmarkerRef.current?.setOptions({ numPoses: n });
-    } catch (e) {
-      setError(`Kunde inte ändra antal personer: ${(e as Error).message}`);
-    }
-  };
-
-  // Byt GPU/CPU: stäng modellen och ladda om med nytt val.
-  const changeDelegate = async (d: Delegate) => {
-    if (d === prefDelegate || busy) return;
+  const applyModelChange = async (o: { delegate?: Delegate; variant?: ModelVariant; skeleton?: boolean }) => {
+    const d = o.delegate ?? prefDelegate, va = o.variant ?? variant, sk = o.skeleton ?? skeleton;
     setPrefDelegate(d);
-    try {
-      localStorage.setItem('axalmo-delegate', d);
-    } catch {
-      /* ignorera */
-    }
+    setVariant(va);
+    setSkeleton(sk);
+    save('axalmo-delegate', d);
+    save('axalmo-variant', va);
+    save('axalmo-skeleton', sk ? 'on' : 'off');
+    if (!detectorRef.current && !poseRef.current) return; // laddas vid Starta
     setBusy(true);
-    const old = landmarkerRef.current;
-    landmarkerRef.current = null;
-    old?.close();
-    setModelStatus('laddar…');
     try {
-      const { landmarker, delegate } = await createPoseLandmarker(numPoses, d);
-      landmarkerRef.current = landmarker;
-      setDelegate(delegate);
-      setModelStatus('redo');
-      trackerRef.current.reset();
+      await loadModels({
+        delegate: d,
+        variant: va,
+        skeleton: sk,
+        reloadDetector: o.delegate !== undefined,
+        reloadPose: o.delegate !== undefined || o.variant !== undefined,
+      });
       fpsRef.current = { frames: 0, since: performance.now(), fps: 0, inferMs: 0 };
     } catch (e) {
-      setModelStatus('fel');
-      setError(`Kunde inte ladda modellen med ${d}: ${(e as Error).message}`);
+      setError((e as Error).message);
     } finally {
       setBusy(false);
     }
+  };
+
+  const changeNumPoses = async (n: number) => {
+    setNumPoses(n);
+    try {
+      await poseRef.current?.setOptions({ numPoses: n });
+    } catch (e) {
+      setError(`Kunde inte ändra antal skelett: ${(e as Error).message}`);
+    }
+  };
+
+  const resetStats = () => {
+    logRef.current = [];
+    seenRef.current = { människa: 0, djur: 0, fordon: 0, föremål: 0 };
+    fastestRef.current = null;
+    setHud((h) => ({ ...h, log: [], seen: { ...seenRef.current }, fastest: null }));
   };
 
   // Stoppa kameran när appen hamnar i bakgrunden (sparar batteri, iOS pausar ändå).
@@ -320,7 +406,7 @@ export default function App() {
     if (!v || !canSaveCalib) return;
     setCalib({ metersPerPx: meters / calibPx, pts: calibPts, vw: v.vw, vh: v.vh, facing });
     setCalibPts([]);
-    setShowCalibPanel(false);
+    setPanel(null);
   };
 
   const clearCalib = () => {
@@ -331,6 +417,9 @@ export default function App() {
 
   const calibValid = !!calib && calib.facing === facing;
   const kmhActive = calibValid && cameraStill;
+  const togglePanel = (p: Panel) => setPanel((cur) => (cur === p ? null : p));
+
+  const counts = CATS.map((c) => ({ c, n: hud.objs.filter((o) => o.cat === c).length })).filter((x) => x.n > 0);
 
   return (
     <div className="app">
@@ -341,9 +430,9 @@ export default function App() {
         <div className="chips">
           <span className={`chip ${running ? 'on' : ''}`}>{running ? `${hud.fps.toFixed(0)} FPS` : 'AV'}</span>
           <span className={`chip model-${modelStatus === 'redo' ? 'ok' : modelStatus === 'fel' ? 'err' : 'idle'}`}>
-            Modell: {modelStatus}
-            {delegate && modelStatus === 'redo' ? ` · ${delegate}` : ''}
+            {modelStatus === 'redo' && activeDelegate ? `AI · ${activeDelegate}` : `Modell: ${modelStatus}`}
           </span>
+          {kmhActive && <span className="chip warn-chip">km/h</span>}
         </div>
       </header>
 
@@ -354,27 +443,45 @@ export default function App() {
           <div className="placeholder">
             <div className="reticle" />
             <p>Tryck <b>Starta</b> för att aktivera kameran.</p>
-            <p className="small">All bearbetning sker lokalt i telefonen. Ingen bild sparas eller skickas.</p>
+            <p className="small">Känner igen människor, djur, fordon och föremål. All bearbetning sker lokalt – ingen bild sparas eller skickas.</p>
           </div>
         )}
         {busy && (
           <div className="placeholder">
             <div className="spinner" />
-            <p>{modelStatus === 'laddar…' ? 'Laddar modell…' : 'Startar kamera…'}</p>
+            <p>{modelStatus === 'laddar…' ? 'Laddar AI-modeller…' : 'Startar kamera…'}</p>
           </div>
         )}
         {calibMode && <div className="banner">Tryck på punkt {calibPts.length + 1} av 2 med känd sträcka</div>}
         {running && (
-          <div className="hud">
-            {hud.people.length === 0 && <div className="hud-row muted">Ingen person i bild</div>}
-            {hud.people.map((p) => (
-              <div key={p.id} className="hud-row">
-                <b>P{p.id}</b> {Math.round(p.pxs)} px/s · {p.dir}
-                {p.kmh !== null && <span className="kmh"> ≈ {p.kmh.toFixed(1)} km/h (uppskattning)</span>}
+          <>
+            <div className="summary">
+              {counts.length === 0 ? (
+                <span className="pill muted">Inget i bild</span>
+              ) : (
+                counts.map(({ c, n }) => (
+                  <span key={c} className="pill" style={{ borderColor: CATEGORY_COLOR[c], color: CATEGORY_COLOR[c] }}>
+                    {n} {CATEGORY_PLURAL[c][n === 1 ? 0 : 1]}
+                  </span>
+                ))
+              )}
+            </div>
+            <div className="hud">
+              {[...hud.objs]
+                .sort((a, b) => b.pxs - a.pxs)
+                .slice(0, 4)
+                .map((o) => (
+                  <div key={o.id} className="hud-row" style={{ borderLeftColor: CATEGORY_COLOR[o.cat] }}>
+                    <b style={{ color: CATEGORY_COLOR[o.cat] }}>{o.name}</b> {Math.round(o.pxs)} px/s · {o.dir} · {o.secs.toFixed(0)} s
+                    {o.kmh !== null && <span className="kmh"> ≈ {o.kmh.toFixed(1)} km/h (uppskattning)</span>}
+                  </div>
+                ))}
+              <div className="hud-row muted">
+                Inferens {hud.inferMs.toFixed(0)} ms
+                {hud.fastest && ` · Snabbast: ${hud.fastest.name} ${Math.round(hud.fastest.pxs)} px/s${fmtKmh(hud.fastest.kmh)}`}
               </div>
-            ))}
-            <div className="hud-row muted">Inferens {hud.inferMs.toFixed(0)} ms</div>
-          </div>
+            </div>
+          </>
         )}
       </div>
 
@@ -385,17 +492,64 @@ export default function App() {
         </div>
       )}
 
-      {showCalibPanel && !calibMode && (
+      {panel === 'settings' && (
+        <div className="panel">
+          <h3>Inställningar</h3>
+          <div className="setting">
+            <span>Beräkning</span>
+            <div className="seg">
+              {(['CPU', 'GPU'] as const).map((d) => (
+                <button key={d} className={prefDelegate === d ? 'sel' : ''} disabled={busy} onClick={() => applyModelChange({ delegate: d })}>
+                  {d}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="setting">
+            <span>Skelett på personer</span>
+            <div className="seg">
+              <button className={skeleton ? 'sel' : ''} disabled={busy} onClick={() => applyModelChange({ skeleton: true })}>På</button>
+              <button className={!skeleton ? 'sel' : ''} disabled={busy} onClick={() => applyModelChange({ skeleton: false })}>Av</button>
+            </div>
+          </div>
+          {skeleton && (
+            <>
+              <div className="setting">
+                <span>Skelettmodell</span>
+                <div className="seg">
+                  <button className={variant === 'lite' ? 'sel' : ''} disabled={busy} onClick={() => applyModelChange({ variant: 'lite' })}>Snabb</button>
+                  <button className={variant === 'full' ? 'sel' : ''} disabled={busy} onClick={() => applyModelChange({ variant: 'full' })}>Exakt</button>
+                </div>
+              </div>
+              <div className="setting">
+                <span>Antal skelett</span>
+                <div className="seg">
+                  {[1, 2, 3].map((n) => (
+                    <button key={n} className={numPoses === n ? 'sel' : ''} onClick={() => changeNumPoses(n)}>{n}</button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+          <p className="small">Hackigt? Prova CPU/GPU, stäng av skelett eller välj Snabb. Valen sparas på telefonen.</p>
+          <div className="row">
+            <button className="btn secondary" onClick={() => setPanel('calib')}>Kalibrera km/h</button>
+            <button className="btn secondary" onClick={() => setPanel(null)}>Stäng</button>
+          </div>
+        </div>
+      )}
+
+      {panel === 'calib' && !calibMode && (
         <div className="panel">
           <h3>Kalibrera km/h</h3>
           <ol>
             <li>Ställ telefonen still (stativ eller stöd).</li>
-            <li>Tryck "Markera" och peka ut två punkter i bilden med känt avstånd, t.ex. en 2 m lång markering på marken där personen rör sig.</li>
+            <li>Tryck på knappen nedan och peka ut två punkter i bilden med känt avstånd, t.ex. en 2 m lång markering på marken där rörelsen sker.</li>
             <li>Ange avståndet och spara.</li>
           </ol>
           <div className="row">
             <button className="btn secondary" disabled={!running} onClick={() => { setCalibPts([]); setCalibMode(true); }}>
-              {calibPts.length === 2 ? 'Markera om' : 'Markera'}
+              {calibPts.length === 2 ? 'Markera om' : 'Markera punkter'}
             </button>
             <label className="field">
               <input inputMode="decimal" value={calibMeters} onChange={(e) => setCalibMeters(e.target.value)} />
@@ -413,7 +567,39 @@ export default function App() {
           <div className="row">
             <button className="btn primary" disabled={!canSaveCalib} onClick={saveCalib}>Spara</button>
             {calib && <button className="btn danger" onClick={clearCalib}>Rensa</button>}
-            <button className="btn secondary" onClick={() => { setShowCalibPanel(false); setCalibMode(false); }}>Stäng</button>
+            <button className="btn secondary" onClick={() => { setPanel(null); setCalibMode(false); }}>Stäng</button>
+          </div>
+        </div>
+      )}
+
+      {panel === 'log' && (
+        <div className="panel log">
+          <h3>Logg & statistik</h3>
+          <div className="stats">
+            {CATS.map((c) => (
+              <div key={c} className="stat" style={{ color: CATEGORY_COLOR[c] }}>
+                <b>{hud.seen[c]}</b>
+                <span>{CATEGORY_PLURAL[c][1]}</span>
+              </div>
+            ))}
+          </div>
+          <p className="small">
+            {hud.fastest
+              ? `Snabbast hittills: ${hud.fastest.name}, ${Math.round(hud.fastest.pxs)} px/s${fmtKmh(hud.fastest.kmh)}${hud.fastest.kmh !== null ? ' (uppskattning)' : ''}`
+              : 'Ingen rörelse uppmätt än.'}
+          </p>
+          <ul>
+            {hud.log.length === 0 && <li className="small">Inget registrerat än.</li>}
+            {hud.log.map((l) => (
+              <li key={l.id}>
+                <span className="time">{l.time}</span>
+                <span style={{ color: CATEGORY_COLOR[l.cat] }}>●</span> {l.text}
+              </li>
+            ))}
+          </ul>
+          <div className="row">
+            <button className="btn danger" onClick={resetStats}>Nollställ</button>
+            <button className="btn secondary" onClick={() => setPanel(null)}>Stäng</button>
           </div>
         </div>
       )}
@@ -423,25 +609,14 @@ export default function App() {
           {busy ? '…' : running ? 'Stopp' : 'Starta'}
         </button>
         <button className="btn" disabled={busy} onClick={switchCamera}>
-          {facing === 'user' ? 'Framkamera' : 'Bakkamera'} ⇄
+          {facing === 'user' ? 'Fram' : 'Bak'} ⇄
         </button>
-        <button className={`btn ${kmhActive ? 'active' : ''}`} onClick={() => setShowCalibPanel((s) => !s)}>
-          {kmhActive ? 'km/h på' : calibValid ? 'km/h: stilla?' : 'Kalibrera'}
+        <button className={`btn ${panel === 'log' ? 'active' : ''}`} onClick={() => togglePanel('log')}>
+          Logg{hud.log.length ? ` (${hud.log.length})` : ''}
         </button>
-        <div className="seg" role="group" aria-label="Beräkning">
-          {(['GPU', 'CPU'] as const).map((d) => (
-            <button key={d} className={prefDelegate === d ? 'sel' : ''} disabled={busy} onClick={() => changeDelegate(d)}>
-              {d}
-            </button>
-          ))}
-        </div>
-        <div className="seg" role="group" aria-label="Antal personer">
-          {[1, 2, 3].map((n) => (
-            <button key={n} className={numPoses === n ? 'sel' : ''} onClick={() => changeNumPoses(n)}>
-              {n}P
-            </button>
-          ))}
-        </div>
+        <button className={`btn ${panel === 'settings' || panel === 'calib' ? 'active' : ''}`} onClick={() => togglePanel('settings')}>
+          ⚙︎
+        </button>
       </footer>
     </div>
   );

@@ -21,7 +21,7 @@ npm run preview    # serverar dist/ på http://localhost:4173
 ```
 
 `npm run dev` och `npm run build` kör först `scripts/setup-assets.mjs`, som kopierar MediaPipes
-WASM-filer från `node_modules` och laddar ner modellen `pose_landmarker_lite.task` (~6 MB) **en gång**
+WASM-filer från `node_modules` och laddar ner modellerna `pose_landmarker_lite/full.task` och `efficientdet_lite0.tflite` samt objektdetektorn **en gång**
 till `public/`. Därefter serveras allt från appens egen adress.
 
 > Service workern (offline-läget) är bara aktiv i produktionsbygget (`build` + `preview` eller publicerad sajt).
@@ -29,18 +29,24 @@ till `public/`. Därefter serveras allt från appens egen adress.
 ## Använda appen
 
 1. Tryck **Starta**. Först då frågar Safari om kamerabehörighet.
-2. **Bakkamera ⇄ / Framkamera** byter kamera. Framkameran visas spegelvänd.
-3. **1P / 2P / 3P** väljer hur många personer modellen letar efter. 1P är snabbast och rekommenderas på iPhone.
-4. Varje person får skelett, markeringsruta, en pil för rörelseriktningen och hastighet i **px/s**.
-   Riktning visas som höger/vänster/upp/ner samt "närmar sig/avlägsnar sig" (via ändrad axelbredd).
-5. Överst visas FPS (analyser per sekund) och modellstatus. **GPU / CPU** väljer var modellen körs. Under bilden visas inferenstid.
+2. Appen känner igen **80 typer av saker** (EfficientDet-Lite0) och färgar dem efter kategori:
+   **cyan = människa**, **grön = djur**, **orange = fordon**, **rosa = föremål**.
+3. Varje sak får namn och säkerhet (t.ex. "Hund 86 %"), hastighet i **px/s**, riktning
+   (höger/vänster/upp/ner), **närmar sig/avlägsnar sig** och hur länge den varit i bild.
+4. Personer får dessutom ett **skelett** (MediaPipe Pose).
+5. Överst i bilden visas en sammanfattning, t.ex. "1 människa · 2 djur".
+6. **Logg** visar allt som dykt upp och lämnat bilden med klockslag, tid i bild och toppfart, plus
+   antal per kategori och snabbaste rörelsen hittills. Inget sparas när appen stängs.
+   En person som går ut och in räknas två gånger – appen identifierar aldrig individer.
+7. **⚙︎ Inställningar**: CPU/GPU, skelett på/av, Snabb/Exakt skelettmodell, antal skelett och kalibrering.
+8. **Bak ⇄ / Fram** byter kamera. Framkameran visas spegelvänd.
 
 ### km/h (uppskattning)
 
 km/h visas **bara** när du har kalibrerat och bekräftat att kameran står stilla:
 
 1. Ställ telefonen still (stativ eller stöd).
-2. Tryck **Kalibrera** → **Markera** och peka på två punkter i bilden med känt avstånd,
+2. Tryck **⚙︎ › Kalibrera km/h › Markera punkter** och peka på två punkter i bilden med känt avstånd,
    t.ex. två koner 2 m isär på marken där personen ska röra sig.
 3. Ange avståndet i meter, bocka i **Kameran står stilla** och tryck **Spara**.
 
@@ -104,15 +110,17 @@ därefter fungerar den offline.
 | "Kameran kräver säker anslutning" | Använd HTTPS enligt ovan. |
 | "Kameran används redan av en annan app" | Stäng FaceTime/kamera-appen och försök igen. |
 | "Modellen kunde inte laddas" | Första start kräver internet. Kontrollera anslutningen. |
-| Låg FPS / hackigt | Testa **GPU** och **CPU** – olika iPhone-modeller är snabbast med olika val (valet sparas). Välj 1P och god belysning. Appen kör 480×360. |
+| Låg FPS / hackigt | Under ⚙︎: prova **CPU**/**GPU**, stäng av skelett eller välj **Snabb**. God belysning hjälper. Appen kör 480×360. |
 
 ## Teknik i korthet
 
 | Fil | Innehåll |
 |---|---|
 | `src/App.tsx` | UI, kamera (getUserMedia), huvudloop, kalibrering |
-| `src/pose.ts` | Laddar Pose Landmarker (lite-modell), GPU med CPU som reserv |
-| `src/tracker.ts` | Enkel spårning (närmaste-granne), utjämnad hastighet px/s, riktning |
+| `src/vision.ts` | Laddar objektdetektor och Pose Landmarker, vald delegat med den andra som reserv |
+| `src/labels.ts` | Svenska namn och kategorier för de 80 klasserna |
+| `src/filter.ts` | One Euro-filter som stabiliserar rutor och kroppspunkter |
+| `src/tracker.ts` | Spårning per klass (IoU), hastighet, riktning, tid i bild, in/ut-händelser |
 | `src/draw.ts` | Ritar skelett, rutor, pilar och etiketter på canvas; koordinatmappning |
 | `sw/sw.js` | Service worker-mall; precache-listan genereras vid build (`vite.config.ts`) |
 | `scripts/setup-assets.mjs` | Kopierar WASM och laddar ner modellen till `public/` |

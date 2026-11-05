@@ -97,7 +97,7 @@ body {
 .check input { width: 24px; height: 24px; accent-color: var(--cyan); }
 
 .controls {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px;
+  display: grid; grid-template-columns: 1fr 1fr 64px; gap: 8px; padding: 10px;
   border-top: 1px solid var(--line); background: linear-gradient(to top, rgba(0, 229, 255, 0.05), transparent);
 }
 .btn {
@@ -122,3 +122,21 @@ body {
   .controls { width: 220px; grid-template-columns: 1fr; border-top: 0; border-left: 1px solid var(--line); align-content: start; }
   .error, .panel { position: absolute; left: 10px; right: 240px; bottom: 10px; z-index: 5; max-height: 80%; overflow: auto; }
 }
+
+.summary { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 6px; flex-wrap: wrap; pointer-events: none; }
+.pill {
+  font: 700 13px ui-monospace, Menlo, monospace; padding: 5px 10px; border-radius: 999px;
+  background: rgba(5, 8, 13, 0.75); border: 1px solid var(--line);
+}
+.pill.muted { color: var(--muted); }
+.chip.warn-chip { color: var(--warn); border-color: var(--warn); }
+.setting { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0; font-weight: 600; font-size: 14px; }
+.setting .seg { flex: 0 0 150px; }
+.panel { max-height: 45vh; overflow: auto; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 4px 0 8px; }
+.stat { display: flex; flex-direction: column; align-items: center; padding: 6px 0; border: 1px solid var(--line); border-radius: 10px; }
+.stat b { font-size: 22px; }
+.stat span { font-size: 11px; color: var(--muted); }
+.log ul { list-style: none; margin: 6px 0 10px; padding: 0; font-size: 13px; }
+.log li { padding: 5px 0; border-bottom: 1px solid rgba(0, 229, 255, 0.08); }
+.log .time { font-family: ui-monospace, Menlo, monospace; color: var(--muted); margin-right: 8px; }
