@@ -53,7 +53,13 @@ tills du kalibrerar om. Kalibreringen sparas inte mellan sessioner.
 Safari ger bara kameraåtkomst på **HTTPS** eller **localhost**. En vanlig `http://192.168.x.x`-adress
 fungerar alltså **inte**. Välj ett av alternativen:
 
-### Alternativ A – publicera gratis (enklast, rekommenderas)
+### Alternativ A – GitHub Pages (automatiskt, rekommenderas)
+
+Repot innehåller `.github/workflows/axalmo-vision-pages.yml` som bygger och publicerar appen vid varje
+push till `main` som rör `axalmo-vision/`. Engångsinställning: **Settings › Pages › Source: GitHub Actions**.
+Adressen blir `https://axelmalmqvist95.github.io/weather-triage/`.
+
+### Alternativ A2 – publicera manuellt
 
 `dist/` är en helt statisk sajt. Kör `npm run build` och lägg upp mappen på en tjänst med HTTPS, t.ex.:
 
