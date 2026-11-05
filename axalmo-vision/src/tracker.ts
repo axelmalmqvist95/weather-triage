@@ -55,7 +55,7 @@ export class ObjectTracker {
   }
 
   /** Uppdaterar med nya detektioner. Returnerar händelser (in/ut ur bild). */
-  update(dets: Detection[], t: number): TrackEvent[] {
+  update(dets: Detection[], t: number, cam: { vx: number; vy: number } = { vx: 0, vy: 0 }): TrackEvent[] {
     const events: TrackEvent[] = [];
     const used = new Set<Obj>();
 
@@ -88,8 +88,9 @@ export class ObjectTracker {
         const nx = (box.x0 + box.x1) / 2, ny = (box.y0 + box.y1) / 2;
         const dt = (t - best.lastT) / 1000;
         if (dt > 0.001) {
-          best.vx += VEL_ALPHA * ((nx - best.x) / dt - best.vx);
-          best.vy += VEL_ALPHA * ((ny - best.y) / dt - best.vy);
+          // Dra bort kamerans egen rörelse -> fart relativt omgivningen.
+          best.vx += VEL_ALPHA * ((nx - best.x) / dt - cam.vx - best.vx);
+          best.vy += VEL_ALPHA * ((ny - best.y) / dt - cam.vy - best.vy);
           const s0 = Math.sqrt(Math.max(1, (best.box.x1 - best.box.x0) * (best.box.y1 - best.box.y0)));
           const s1 = Math.sqrt(Math.max(1, (box.x1 - box.x0) * (box.y1 - box.y0)));
           best.sizeRate += VEL_ALPHA * ((s1 - s0) / s0 / dt - best.sizeRate);
