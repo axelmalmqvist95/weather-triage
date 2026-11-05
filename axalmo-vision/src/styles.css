@@ -140,3 +140,15 @@ body {
 .log ul { list-style: none; margin: 6px 0 10px; padding: 0; font-size: 13px; }
 .log li { padding: 5px 0; border-bottom: 1px solid rgba(0, 229, 255, 0.08); }
 .log .time { font-family: ui-monospace, Menlo, monospace; color: var(--muted); margin-right: 8px; }
+
+.ai-card {
+  width: 100%; background: rgba(5, 8, 13, 0.8); border: 1px solid var(--line); border-radius: 12px;
+  padding: 8px 10px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+.ai-head { display: flex; flex-direction: column; gap: 1px; margin-bottom: 4px; }
+.ai-head > span:first-child { color: #c9b6ff; font: 800 12px ui-monospace, Menlo, monospace; letter-spacing: 0.14em; }
+.ai-head .muted, .ai-foot { color: var(--muted); font-size: 11px; }
+.ai-line { font-size: 14px; line-height: 1.35; padding: 2px 0 2px 8px; margin: 3px 0; border-left: 3px solid var(--cyan); }
+.ai-line.muted { color: var(--muted); border-left-color: var(--line); }
+.ai-event { font: 600 12px ui-monospace, Menlo, monospace; margin-top: 4px; }
+.ai-foot { margin-top: 4px; font-family: ui-monospace, Menlo, monospace; }
