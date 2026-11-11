@@ -1,99 +1,123 @@
 # Regelbok för LinkedIn-inlägg
 
-Gäller alla inlägg som systemet skriver åt Axel Malmqvist, Nanostone AB.
-Rader märkta **[BEKRÄFTA]** är antaganden som Axel ska godkänna eller ändra.
+Gäller alla inlägg som skrivs åt Axel Malmqvist, driftansvarig på Nanostone AB, för hans personliga LinkedIn.
+Reglerna är Axels egna, hämtade från Driftcentral (november 2026). Ändras de där ska de ändras här.
 
-## 1. Målgrupp
+## 1. Läsaren
 
-Förvaltare, styrelser i bostadsrättsföreningar och fastighetsägare. **[BEKRÄFTA]**
-De läser i mobilen, mellan två möten, och vill ha något de kan använda i sitt eget hus.
+Fastighetsförvaltare, BRF-styrelser och fastighetschefer.
+
+Skriv om det som spelar roll för dem: besked i tid och förutsägbarhet, mindre merjobb, dokumentation de kan visa styrelsen, underhållsplan och budget, garantier, att ytorna håller längre, säkerhet för de boende (till exempel halka), rätt tidpunkt på året.
+
+Tekniska detaljer ska inte med: inga tryck i bar, temperaturer, munstycken, maskiner, produktnamn eller kemikalier, inga listor över metoder per material. Behövs en metod, säg i en mening vad den betyder för kunden.
+
+**Testfråga:** skulle en förvaltare vilja skicka inlägget vidare till en kollega? Om inte, skriv om.
 
 ## 2. Veckorytm
 
-| Dag | Typ | Bästa format |
-|---|---|---|
-| Måndag | Från fältet: ett jobb, ett problem, vad vi gjorde, hur det blev **[BEKRÄFTA]** | Före/efter-bild eller kort film |
-| Tisdag | Kunskap: en sak förvaltaren kan kontrollera eller besluta om själv **[BEKRÄFTA]** | Karusell (PDF) eller bild med rubrik |
-| Torsdag | **Förvaltarens fråga** (fast serie, se avsnitt 6) | Frågekort, vid behov karusell eller film |
+| Dag | Tema | Innehåll | Längd |
+|---|---|---|---|
+| Måndag | Förra veckan i fält | Ett riktigt jobb, vad som gjordes och en detalj om metoden. Visar också varför Nanostone är en bra arbetsplats. Operatören är hjälten, utan namn. | 50 till 90 ord |
+| Tisdag | Drift och ledarskap | Hur driften leds så att kunden märker det: besked, planering, uppföljning, dokumentation, kvalitet. Första raden är en ståndpunkt på högst 12 ord. Sedan problemet förvaltaren känner igen, vad vi gör, vad det betyder för förvaltaren, och ett slut som är en egen observation. | 80 till 110 ord |
+| Torsdag | Förvaltarens fråga | En riktig fråga från en förvaltare eller BRF och ett kort sakligt svar. Se avsnitt 5. | 35 till 70 ord |
 
-## 3. Det som skiljer ett riktigt inlägg från ett AI-inlägg
+Extra vinkel utan fast dag, **Fackkunskap:** något förvaltaren har nytta av att veta för sina fastigheter (varför stenar blir hala på hösten, när underhåll lönar sig, vad som händer om man väntar), utan teknik. 60 till 100 ord.
 
-Ett inlägg publiceras bara om det innehåller **minst två uppgifter som bara Nanostone kan känna till**:
+## 3. Grundregler
 
-- en siffra från jobbet (yta, ålder på taket, antal dagar, temperatur, antal lägenheter)
-- material eller skadebild med rätt namn (betongpannor, puts, alger på norrsidan)
-- något som gick fel eller överraskade
-- vad kunden sa eller frågade, återgivet som det sades
-- ort eller typ av fastighet
+- Kort, konkret, mänskligt. En poäng och en tråd per inlägg.
+- Första raden är en konkret scen eller ett påstående med belägg.
+- **@Nanostone taggas sist i inlägget.** Inga hashtaggar, inga länkar, inga emojier, inga utropstecken.
+- Inga namn på personer, inga kundnamn, inga interna siffror, inget antal anställda. Personer beskrivs med roll: "en av våra operatörer".
+- AI är aldrig ämnet.
+- Inget som får Nanostone att se dåligt ut: missade besök, misstag, reklamationer, interna problem. Läsaren ska få förtroende.
+- **Påstå inga fakta som inte står i underlaget.** Siffror, månader, garantier och platser hittas aldrig på. Ett påstående som inte går att belägga skrivs `[KONTROLLERA: påståendet]` och inlägget stoppas tills Axel svarat.
+- Bildinlägg: beskriv bara det som syns. Inga adresser eller registreringsskyltar.
 
-Uppgifterna hämtas ur bilderna, filmerna och anteckningarna i `In`. Finns de inte där frågar systemet Axel.
-Saknas svaret skrivs `[FYLL I: vad som saknas]`. **Ingenting hittas på: inga siffror, inga kunder, inga citat.**
+## 4. Ska låta som Axel, inte som AI
 
-Kundnamn, adresser, registreringsskyltar och ansikten används bara när Axel har sagt att kunden gett sitt ok.
+Korta, raka meningar som en driftchef säger dem. Variera meningslängden. Skriv hellre en konkret detalj än en allmän sanning. Inlägget får sluta utan avrundning.
 
-## 4. Så byggs texten
+Förbjudna mönster:
 
-1. **Första raden** bär hela inlägget. Högst cirka 140 tecken, annars klipps den i mobilen. Den ska vara ett konkret påstående, en siffra eller en fråga som en förvaltare faktiskt har ställt. Ingen uppvärmning.
-2. **En poäng per inlägg.** Hellre tre inlägg om tre saker än ett om allt.
-3. **Korta stycken**, 1 till 3 meningar, med blankrad mellan.
-4. **Slutet** är antingen en konkret fråga som går att svara på med egen erfarenhet ("Hur gammalt är taket på er fastighet?") eller ingenting. Aldrig "Vad tycker ni?".
-5. Längd: 600 till 1 300 tecken för vanliga inlägg. Kortare om bilden säger det mesta.
-6. Högst 3 hashtaggar, sist. Länkar läggs i första kommentaren.
-7. Högst 2 emojier, aldrig som punktlista.
+- tankstreck
+- sentens eller tänkvärd slutkläm, moralisk sammanfattning sist
+- "X räcker inte om Y", "inte bara ... utan", "inte för att ... utan för att", "det handlar om"
+- "Därför" i början av ett stycke
+- uppräkningar i tre led
+- kolon som avslöjar en poäng
+- retoriska frågor till sig själv, "Vad tycker du?"
+- "Här är grejen", "I en värld där", "kort sagt", "det är där", "på riktigt", "i grunden", "det låter enkelt"
+- orden resa, passion, nyckeln, avgörande, sömlös, bokstavligen, game changer
+- samma fyra första ord som ett tidigare inlägg
 
-## 5. Ton
+`studio.py kontroll` och `studio.py bygg` stoppar texter som bryter mot det som går att kontrollera maskinellt. Resten kontrolleras vid läsning.
 
-Axels egen: rak, saklig, kunnig, utan säljspråk.
+## 5. Förvaltarens fråga (torsdag)
 
-- Första meningen säger vad det gäller.
-- Starka formuleringar, inga onödiga förbehåll.
-- Aldrig tankstreck. Punkt, komma eller kolon.
-- Siffror före adjektiv.
-- "Vi" om Nanostone, "jag" när det är Axels egen iakttagelse.
-- Förbjudet: "i dagens ...", "vi är stolta över", "glada att meddela", "spännande resa", "helhetslösning", "skräddarsydda lösningar", "det handlar inte om X utan om Y", "inte bara X utan också Y".
+Ett bildkort 1080 x 1350 i Nanostones färger med fråga, svar och slutrad, plus en kort text.
 
-`studio.py kontroll` stoppar texter som bryter mot detta.
+| Del | Regel |
+|---|---|
+| `fraga` | Högst 12 ord |
+| `svar` | Två korta stycken, högst 45 ord totalt |
+| `sist` | En mening att ta med sig, högst 10 ord, ingen säljuppmaning |
+| Text | 35 till 70 ord, börjar med "Förvaltarens fråga #N." och hänvisar till bilden |
 
-## 6. Förvaltarens fråga (torsdag)
+Publicerade: #1 hängrännor (5 nov 2026), #2 stenläggning och årligt underhåll (12 nov 2026). Nästa nummer är #3.
 
-**[BEKRÄFTA]** Formatet nedan är ett förslag. Det justeras efter två eller tre av Axels tidigare inlägg i serien.
+Exempel, #2:
 
 ```
-Förvaltarens fråga: <frågan, som förvaltaren ställde den>
+Förvaltarens fråga #2.
 
-<Kort svar på en rad: ja, nej eller det beror på, och på vad.>
+En vanlig fråga efter en stentvätt: hur håller man ytan fri från påväxt år efter år?
 
-<Varför, 2 till 3 meningar. En siffra eller ett exempel från ett verkligt jobb.>
+Kort svar: med ett årligt underhåll. Det är också där garantin mot stenpest ligger.
 
-<Vad förvaltaren själv kan göra eller kontrollera.>
-
-<När det är dags att ta hjälp.>
-
-Har du en fråga till nästa torsdag? Skriv den i en kommentar.
+Svaret i bilden.
 ```
 
-- Frågan ska vara verklig: från ett kundsamtal, ett mejl eller en kommentar. Systemet föreslår frågor men Axel väljer.
-- Bilden är ett frågekort (`"typ": "fraga"`) med löpande nummer, så att serien känns igen i flödet.
-- Kommentarer med nya frågor sparas i `In/fragor.txt` och blir kommande torsdagar.
+## 6. Godkända inlägg att mäta tonen mot
+
+Måndag, Förra veckan i fält (före/efter-bild):
+
+```
+Före och efter från en av våra operatörer.
+
+Plattorna gick knappt att se under mossan och gräset. Allt växtligt spolades bort, varje platta tvättades och hela ytan skumbehandlades med algmedel som sista steg.
+
+I det här jobbet ser man resultatet av sin arbetsdag med egna ögon innan man åker hem. Det är en stor del av varför jag tycker att det är ett av de bästa hantverksjobben som finns.
+```
+
+Tisdag, Drift och ledarskap (bild):
+
+```
+Varje yta vi tvättar fotograferas före och efter.
+
+Bilderna laddas upp på ordern tillsammans med uppmätt yta och det operatören noterat på plats, och kunden får dem skickade till sig. Innan vi åker går vi igenom resultatet med kunden om någon är hemma.
+
+För en förvaltare betyder det att man kan visa styrelsen exakt vad som gjorts utan att själv ha varit där. Ett halvår senare finns svaret fortfarande i bild.
+
+Dokumentationen är en del av leveransen, lika mycket som själva tvätten.
+```
 
 ## 7. Val av bild och film
 
 | Material i `In` | Gör så här |
 |---|---|
-| En före- och en efterbild från samma vinkel | `fore-efter`. Bilderna förbättras aldrig, jämförelsen ska vara ärlig |
+| Före- och efterbild från samma vinkel | `fore-efter`. Bilderna förbättras aldrig, jämförelsen ska vara ärlig |
 | En stark bild | `bild`, med rubrik om bilden behöver förklaras |
-| Flera bilder som visar steg eller tecken | `karusell`, 6 till 10 sidor, en sak per sida |
-| Filmklipp | `film`, 20 till 60 sekunder, rubriken syns de första 3 sekunderna, textskylt på varje klipp eftersom de flesta tittar utan ljud |
-| Inget material | Rent textinlägg eller frågekort |
+| Flera bilder som visar steg | `karusell`, 6 till 10 sidor, en sak per sida |
+| Filmklipp | `film`, 20 till 60 sekunder, rubriken syns de första 3 sekunderna, textskylt på varje klipp eftersom de flesta tittar utan ljud. Mobilfilm på höjden byggs i `9:16` |
+| Torsdag | `fraga` med `svar` och `sist` |
 
-Stående format (4:5) är standard eftersom det tar störst plats i mobilflödet.
+Stående 4:5 är standard för bilder eftersom det tar störst plats i mobilflödet.
 
 ## 8. Vad som faktiskt fungerar
 
-Offentliga uppgifter om vilka format LinkedIn gynnar kommer mest från byråbloggar och säger emot varandra.
-De flesta pekar på att karuseller (dokument) når längst och att länkar i texten sänker räckvidden, medan uppgifterna om film går isär.
-Det enda som räknas är därför Axels egna siffror:
+Det finns inga sparade siffror för de inlägg som publicerats hittills. Offentliga uppgifter om vilka format LinkedIn gynnar kommer mest från byråbloggar och säger emot varandra. Därför är det Axels egna siffror som gäller:
 
-1. Varje inlägg läggs som en rad i `resultat.csv` när veckan byggs.
+1. Varje inlägg blir en rad i `resultat.csv` när veckan byggs.
 2. En vecka efter publicering fyller Axel i visningar, reaktioner, kommentarer, delningar och förfrågningar.
-3. Efter fyra veckor jämför systemet format och ämnen och justerar nästa månads plan efter det. Förfrågningar väger tyngst, sedan kommentarer.
+3. Efter fyra veckor jämförs format och teman, och nästa månads plan justeras. Förfrågningar väger tyngst, sedan kommentarer.

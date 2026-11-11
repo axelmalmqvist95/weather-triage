@@ -34,7 +34,7 @@ Kräver Python 3.10+, `pip install pillow` och ffmpeg.
 |---|---|
 | `bild` | Foto 1080 x 1350, försiktigt förbättrat, med eller utan rubrikfält |
 | `fore-efter` | Före och efter i samma bild, utan bildförbättring |
-| `fraga` | Seriekort för Förvaltarens fråga med löpande nummer |
+| `fraga` | Kort för Förvaltarens fråga: löpande nummer, fråga, svar och slutrad |
 | `karusell` | PDF för LinkedIn-dokument: omslag, numrerade sidor, avslutning |
 | `film` | Klipp och stillbilder ihopklippta, rubrik de första 3 sekunderna, textskyltar, slutkort, jämn ljudnivå |
 

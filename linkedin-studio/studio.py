@@ -280,6 +280,39 @@ def card_cover(size, titel: str, undertitel: str | None, etikett: str | None, nu
     return img
 
 
+def card_qa(size, fraga: str, svar: str, sist: str | None, nummer=None,
+            etikett: str = "Förvaltarens fråga"):
+    """Förvaltarens fråga: fråga, kort svar i två stycken och en mening att ta med sig."""
+    W, H = size
+    img = Image.new("RGB", size, DARK)
+    side = round(W * 0.36)
+    draw_mark(img, (0, 0, W, H), side=side)
+    d = ImageDraw.Draw(img)
+    paste_logo(img, "vit", 72, 72, 46)
+    y = side + 40
+    label = etikett.upper() + (f"  #{nummer}" if nummer else "")
+    _, th = tag(img, (72, y), label, size=30)
+    y += th + 40
+    fq, lq, lhq = fit_text(fraga, "Bold", W - 144, 300, start=68, minimum=44, spacing=1.16)
+    y = draw_lines(d, (72, y), lq, fq, lhq, WHITE) + 44
+    sist_h = 0
+    if sist:
+        fs, ls, lhs = fit_text(sist, "Bold", W - 144 - 40, 130, start=40, minimum=30, spacing=1.25)
+        sist_h = lhs * len(ls) + 40
+    fa, la, lha = fit_text(svar, "Regular", W - 144, H - 84 - sist_h - 40 - y, start=42, minimum=30,
+                           spacing=1.42)
+    draw_lines(d, (72, y), la, fa, lha, LIGHT)
+    if sist:
+        top = H - 84 - sist_h + 20
+        d.rectangle((72, top, 82, top + lhs * len(ls) + 8), fill=RED)
+        draw_lines(d, (72 + 40, top), ls, fs, lhs, WHITE)
+    for name, value, limit in (("Frågan", fraga, 12), ("Svaret", svar, 45), ("Slutraden", sist or "", 10)):
+        n = len(value.split())
+        if n > limit:
+            warn(f"{name} på frågekortet är {n} ord. Regeln är högst {limit}.")
+    return img
+
+
 def card_slide(size, nr: int, total: int, rubrik: str, text: str, bild: Path | None, fot: str):
     """Innehållssida i karusell: nummer i röd ruta, rubrik, brödtext, ev. bild överst."""
     W, H = size
@@ -512,51 +545,65 @@ def build_film(item: dict, src: Path, out: Path) -> Path:
 # ---------------------------------------------------------------- textkontroll
 
 BANNED = [
-    "i dagens", "i en värld där", "i en tid där", "det är ingen hemlighet", "låt oss dyka", "dyka ner i",
+    "i dagens", "i en värld", "i en tid där", "det är ingen hemlighet", "låt oss dyka", "dyka ner i",
     "glada att meddela", "stolta över att", "stolt över att", "game changer", "nästa nivå",
-    "sammanfattningsvis", "tveka inte", "häng med", "spännande resa", "vi brinner för",
-    "i framkant", "skräddarsydda lösningar", "helhetslösning", "vad tycker ni?", "vad tycker du?",
-    "håller du med?", "nyckeln till", "det handlar om att", "banbrytande", "sömlös", "lyfta blicken",
+    "sammanfattningsvis", "tveka inte", "häng med", "vi brinner för", "i framkant",
+    "skräddarsydda lösningar", "helhetslösning", "vad tycker ni?", "vad tycker du?", "håller du med?",
+    "det handlar om", "banbrytande", "kort sagt", "det är där", "här är grejen", "här är saken",
+    "på riktigt", "det låter enkelt", "i grunden",
 ]
+BANNED_WORDS = ["resa", "resan", "passion", "bokstavligen", "sömlös", "sömlöst", "avgörande", "nyckeln"]
 PATTERNS = [
     (r"handlar (det )?inte (bara )?om[^.\n]{2,80}(utan|det handlar) om", "\"handlar inte om X utan om Y\""),
-    (r"inte bara[^.\n]{2,60}utan (också|även)", "\"inte bara X utan också Y\""),
+    (r"inte bara[^.\n]{2,60}utan", "\"inte bara X utan Y\""),
+    (r"inte för att[^.\n]{2,80}utan för att", "\"inte för att X utan för att Y\""),
+    (r"räcker inte (om|när)", "\"X räcker inte om Y\""),
+    (r"^därför\b", "stycke som börjar med \"Därför\""),
     (r"^(här är|här kommer) \d+ ", "listlöfte i första raden"),
 ]
+# Ordantal per dag (Axels rutin). Torsdagens text hänvisar till bilden och är därför kort.
+WORDS = {"måndag": (50, 90), "mandag": (50, 90), "tisdag": (80, 110), "torsdag": (35, 70)}
 
 
-def check_text(text: str) -> tuple[list[str], list[str]]:
+def check_text(text: str, dag: str | None = None) -> tuple[list[str], list[str]]:
     """Returnerar (fel, varningar). Fel ska rättas innan publicering."""
     errors, notes = [], []
     low = text.lower()
     if "—" in text or " – " in text:
-        errors.append("Tankstreck används. Byt mot punkt, komma eller kolon.")
+        errors.append("Tankstreck används. Byt mot punkt eller komma.")
+    if "!" in text:
+        errors.append("Utropstecken används.")
+    if re.search(r"#\w", text.replace("fråga #", "fråga ")):
+        errors.append("Hashtagg används. Tagga @Nanostone sist i stället.")
+    if re.search(r"[\U0001F300-\U0001FAFF☀-➿]", text):
+        errors.append("Emoji används.")
+    if re.search(r"https?://|www\.", low):
+        errors.append("Länk i texten. Länkar hör inte hemma i inlägget.")
     for b in BANNED:
         if b in low:
-            errors.append(f"AI-fras: \"{b}\". Skriv om med ett konkret faktum i stället.")
+            errors.append(f"AI-fras: \"{b}\". Skriv en konkret detalj i stället.")
+    for w in BANNED_WORDS:
+        if re.search(rf"\b{w}\b", low):
+            errors.append(f"AI-ord: \"{w}\".")
     for pat, name in PATTERNS:
         if re.search(pat, low, flags=re.M):
             errors.append(f"Schablonmönster: {name}.")
-    if "[fyll i" in low:
-        errors.append("Det finns [FYLL I: ...] kvar. Fyll i uppgiften innan publicering.")
+    if "[fyll i" in low or "[kontrollera" in low:
+        errors.append("Det finns [FYLL I: ...] eller [KONTROLLERA: ...] kvar i texten.")
     if len(text) > 3000:
         errors.append(f"Texten är {len(text)} tecken. LinkedIn tillåter 3 000.")
     first = text.strip().split("\n", 1)[0]
     if len(first) > 140:
         notes.append(f"Första raden är {len(first)} tecken. Över ca 140 klipps den före \"visa mer\" i mobilen.")
-    tags = re.findall(r"#\w+", text)
-    if len(tags) > 3:
-        notes.append(f"{len(tags)} hashtaggar. Håll det till högst 3.")
-    if re.search(r"https?://|www\.", low):
-        notes.append("Länk i texten. Lägg den i första kommentaren i stället.")
-    emojis = re.findall(r"[\U0001F300-\U0001FAFF☀-➿]", text)
-    if len(emojis) > 2:
-        notes.append(f"{len(emojis)} emojier. Högst 2, och aldrig som punktlista.")
-    if not re.search(r"\d", text):
-        notes.append("Ingen siffra i texten. Ett mått, ett årtal eller ett antal gör inlägget konkret.")
-    long_paras = [p for p in text.split("\n\n") if len(p) > 420]
-    if long_paras:
-        notes.append(f"{len(long_paras)} stycke(n) är längre än ca 4 rader. Dela upp dem.")
+    if dag in ("tisdag",) and len(first.split()) > 12:
+        notes.append(f"Tisdagens första rad är {len(first.split())} ord. Regeln är en ståndpunkt på högst 12.")
+    n = len(text.split())
+    if dag in WORDS and not WORDS[dag][0] <= n <= WORDS[dag][1]:
+        notes.append(f"Texten är {n} ord. Riktmärket för {dag} är {WORDS[dag][0]} till {WORDS[dag][1]}.")
+    if dag == "torsdag" and not low.lstrip().startswith(("förvaltarens fråga", "ny serie: förvaltarens fråga")):
+        notes.append("Torsdagens text ska börja med \"Förvaltarens fråga #N.\"")
+    if "@nanostone" not in low:
+        notes.append("@Nanostone är inte taggat sist i inlägget.")
     return errors, notes
 
 
@@ -651,7 +698,7 @@ def cmd_bygg(args) -> None:
         (d / "inlagg.txt").write_text(text)
         if post.get("kommentar"):
             (d / "forsta-kommentar.txt").write_text(post["kommentar"].strip() + "\n")
-        errors, notes = check_text(text)
+        errors, notes = check_text(text, dag)
         print(f"\n{dag.capitalize()} {post.get('datum', '')}".rstrip())
         for e in errors:
             print(f"  FEL      {e}")
@@ -673,9 +720,13 @@ def cmd_bygg(args) -> None:
                              d / f"{n}-fore-efter.jpg")
                 used.update([m["fore"], m["efter"]])
             elif typ == "fraga":
-                o = save_jpg(card_cover(size, m["fraga"], m.get("undertitel"),
-                                        m.get("etikett", "Förvaltarens fråga"), m.get("nummer")),
-                             d / f"{n}-fraga.jpg")
+                if m.get("svar"):
+                    card = card_qa(size, m["fraga"], m["svar"], m.get("sist"), m.get("nummer"),
+                                   m.get("etikett", "Förvaltarens fråga"))
+                else:
+                    card = card_cover(size, m["fraga"], m.get("undertitel"),
+                                      m.get("etikett", "Förvaltarens fråga"), m.get("nummer"))
+                o = save_jpg(card, d / f"{n}-fraga.jpg")
             elif typ == "karusell":
                 o = build_carousel(m, src, d / f"{n}-karusell.pdf", size)
                 used.update(s["bild"] for s in m.get("sidor", []) if s.get("bild"))
