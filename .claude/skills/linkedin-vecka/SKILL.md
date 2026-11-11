@@ -26,5 +26,7 @@ Verktyget ligger i `linkedin-studio/` i det här repot. Läs `linkedin-studio/PL
 - Publicera aldrig själv. Axel lägger ut inläggen.
 - Logotypen kommer bara från de officiella filerna i `linkedin-studio/assets/logo/`. Rita aldrig om den.
 - Före/efter-bilder förbättras inte.
-- Inga personnamn, kundnamn, adresser eller registreringsskyltar. Personer beskrivs med roll.
+- Allt ska vara Nanostone: tjänster Nanostone utför och metoder ur Nanostones eget underlag. Osäkert skrivs `[KONTROLLERA: ...]`.
+- Inga adresser, inga personnamn eller kundnamn, inga belopp eller ekonomisiffror. Personer beskrivs med roll.
+- Granska varje bild och varje filmklipp efter husnummer, gatuskyltar, namnskyltar, brevlådor, registreringsskyltar och ansikten innan materialet används. Beskär bort det med `fokus` eller välj annat material, och säg till Axel vad som valdes bort och varför.
 - Uppdatera numret för Förvaltarens fråga i PLAYBOOK avsnitt 5 när en ny fråga godkänts.

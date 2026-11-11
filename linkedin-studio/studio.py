@@ -565,6 +565,33 @@ PATTERNS = [
 WORDS = {"måndag": (50, 90), "mandag": (50, 90), "tisdag": (80, 110), "torsdag": (35, 70)}
 
 
+MONEY = re.compile(r"\d[\d\s.,]*\s*(kr\b|kronor|sek\b|:-|tkr\b|mkr\b|miljon)", re.I)
+MONEY_WORDS = ["omsättning", "timpris", "marginal", "fakturer", "offertbelopp", "kvadratmeterpris"]
+ADDRESS = re.compile(r"\b[A-ZÅÄÖ][a-zåäöé]+(gatan|vägen|gränd|stigen|allén|torget|backen|plan)\s+\d+")
+
+
+def check_sensitive(text: str) -> list[str]:
+    """Det som aldrig får synas, varken i text eller på bild: adresser, belopp, ekonomi."""
+    out = []
+    if ADDRESS.search(text):
+        out.append("Gatuadress i texten. Adresser får aldrig synas.")
+    if MONEY.search(text):
+        out.append("Belopp i texten. Priser, kostnader och omsättning får aldrig synas.")
+    for w in MONEY_WORDS:
+        if w in text.lower():
+            out.append(f"Ekonomiuppgift: \"{w}\". Skriv om tjänsten och metoden, inte om pengar.")
+    return out
+
+
+def media_texts(m: dict) -> str:
+    """All text som hamnar på bild eller film för en mediapost."""
+    parts = [m.get(k, "") for k in ("rubrik", "etikett", "titel", "undertitel", "fraga", "svar", "sist",
+                                    "avslut", "avslut_undertext", "slut_text", "slut_undertext")]
+    parts += [s_.get("rubrik", "") + " " + s_.get("text", "") for s_ in m.get("sidor", [])]
+    parts += [c.get("text", "") for c in m.get("klipp", [])]
+    return "\n".join(x for x in parts if x)
+
+
 def check_text(text: str, dag: str | None = None) -> tuple[list[str], list[str]]:
     """Returnerar (fel, varningar). Fel ska rättas innan publicering."""
     errors, notes = [], []
@@ -579,6 +606,7 @@ def check_text(text: str, dag: str | None = None) -> tuple[list[str], list[str]]
         errors.append("Emoji används.")
     if re.search(r"https?://|www\.", low):
         errors.append("Länk i texten. Länkar hör inte hemma i inlägget.")
+    errors += check_sensitive(text)
     for b in BANNED:
         if b in low:
             errors.append(f"AI-fras: \"{b}\". Skriv en konkret detalj i stället.")
@@ -699,6 +727,8 @@ def cmd_bygg(args) -> None:
         if post.get("kommentar"):
             (d / "forsta-kommentar.txt").write_text(post["kommentar"].strip() + "\n")
         errors, notes = check_text(text, dag)
+        for m in post.get("media", []):
+            errors += [f"På bild/film: {e}" for e in check_sensitive(media_texts(m))]
         print(f"\n{dag.capitalize()} {post.get('datum', '')}".rstrip())
         for e in errors:
             print(f"  FEL      {e}")

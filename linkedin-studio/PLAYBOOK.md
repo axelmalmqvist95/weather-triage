@@ -28,11 +28,14 @@ Extra vinkel utan fast dag, **Fackkunskap:** något förvaltaren har nytta av at
 - Kort, konkret, mänskligt. En poäng och en tråd per inlägg.
 - Första raden är en konkret scen eller ett påstående med belägg.
 - **@Nanostone taggas sist i inlägget.** Inga hashtaggar, inga länkar, inga emojier, inga utropstecken.
-- Inga namn på personer, inga kundnamn, inga interna siffror, inget antal anställda. Personer beskrivs med roll: "en av våra operatörer".
+- **Allt är Nanostone.** Inläggen handlar om tjänster Nanostone utför, beskrivna med de metoder Nanostone faktiskt använder. Metoder och påståenden hämtas ur Nanostones eget underlag (Tvättbibeln, produktbeskrivningarna) och det Axel säger. Är en metod osäker skrivs `[KONTROLLERA: påståendet]`. Inga allmänna branschråd som Nanostone inte själv arbetar efter.
+- **Inga adresser.** Privatkunders adresser får aldrig förekomma, varken i text eller på bild. Det gäller också husnummer, gatuskyltar, namnskyltar, brevlådor och registreringsskyltar som syns i bild eller film: beskär bort dem eller välj annat material.
+- **Inga namn.** Inga namn på personer och inga kundnamn. Personer beskrivs med roll: "en av våra operatörer".
+- **Inga pengar.** Inga siffror som visar omsättning, kostnader, priser, offertbelopp eller marginaler. Inga interna siffror och inget antal anställda.
 - AI är aldrig ämnet.
 - Inget som får Nanostone att se dåligt ut: missade besök, misstag, reklamationer, interna problem. Läsaren ska få förtroende.
 - **Påstå inga fakta som inte står i underlaget.** Siffror, månader, garantier och platser hittas aldrig på. Ett påstående som inte går att belägga skrivs `[KONTROLLERA: påståendet]` och inlägget stoppas tills Axel svarat.
-- Bildinlägg: beskriv bara det som syns. Inga adresser eller registreringsskyltar.
+- Bildinlägg: beskriv bara det som syns.
 
 ## 4. Ska låta som Axel, inte som AI
 
