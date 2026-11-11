@@ -13,3 +13,4 @@ frontend/out/
 
 # OS
 .DS_Store
+*.tsbuildinfo
