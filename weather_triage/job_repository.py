@@ -45,6 +45,7 @@ def _row_to_job(row: dict[str, str]) -> Job:
         job_type=row["job_type"],
         duration_hours=float(row["duration_hours"]),
         crew_id=crew_id,
+        price_sek=float(row["price_sek"]) if row.get("price_sek") else None,
     )
 
 
@@ -58,6 +59,8 @@ def load_crews(path: Path) -> list[Crew]:
                 name=entry["name"],
                 home_base=Coordinates(latitude=entry["latitude"], longitude=entry["longitude"]),
                 skills=entry.get("skills", []),
+                daily_target_sek=float(entry.get("daily_target_sek", 0)),
+                max_hours=float(entry.get("max_hours", 9)),
             )
         )
     return crews
@@ -75,3 +78,17 @@ def load_job_type_profiles(path: Path) -> dict[str, JobTypeProfile]:
             max_temperature_c=thresholds.get("max_temp_c"),
         )
     return profiles
+
+
+def load_pricing(path: Path) -> tuple[dict[str, float], dict]:
+    """Return (hourly rate per job type, raw planning settings) from pricing.json."""
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    rates = {name: float(rate) for name, rate in raw.get("hourly_rate_sek", {}).items()}
+    return rates, raw.get("planning", {})
+
+
+def job_price(job: Job, hourly_rates: dict[str, float]) -> float:
+    """The job's agreed price, or hourly rate x duration when none is set."""
+    if job.price_sek is not None:
+        return job.price_sek
+    return hourly_rates.get(job.job_type, 0.0) * job.duration_hours

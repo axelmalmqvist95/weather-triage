@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS jobs (
     job_type TEXT NOT NULL,
     duration_hours REAL NOT NULL,
     crew_id TEXT,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    price_sek REAL
 );
 
 CREATE TABLE IF NOT EXISTS assessment_snapshots (
@@ -57,7 +58,14 @@ class JobStore:
         self._conn = sqlite3.connect(db_path, check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         self._conn.executescript(_SCHEMA)
+        self._migrate()
         self._conn.commit()
+
+    def _migrate(self) -> None:
+        """Bring databases created by older versions up to the current schema."""
+        columns = {row["name"] for row in self._conn.execute("PRAGMA table_info(jobs)")}
+        if "price_sek" not in columns:
+            self._conn.execute("ALTER TABLE jobs ADD COLUMN price_sek REAL")
 
     def is_empty(self) -> bool:
         row = self._conn.execute("SELECT COUNT(*) AS n FROM jobs").fetchone()
@@ -90,6 +98,18 @@ class JobStore:
             "UPDATE jobs SET date = ? WHERE job_id = ?", (new_date.isoformat(), job_id)
         )
         self._conn.commit()
+
+    def update_job_crews(self, assignments: dict[str, str | None]) -> None:
+        """Set crew_id for several jobs in one transaction (job_id -> crew_id).
+
+        Used when a dispatcher saves a route plan: either every assignment
+        lands or none does, so a half-saved plan can't exist.
+        """
+        with self._conn:
+            self._conn.executemany(
+                "UPDATE jobs SET crew_id = ? WHERE job_id = ?",
+                [(crew_id, job_id) for job_id, crew_id in assignments.items()],
+            )
 
     def delete_job(self, job_id: str) -> None:
         self._conn.execute("DELETE FROM jobs WHERE job_id = ?", (job_id,))
@@ -151,8 +171,8 @@ class JobStore:
         self._conn.execute(
             """
             INSERT OR REPLACE INTO jobs
-                (job_id, date, time, latitude, longitude, address, job_type, duration_hours, crew_id, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (job_id, date, time, latitude, longitude, address, job_type, duration_hours, crew_id, created_at, price_sek)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 job.job_id,
@@ -165,6 +185,7 @@ class JobStore:
                 job.duration_hours,
                 job.crew_id,
                 created_at,
+                job.price_sek,
             ),
         )
 
@@ -179,4 +200,5 @@ def _row_to_job(row: sqlite3.Row) -> Job:
         job_type=row["job_type"],
         duration_hours=row["duration_hours"],
         crew_id=row["crew_id"],
+        price_sek=row["price_sek"],
     )

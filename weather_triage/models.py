@@ -86,6 +86,10 @@ class Crew:
     name: str
     home_base: Coordinates
     skills: list[str] = field(default_factory=list)
+    # Revenue the crew is expected to bring in on a full day, and how long
+    # a working day may be (job time + driving). Both feed the route planner.
+    daily_target_sek: float = 0.0
+    max_hours: float = 9.0
 
 
 @dataclass(frozen=True)
@@ -98,6 +102,9 @@ class Job:
     job_type: str
     duration_hours: float
     crew_id: str | None = None
+    # Agreed price for the job. None means "derive from the job type's
+    # hourly rate" (see config/pricing.json).
+    price_sek: float | None = None
 
 
 @dataclass(frozen=True)

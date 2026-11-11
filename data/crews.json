@@ -7,7 +7,9 @@
     "skills": [
       "facade_wash",
       "roof_wash"
-    ]
+    ],
+    "daily_target_sek": 7000,
+    "max_hours": 9
   },
   {
     "crew_id": "C102",
@@ -17,7 +19,9 @@
     "skills": [
       "deck_wash",
       "gutter_clean"
-    ]
+    ],
+    "daily_target_sek": 6000,
+    "max_hours": 9
   },
   {
     "crew_id": "C103",
@@ -27,7 +31,9 @@
     "skills": [
       "painting",
       "facade_wash"
-    ]
+    ],
+    "daily_target_sek": 7000,
+    "max_hours": 9
   },
   {
     "crew_id": "C104",
@@ -37,7 +43,9 @@
     "skills": [
       "roof_wash",
       "gutter_clean"
-    ]
+    ],
+    "daily_target_sek": 7500,
+    "max_hours": 9
   },
   {
     "crew_id": "C105",
@@ -47,7 +55,9 @@
     "skills": [
       "painting",
       "deck_wash"
-    ]
+    ],
+    "daily_target_sek": 6500,
+    "max_hours": 9
   },
   {
     "crew_id": "C106",
@@ -57,7 +67,9 @@
     "skills": [
       "facade_wash",
       "painting"
-    ]
+    ],
+    "daily_target_sek": 7000,
+    "max_hours": 9
   },
   {
     "crew_id": "C107",
@@ -67,16 +79,20 @@
     "skills": [
       "deck_wash",
       "facade_wash"
-    ]
+    ],
+    "daily_target_sek": 6000,
+    "max_hours": 9
   },
   {
     "crew_id": "C108",
-    "name": "H\u00f6jdteamet",
+    "name": "Höjdteamet",
     "latitude": 56.0522,
     "longitude": 12.6876,
     "skills": [
       "roof_wash",
       "gutter_clean"
-    ]
+    ],
+    "daily_target_sek": 6500,
+    "max_hours": 9
   }
 ]

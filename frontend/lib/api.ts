@@ -1,4 +1,4 @@
-import { AssessmentSnapshot, Crew, Job, NewJobInput } from "./types";
+import { AssessmentSnapshot, Crew, Job, NewJobInput, Plan, PlanEdit } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -31,4 +31,11 @@ export const api = {
       if (!res.ok) throw new Error(`DELETE /api/jobs/${jobId} failed: ${res.status}`);
     }),
   getJobHistory: (jobId: string) => request<AssessmentSnapshot[]>(`/api/jobs/${jobId}/history`),
+  getPlanDates: () => request<string[]>("/api/plan/dates"),
+  getPlanProposal: (date: string) => request<Plan>(`/api/plan?date=${date}`),
+  getCurrentPlan: (date: string) => request<Plan>(`/api/plan/current?date=${date}`),
+  evaluatePlan: (edit: PlanEdit) =>
+    request<Plan>("/api/plan/evaluate", { method: "POST", body: JSON.stringify(edit) }),
+  applyPlan: (edit: PlanEdit) =>
+    request<Plan>("/api/plan/apply", { method: "POST", body: JSON.stringify(edit) }),
 };

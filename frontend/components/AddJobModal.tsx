@@ -18,6 +18,7 @@ interface Props {
     job_type: string;
     duration_hours: number;
     crew_id: string | null;
+    price_sek?: number | null;
   }) => Promise<void>;
 }
 
@@ -43,6 +44,7 @@ export function AddJobModal({ crews, jobTypes, onClose, onSubmit }: Props) {
   const [jobType, setJobType] = useState(jobTypes[0] ?? "");
   const [duration, setDuration] = useState(3);
   const [crewId, setCrewId] = useState<string>("");
+  const [price, setPrice] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,6 +67,7 @@ export function AddJobModal({ crews, jobTypes, onClose, onSubmit }: Props) {
         job_type: jobType,
         duration_hours: duration,
         crew_id: crewId || null,
+        price_sek: price ? Number(price) : null,
       });
     } catch (err) {
       setError(String(err));
@@ -186,6 +189,19 @@ export function AddJobModal({ crews, jobTypes, onClose, onSubmit }: Props) {
               />
             </label>
           </div>
+
+          <label className="flex flex-col gap-1 text-xs font-medium text-app-text-muted">
+            Price, kr (optional — defaults to hourly rate × duration)
+            <input
+              type="number"
+              min={0}
+              step={50}
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="e.g. 4500"
+              className="rounded-md border border-app-border px-2 py-1.5 text-sm text-app-text"
+            />
+          </label>
 
           <label className="flex flex-col gap-1 text-xs font-medium text-app-text-muted">
             Crew (optional)

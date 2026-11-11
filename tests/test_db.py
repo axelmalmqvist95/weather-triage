@@ -93,3 +93,39 @@ def test_snapshot_different_days_accumulate_history(store):
 
 def test_history_for_unknown_job_is_empty_not_an_error(store):
     assert store.get_history("NOPE") == []
+
+
+def test_update_job_crews_sets_and_clears(store):
+    store.create_job(make_job("J1"))
+    store.create_job(make_job("J2"))
+
+    store.update_job_crews({"J1": "C9", "J2": None})
+
+    assert store.get_job("J1").crew_id == "C9"
+    assert store.get_job("J2").crew_id is None
+
+
+def test_price_round_trips(store):
+    from dataclasses import replace
+    store.create_job(replace(make_job("J1"), price_sek=4200.0))
+    assert store.get_job("J1").price_sek == 4200.0
+
+
+def test_old_database_gets_price_column(tmp_path):
+    import sqlite3
+    path = tmp_path / "old.db"
+    conn = sqlite3.connect(path)
+    conn.execute(
+        "CREATE TABLE jobs (job_id TEXT PRIMARY KEY, date TEXT NOT NULL, time TEXT NOT NULL, "
+        "latitude REAL NOT NULL, longitude REAL NOT NULL, address TEXT NOT NULL, job_type TEXT NOT NULL, "
+        "duration_hours REAL NOT NULL, crew_id TEXT, created_at TEXT NOT NULL)"
+    )
+    conn.execute(
+        "INSERT INTO jobs VALUES ('J1','2026-08-10','09:00',55.6,13.0,'A','facade_wash',3,'C1','x')"
+    )
+    conn.commit()
+    conn.close()
+
+    job = JobStore(path).get_job("J1")
+
+    assert job.price_sek is None

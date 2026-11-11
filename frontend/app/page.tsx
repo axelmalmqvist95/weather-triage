@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { LayoutGrid, Map as MapIcon, List, Plus } from "lucide-react";
+import { LayoutGrid, Map as MapIcon, List, Plus, Route as RouteIcon } from "lucide-react";
 import { api } from "@/lib/api";
 import { Crew, Job, NewJobInput } from "@/lib/types";
 import { TopBar } from "@/components/TopBar";
@@ -11,13 +11,14 @@ import { DispatchGrid } from "@/components/DispatchGrid";
 import { ListView } from "@/components/ListView";
 import { AddJobModal } from "@/components/AddJobModal";
 import { JobHistoryPanel } from "@/components/JobHistoryPanel";
+import { PlanView } from "@/components/PlanView";
 
 // Leaflet touches `window` on import, so it can only run client-side.
 const RiskMap = dynamic(() => import("@/components/RiskMap").then((m) => m.RiskMap), {
   ssr: false,
 });
 
-type View = "grid" | "map" | "list";
+type View = "grid" | "plan" | "map" | "list";
 
 function nextNDays(n: number): string[] {
   const today = new Date();
@@ -109,6 +110,7 @@ export default function Page() {
 
   const viewTabs: { id: View; label: string; Icon: typeof LayoutGrid; hideOnNarrow?: boolean }[] = [
     { id: "grid", label: "Dispatch grid", Icon: LayoutGrid, hideOnNarrow: true },
+    { id: "plan", label: "Route plan", Icon: RouteIcon },
     { id: "map", label: "Map", Icon: MapIcon },
     { id: "list", label: "List", Icon: List },
   ];
@@ -161,6 +163,9 @@ export default function Page() {
         <div className="mt-4">
           {view === "grid" && !isNarrow && (
             <DispatchGrid jobs={jobs} crews={crews} days={days} onReschedule={handleReschedule} />
+          )}
+          {view === "plan" && (
+            <PlanView onSaved={() => api.getJobs().then(setJobs).catch(() => undefined)} />
           )}
           {view === "map" && <RiskMap jobs={jobs} />}
           {view === "list" && (
