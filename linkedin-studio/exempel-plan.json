@@ -1,0 +1,93 @@
+{
+  "vecka": "2026-v47",
+  "inlagg": [
+    {
+      "dag": "måndag",
+      "datum": "2026-11-16",
+      "text": "Taket var från 1987 och norrsidan var grön av mossa.\n\nStyrelsen i föreningen hade fått rådet att byta hela taket. Vi gick upp och tittade först. Pannorna var hela, det var ytan som var slut.\n\nTvå dagar senare var taket tvättat och behandlat.\n\n#fastighetsförvaltning",
+      "media": [
+        {
+          "typ": "fore-efter",
+          "fore": "fasad_fore.jpg",
+          "efter": "fasad_efter.jpg",
+          "rubrik": "Tak från 1987, två dagars arbete"
+        },
+        {
+          "typ": "bild",
+          "in": "tak.jpg",
+          "rubrik": "Pannorna var hela. Det var ytan som var slut.",
+          "etikett": "Från fältet"
+        },
+        {
+          "typ": "bild",
+          "in": "tak.jpg"
+        }
+      ]
+    },
+    {
+      "dag": "tisdag",
+      "datum": "2026-11-17",
+      "text": "Hittar du grus i hängrännan har takets ytskikt börjat släppa.\n\nDet är det första av tre tecken vi tittar efter på tak från 80-talet. Alla tre går att se från marken eller från en stege.\n\nBläddra i bilderna.\n\n#fastighetsförvaltning #brf",
+      "media": [
+        {
+          "typ": "karusell",
+          "titel": "Tre tecken på att taket behöver ses över före vintern",
+          "undertitel": "En checklista för förvaltare",
+          "etikett": "Kunskap",
+          "sidor": [
+            {
+              "rubrik": "Mossa på norrsidan",
+              "text": "Mossa håller kvar fukt mot pannan. När det fryser sprängs ytan sönder bit för bit.",
+              "bild": "tak.jpg"
+            },
+            {
+              "rubrik": "Grus i hängrännan",
+              "text": "Gruset kommer från pannornas ytskikt. Hittar du mycket av det har ytan börjat släppa."
+            },
+            {
+              "rubrik": "Mörka ränder under nocken",
+              "text": "Ränderna visar var vattnet blir stående längst. Där börjar skadorna."
+            }
+          ],
+          "avslut": "Osäker på ditt tak?",
+          "avslut_undertext": "Skicka en bild så säger vi vad vi ser."
+        }
+      ]
+    },
+    {
+      "dag": "torsdag",
+      "datum": "2026-11-19",
+      "text": "Förvaltarens fråga: Kan man tvätta fasaden på vintern?\n\nKort svar: ja, ner till ungefär 2 grader.",
+      "media": [
+        {
+          "typ": "fraga",
+          "fraga": "Kan man tvätta fasaden på vintern?",
+          "nummer": 12
+        },
+        {
+          "typ": "film",
+          "rubrik": "Fasadtvätt i november",
+          "klipp": [
+            {
+              "in": "tvatt.mp4",
+              "start": 1,
+              "langd": 5,
+              "text": "Lågtryck, inte högtryck"
+            },
+            {
+              "in": "tak.jpg",
+              "langd": 2.5,
+              "text": "Så här såg det ut före"
+            },
+            {
+              "in": "lift.mov",
+              "langd": 3
+            }
+          ],
+          "slut_text": "Förvaltarens fråga",
+          "slut_undertext": "Ny fråga varje torsdag"
+        }
+      ]
+    }
+  ]
+}
