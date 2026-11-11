@@ -117,7 +117,16 @@ Dokumentationen är en del av leveransen, lika mycket som själva tvätten.
 
 Stående 4:5 är standard för bilder eftersom det tar störst plats i mobilflödet.
 
-## 8. Vad som faktiskt fungerar
+## 8. Råmaterial
+
+Materialet kommer från tre håll: bilder och filmer på jobben i Diroto, direkt från operatörerna och från marknadsavdelningen.
+
+- Material från Diroto hör till en order med kundnamn och adress. Bara själva bilden eller filmen följer med in i `In`. Ordernummer, kundnamn och adress ska inte stå i filnamnet. `studio.py granska` varnar för filnamn som ser ut som adresser.
+- Allt färdigt material sparas utan platsdata och annan dold information från kameran, och med neutrala filnamn.
+- Använd originalfilerna. Bilder och filmer som skickats via chattappar är hårt komprimerade och blir suddiga.
+- Före- och efterbild ska komma från samma jobb och samma yta. Para aldrig ihop bilder från olika jobb.
+
+## 9. Vad som faktiskt fungerar
 
 Det finns inga sparade siffror för de inlägg som publicerats hittills. Offentliga uppgifter om vilka format LinkedIn gynnar kommer mest från byråbloggar och säger emot varandra. Därför är det Axels egna siffror som gäller:
 

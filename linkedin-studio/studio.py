@@ -519,7 +519,7 @@ def build_film(item: dict, src: Path, out: Path) -> Path:
                 last = f"b{k + 1}"
             seg = tmp / f"seg{i}.mp4"
             run(["ffmpeg", "-y", "-v", "error", *inputs, "-filter_complex", ";".join(fc),
-                 "-map", f"[{last}]", "-map", amap, "-t", f"{dur}", *enc, str(seg)])
+                 "-map", f"[{last}]", "-map", amap, "-t", f"{dur}", "-map_metadata", "-1", *enc, str(seg)])
             segs.append(seg)
         if item.get("slutkort", True):
             end = tmp / "end.png"
@@ -535,7 +535,7 @@ def build_film(item: dict, src: Path, out: Path) -> Path:
         af = ["-af", "loudnorm=I=-16:TP=-1.5:LRA=11"] if any_audio else []
         run(["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", str(lst), *af,
              "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-r", "30",
-             "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-movflags", "+faststart", str(out)])
+             "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-map_metadata", "-1", "-movflags", "+faststart", str(out)])
     total = probe(out)["duration"]
     if total > 90:
         warn(f"Filmen {out.name} är {total:.0f} s. Under 60 s brukar fler se klart.")
@@ -699,11 +699,16 @@ def cmd_granska(args) -> None:
             sheet.paste(im, (x, y))
             d.text((x, y + 488), name[:34], font=font("SemiBold", 22), fill=DARK)
         save_jpg(sheet, out / f"bilder_{s // 12 + 1}.jpg")
+    for i in info:
+        if ADDRESS.search(i["fil"].replace("_", " ").replace("-", " ")):
+            i["varning"] = "Filnamnet ser ut att innehålla en adress. Byt namn på filen."
     (out / "oversikt.json").write_text(json.dumps(info, ensure_ascii=False, indent=2))
     print(f"{len(files)} filer i In. Översikt: {out}")
     for i in info:
         extra = f"{i['duration']:.1f} s" if i["typ"] == "film" else ""
         print(f"  {i['typ']:<10} {i['fil']} {extra}")
+        if i.get("varning"):
+            print(f"             VARNING  {i['varning']}")
 
 
 # ---------------------------------------------------------------- bygg
