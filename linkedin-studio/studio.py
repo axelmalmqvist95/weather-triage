@@ -226,7 +226,7 @@ def card_photo(src: Path, size, rubrik: str | None, etikett: str | None, focus, 
     return img
 
 
-def card_before_after(fore: Path, efter: Path, size, rubrik: str | None):
+def card_before_after(fore: Path, efter: Path, size, rubrik: str | None, focus=(0.5, 0.5)):
     """Före/efter. Liggande bilder staplas, stående läggs sida vid sida. Ingen bildförbättring."""
     W, H = size
     a, b = load_image(fore), load_image(efter)
@@ -236,16 +236,46 @@ def card_before_after(fore: Path, efter: Path, size, rubrik: str | None):
     area_h = H - foot
     if a.width >= a.height:  # stapla
         ph = (area_h - gap) // 2
-        img.paste(cover(a, (W, ph)), (0, 0))
-        img.paste(cover(b, (W, area_h - gap - ph)), (0, ph + gap))
+        img.paste(cover(a, (W, ph), focus), (0, 0))
+        img.paste(cover(b, (W, area_h - gap - ph), focus), (0, ph + gap))
         pos = [(40, 40), (40, ph + gap + 40)]
     else:  # sida vid sida
         pw = (W - gap) // 2
-        img.paste(cover(a, (pw, area_h)), (0, 0))
-        img.paste(cover(b, (W - gap - pw, area_h)), (pw + gap, 0))
+        img.paste(cover(a, (pw, area_h), focus), (0, 0))
+        img.paste(cover(b, (W - gap - pw, area_h), focus), (pw + gap, 0))
         pos = [(40, 40), (pw + gap + 40, 40)]
     tag(img, pos[0], "FÖRE", fill=DARK)
     tag(img, pos[1], "EFTER", fill=RED)
+    d = ImageDraw.Draw(img)
+    d.rectangle((0, H - foot, W, H), fill=DARK)
+    draw_mark(img, (0, H - foot, W, H), side=round(foot * 2.4))
+    if rubrik:
+        fnt, lines, lh = fit_text(rubrik, "Bold", W - 54 - 420, 60, start=40, minimum=24)
+        draw_lines(d, (54, H - foot + 24), lines[:1], fnt, lh, WHITE)
+        paste_logo(img, "vit", 54, H - 58, 32)
+    else:
+        paste_logo(img, "vit", 54, H - foot + 28, 40)
+    return img
+
+
+def card_steps(bilder: list[Path], size, rubrik: str | None, focus=(0.5, 0.5),
+               etiketter=("FÖRE", "TVÄTTAD", "FOGAD")):
+    """Tre steg av samma yta. Liggande bilder staplas, stående läggs sida vid sida. Ingen bildförbättring."""
+    W, H = size
+    photos = [load_image(p) for p in bilder]
+    n = len(photos)
+    foot = 150 if rubrik else 96
+    img = Image.new("RGB", size, WHITE)
+    gap = 8
+    area_h = H - foot
+    stack = photos[0].width >= photos[0].height
+    full = area_h if stack else W
+    cuts = [round(i * (full + gap) / n) for i in range(n + 1)]  # panelernas start, sista = full + gap
+    for i, ph in enumerate(photos):
+        a, b = cuts[i], cuts[i + 1] - gap
+        box = (0, a, W, b) if stack else (a, 0, b, area_h)
+        img.paste(cover(ph, (box[2] - box[0], box[3] - box[1]), focus), box[:2])
+        tag(img, (box[0] + 28, box[1] + 28), etiketter[i], fill=RED if i == n - 1 else DARK, size=26)
     d = ImageDraw.Draw(img)
     d.rectangle((0, H - foot, W, H), fill=DARK)
     draw_mark(img, (0, H - foot, W, H), side=round(foot * 2.4))
@@ -751,9 +781,15 @@ def cmd_bygg(args) -> None:
                 o = save_jpg(img, d / f"{n}-bild.jpg")
                 used.add(m["in"])
             elif typ == "fore-efter":
-                o = save_jpg(card_before_after(src / m["fore"], src / m["efter"], size, m.get("rubrik")),
+                o = save_jpg(card_before_after(src / m["fore"], src / m["efter"], size, m.get("rubrik"),
+                                               m.get("fokus", (0.5, 0.5))),
                              d / f"{n}-fore-efter.jpg")
                 used.update([m["fore"], m["efter"]])
+            elif typ == "tre-steg":
+                o = save_jpg(card_steps([src / b for b in m["bilder"]], size, m.get("rubrik"),
+                                        m.get("fokus", (0.5, 0.5))),
+                             d / f"{n}-tre-steg.jpg")
+                used.update(m["bilder"])
             elif typ == "fraga":
                 if m.get("svar"):
                     card = card_qa(size, m["fraga"], m["svar"], m.get("sist"), m.get("nummer"),
