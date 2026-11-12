@@ -13,3 +13,6 @@ frontend/out/
 
 # OS
 .DS_Store
+
+# Officiella logofiler hämtas från SharePoint och checkas inte in
+linkedin-studio/assets/logo/*.png
