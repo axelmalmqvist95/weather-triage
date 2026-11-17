@@ -7,3 +7,6 @@ ut/
 *.wav
 *.mp3
 cache/
+cache/
+# Riktiga personuppgifter checkas inte in, bara exemplet
+personer.csv

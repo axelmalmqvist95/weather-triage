@@ -188,7 +188,7 @@ function ljudArgs(dur, musik, hals, halsStart) {
   const inp = [], filt = []; let n = 1; const mix = [];
   inp.push('-f', 'lavfi', '-t', dur.toFixed(3), '-i', 'anullsrc=r=48000:cl=stereo'); const tyst = n++; mix.push(`[${tyst}:a]`);
   if (musik) {
-    inp.push('-i', musik); const m = n++;
+    inp.push('-stream_loop', '-1', '-i', musik); const m = n++; // loopas om musiken är kortare än filmen
     let f = `[${m}:a]aresample=48000,aformat=channel_layouts=stereo,atrim=0:${dur.toFixed(3)},asetpts=N/SR/TB,loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=in:d=1.2,afade=t=out:st=${(dur - 2.5).toFixed(3)}:d=2.5`;
     if (hals && hals.ljud) { // duckning under hälsningen
       const a = halsStart - 0.3, b = halsStart + hals.langd + 0.3;
