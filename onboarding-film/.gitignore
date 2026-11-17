@@ -1,0 +1,8 @@
+# Källmaterial, kartdata, bilder och renderade filmer checkas aldrig in
+assets/
+ut/
+*.mp4
+*.jpg
+*.png
+*.wav
+*.mp3

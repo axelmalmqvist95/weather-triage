@@ -1,0 +1,47 @@
+{
+  "_om": "Sökvägar till källmaterial. Inget av detta checkas in. Kör 'python3 forbered.py' efter ändring.",
+  "kallor": {
+    "logo_vit": "/home/user/weather-triage/linkedin-studio/assets/logo/logo_vit.png",
+    "opensans_mapp": "/home/user/weather-triage/linkedin-studio/assets/fonts",
+    "bigshoulders_mapp": "/tmp/claude-0/-home-user-weather-triage/5f13d484-97f7-5007-8bf1-1a5a6b4f442b/scratchpad/valkomst/npm/package/files",
+    "world_atlas": "/tmp/claude-0/-home-user-weather-triage/5f13d484-97f7-5007-8bf1-1a5a6b4f442b/scratchpad/valkomst/npm/wa/package/countries-10m.json",
+    "lan_html": "/tmp/claude-0/-home-user-weather-triage/5f13d484-97f7-5007-8bf1-1a5a6b4f442b/scratchpad/redesign/candidate.html",
+    "kartdata_mapp": "/tmp/claude-0/-home-user-weather-triage/5f13d484-97f7-5007-8bf1-1a5a6b4f442b/scratchpad/dc/app"
+  },
+  "regioner": {
+    "Södra Skåne": {"bb": [[12.75, 55.33], [14.45, 55.95]]},
+    "Norra Skåne": {"bb": [[12.45, 55.85], [14.65, 56.6]]},
+    "Göteborg":    {"bb": [[11.55, 57.4], [12.75, 58.05]]},
+    "Stockholm":   {"bb": [[17.45, 59.1], [18.6, 59.6]]}
+  },
+  "bilder": [
+    {
+      "id": "m43+m45",
+      "tjanst": "Stentvätt",
+      "fore": "/tmp/claude-0/-home-user-weather-triage/5f13d484-97f7-5007-8bf1-1a5a6b4f442b/scratchpad/klart1/In/m43.jpg",
+      "efter": "/tmp/claude-0/-home-user-weather-triage/5f13d484-97f7-5007-8bf1-1a5a6b4f442b/scratchpad/klart1/In/m45.jpg",
+      "justering": "ecc",
+      "utsnitt": {"cx": 0.5, "cy": 0.5, "h": 0.97},
+      "fokus": [0.55, 0.45]
+    },
+    {
+      "id": "m01+m02",
+      "tjanst": "Altan",
+      "fore": "/tmp/claude-0/-home-user-weather-triage/5f13d484-97f7-5007-8bf1-1a5a6b4f442b/scratchpad/klart1/In/m01.jpg",
+      "efter": "/tmp/claude-0/-home-user-weather-triage/5f13d484-97f7-5007-8bf1-1a5a6b4f442b/scratchpad/klart1/In/m02.jpg",
+      "justering": "ecc",
+      "mask": [[0.30, 0.42], [0.62, 0.42], [1.0, 0.95], [1.0, 1.0], [0.0, 1.0], [0.0, 0.95]],
+      "utsnitt": {"cx": 0.30, "cy": 0.55, "h": 0.9},
+      "fokus": [0.45, 0.7]
+    },
+    {
+      "id": "Webb/facade før+efter",
+      "tjanst": "Fasad",
+      "fore": "/tmp/claude-0/-home-user-weather-triage/5f13d484-97f7-5007-8bf1-1a5a6b4f442b/scratchpad/valkomst/kalla/webb-fasad-fore.jpg",
+      "efter": "/tmp/claude-0/-home-user-weather-triage/5f13d484-97f7-5007-8bf1-1a5a6b4f442b/scratchpad/valkomst/kalla/webb-fasad-efter.jpg",
+      "justering": "sift+ecc",
+      "utsnitt": {"cx": 0.5, "cy": 0.52, "h": 0.92},
+      "fokus": [0.5, 0.4]
+    }
+  ]
+}
