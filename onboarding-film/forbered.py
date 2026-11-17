@@ -325,9 +325,28 @@ def bilder():
     return lista
 
 
+def reservbilder():
+    """Enstaka foton för montagets reservsekvens (när inga filmklipp är inlagda). Samma gradering."""
+    import cv2
+    ut = ASSETS / 'bilder'; ut.mkdir(parents=True, exist_ok=True)
+    W_UT, H_UT = 1296, 2304
+    lista = []
+    for nr, b in enumerate(CFG.get('reservbilder', []), 1):
+        a = las(b['fil']); h, w = a.shape[:2]; u = b.get('utsnitt', {})
+        ch = min(u.get('h', 1.0) * h, w * 16 / 9); cw = ch * 9 / 16
+        cx = min(max(u.get('cx', 0.5) * w, cw / 2), w - cw / 2); cy = min(max(u.get('cy', 0.5) * h, ch / 2), h - ch / 2)
+        x0, y0 = int(cx - cw / 2), int(cy - ch / 2)
+        c = cv2.cvtColor(cv2.resize(a[y0:y0 + int(ch), x0:x0 + int(cw)], (W_UT, H_UT), interpolation=cv2.INTER_AREA), cv2.COLOR_BGR2RGB)
+        c, _ = gradera_par(c, c)
+        Image.fromarray(c).filter(ImageFilter.UnsharpMask(radius=1.1, percent=45, threshold=2)).save(ut / f'reserv-{nr}.jpg', quality=95, subsampling=0)
+        info(f'reservbild {b["id"]}: utsnitt {int(cw)}x{int(ch)} px')
+        lista.append({'id': b['id'], 'fil': f'assets/bilder/reserv-{nr}.jpg', 'fokus': b.get('fokus', [0.5, 0.5])})
+    return lista
+
+
 def main():
     ASSETS.mkdir(exist_ok=True)
-    steg = sys.argv[1:] or ['typsnitt', 'logga', 'karta', 'bilder']
+    steg = sys.argv[1:] or ['typsnitt', 'logga', 'karta', 'bilder', 'reserv']
     meta_p = ASSETS / 'meta.json'
     meta = json.loads(meta_p.read_text()) if meta_p.exists() else {}
     if 'typsnitt' in steg:
@@ -338,6 +357,8 @@ def main():
         print('Karta'); karta()
     if 'bilder' in steg:
         print('Bilder'); meta['bilder'] = bilder()
+    if 'reserv' in steg or 'bilder' in steg:
+        print('Reservbilder'); meta['reservbilder'] = reservbilder()
     meta['regioner'] = list(CFG['regioner'].keys())
     meta_p.write_text(json.dumps(meta, ensure_ascii=False, indent=1))
     print('Klart:', ASSETS)

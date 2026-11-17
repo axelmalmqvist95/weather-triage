@@ -5,7 +5,7 @@
  * API (anropas av rendera.js):
  *   await window.init(person)   person = färdigformaterade texter från rendera.js
  *   window.duration             filmens längd i sekunder
- *   await window.prepare(t)     laddar det som behövs för t (hälsningsklippets bildruta)
+ *   await window.prepare(t)     laddar det som behövs för t (bildrutor ur hälsning och montage)
  *   window.renderAt(t)          ritar bildrutan
  *   window.timeline             scenernas start/längd (för loggning och kontaktark)
  */
@@ -34,8 +34,6 @@ const MARK = {
   triR: [[115, 0], [208, 0], [208, 163.3]],
 };
 const MARK_DY = 0.75; // rutans förskjutning i logotypfilens 209-höjd
-// Beskurna grafiska motivet (inte logotypen): mittbandet och högra triangeln, som i trycksakernas sidhuvud
-const STRIPE = MARK.stripe, TRI = MARK.triR;
 
 // ------------------------------------------------------------ matte
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -221,85 +219,302 @@ function drawLockup(cx, cy, S, t, t0, opts = {}) {
   ctx.restore(); ctx.filter = 'none';
 }
 
-// Stort beskuret bomärke i ljusare marin, som grafiskt ankare i nederkanten
-function ghostMark(lt, x, y, S, alpha = 1) {
-  const k = S / 208; const dx = -lt * 9 * DIR[0], dy = -lt * 9 * DIR[1];
-  ctx.save(); ctx.globalAlpha = alpha;
-  ctx.fillStyle = '#163754'; poly(ctx, STRIPE, x + dx, y + dy, k); ctx.fill();
-  ctx.fillStyle = '#132f48'; poly(ctx, TRI, x + dx * 1.6, y + dy * 1.6, k); ctx.fill();
-  ctx.restore();
-}
 
-// ------------------------------------------------------------ övergång: diagonal ridå med röd kant
+// ------------------------------------------------------------ övergång
+/* Diagonal kant i varumärkets vinkel som avslöjar nästa scen bakom sig. Båda scenerna syns hela tiden
+ * (ingen tom ridå): den gamla skjuts undan, den nya dras in, en röd kant och en mjuk skugga markerar skarven. */
 function wipe(p, drawOld, drawNew) {
   const e = quartInOut(clamp(p));
-  const band = 150;
-  const s = lerp(NMIN - band - 30, NMAX + 30, e);
-  ctx.save(); ctx.translate(NRM[0] * e * 70, NRM[1] * e * 70); drawOld(); ctx.restore();
-  // skugga framför ridån
-  ctx.save(); bandPoly(ctx, s + band, s + band + 90);
-  const gx0 = NRM[0] * (s + band), gy0 = NRM[1] * (s + band), gx1 = NRM[0] * (s + band + 90), gy1 = NRM[1] * (s + band + 90);
-  const gr = ctx.createLinearGradient(gx0, gy0, gx1, gy1); gr.addColorStop(0, 'rgba(3,10,16,0.45)'); gr.addColorStop(1, 'rgba(3,10,16,0)');
-  ctx.fillStyle = gr; ctx.fill(); ctx.restore();
-  // ridån
-  ctx.save(); bandPoly(ctx, s, s + band); ctx.fillStyle = C.n1; ctx.fill(); ctx.restore();
-  // ny scen
-  ctx.save(); bandPoly(ctx, -6000, s + 0.5); ctx.clip();
-  ctx.translate(-NRM[0] * (1 - e) * 110, -NRM[1] * (1 - e) * 110); drawNew(); ctx.restore();
-  // röd ledkant
-  ctx.save(); ctx.strokeStyle = C.red; ctx.lineWidth = 5; lineAt(ctx, s + band - 2.5); ctx.stroke(); ctx.restore();
+  const s = lerp(NMIN - 30, NMAX + 30, e);
+  ctx.save(); ctx.translate(NRM[0] * e * 90, NRM[1] * e * 90); drawOld(); ctx.restore();
+  ctx.save(); bandPoly(ctx, s, s + 80);
+  const gr = ctx.createLinearGradient(NRM[0] * s, NRM[1] * s, NRM[0] * (s + 80), NRM[1] * (s + 80));
+  gr.addColorStop(0, 'rgba(3,10,16,0.55)'); gr.addColorStop(1, 'rgba(3,10,16,0)'); ctx.fillStyle = gr; ctx.fill(); ctx.restore();
+  ctx.save(); bandPoly(ctx, -6000, s); ctx.clip();
+  ctx.translate(-NRM[0] * (1 - e) * 150, -NRM[1] * (1 - e) * 150); drawNew(); ctx.restore();
+  ctx.save(); ctx.strokeStyle = C.red; ctx.lineWidth = 6; lineAt(ctx, s); ctx.stroke(); ctx.restore();
 }
 
 // ============================================================ SCENER
-// Varje scen: draw(lt) ritar hela bilden för lokal tid lt (kan vara lite negativ under inkommande ridå).
+// Varje scen: fn(lt) ritar hela bilden för lokal tid lt (kan vara negativ under inkommande övergång).
 
-// 1. Bomärket byggs
+// 1. Bomärket byggs (2 s)
 function sceneMark(lt) {
   background(lt);
   const S0 = 300, S1 = 156;
   const om = R.meta.ordbild;
-  const m = heavy(prog(lt, 1.35, 1.0));
+  const m = heavy(prog(lt, 0.52, 0.55));
   const S = lerp(S0, S1, m);
   const total1 = (om.x0 + om.w) * S1 / om.h;
   const x = lerp(W / 2 - S0 / 2, W / 2 - total1 / 2, m), y = lerp(H * 0.47 - S0 / 2, H * 0.47 - S1 / 2, m);
-  // svag glöd bakom märket när det landar
-  const gl = prog(lt, 0.4, 0.8) * (1 - prog(lt, 1.2, 0.8));
-  if (gl > 0) { ctx.save(); ctx.globalAlpha = gl * 0.25; ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(GLOW, x + S / 2 - S * 1.4, y + S / 2 - S * 1.4, S * 2.8, S * 2.8); ctx.restore(); }
-  drawMark(x, y, S, [prog(lt, 0.18, 1.05), prog(lt, 0.3, 1.05), prog(lt, 0.42, 1.05)]);
-  if (lt > 1.6) {
+  const gl = prog(lt, 0.2, 0.4) * (1 - prog(lt, 0.55, 0.5));
+  if (gl > 0) { ctx.save(); ctx.globalAlpha = gl * 0.22; ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(GLOW, x + S / 2 - S * 1.4, y + S / 2 - S * 1.4, S * 2.8, S * 2.8); ctx.restore(); }
+  drawMark(x, y, S, [prog(lt, 0.0, 0.62), prog(lt, 0.07, 0.62), prog(lt, 0.14, 0.62)]);
+  if (lt > 0.6) {
     const k = S1 / om.h, wx = x + om.x0 * k, ww = om.w * k;
-    const p = prog(lt, 1.75, 0.95), e = expoOut(p);
+    const p = prog(lt, 0.68, 0.7), e = expoOut(p);
     const edge = lerp(-0.2, 1.25, e);
     ctx.save(); ctx.beginPath(); ctx.moveTo(wx - 40, y - 10); ctx.lineTo(wx + ww * edge + S1 * 0.58, y - 10); ctx.lineTo(wx + ww * edge, y + S1 + 10); ctx.lineTo(wx - 40, y + S1 + 10); ctx.closePath(); ctx.clip();
     ctx.globalAlpha = clamp(p * 1.6); ctx.filter = blurF((1 - e) * 6);
     ctx.drawImage(R.img.ordbild, wx - 30 * (1 - e), y, ww, S1);
     ctx.restore(); ctx.filter = 'none';
   }
-  // diskret säsongsrad under loggan
-  if (lt > 2.2) { setFont(600, 31, OS, 31 * 0.28); const s = P.sasong; const w = textW(s); kicker(s, W / 2 - w / 2, H * 0.47 + S1 / 2 + 100, lt, 2.25, C.vl, 31); }
 }
 
-// 2. Välkommen, Erik.
-function sceneHello(lt) {
-  background(lt + 4);
-  ghostMark(lt, 470, 1290, 900, clamp(prog(lt, -0.3, 1.2)));
-  const x = SAFE.x0;
-  const s1 = 'Välkommen,';
-  const z1 = fitSize(s1, 800, BS, 864, 236, -0.01);
-  const name = P.fornamn + '.';
-  const z2 = fitSize(name, 800, BS, 864, 430, -0.015);
-  const yTop = 760 - (z2 - 300) * 0.35;
-  const push = 1 + 0.025 * sineInOut(prog(lt, 0, 3.8));
-  ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(push, push); ctx.translate(-W / 2, -H / 2);
-  letters(s1, x - 4, yTop, z1, 800, BS, -0.01 * z1, { t: lt, t0: 0.08, stagger: 0.03, dur: 0.85, rise: z1 * 0.95, blur: 12, mask: true });
-  const y2 = yTop + z2 * 0.98;
-  const last = [...name].length - 1;
-  letters(name, x - 6, y2, z2, 800, BS, -0.015 * z2, { t: lt, t0: 0.45, stagger: 0.055, dur: 0.95, rise: z2 * 0.9, blur: 16, mask: true, color: i => i === last ? C.red : C.white });
-  words(P.subline, x, y2 + 118, 46, 600, OS, 0, { t: lt, t0: 1.3, stagger: 0.075, dur: 0.8, rise: 22, color: C.t2 });
+// 2. SIGNATUR: namnet tvättas fram ur smutsig sten (omvänd graffiti)
+/* Byggs av ett riktigt fotopar av samma yta (smutsig/ren, inriktade). Den rena bilden visas genom en mask:
+ * namnet i Big Shoulders 800, men masken fylls som en högtryckstvätt gör det: bokstav för bokstav, i vågräta
+ * fram-och-tillbaka-drag med rundad framkant, ojämn brusig kant, först våt (mörkare, blankare) och sedan
+ * torkande ljusare. Ett munstycke med stänk, dimma och droppar följer framkanten; vattenrännilar rinner ned.
+ * Allt sker i ”markrummet” (1080x1920 utan kamera) och kameran (inzoomning + lätt rotation) läggs på efteråt. */
+let NW = null;
+let NW_FOCUS = [540, 990]; // sätts från config (film.namn_fokus): punkt i bilden som kameran siktar på
+function nwCam(lt) { // markrum -> skärm
+  const z = lerp(1.28, 1.36, sineInOut(clamp(lt / 6)));
+  const rot = (lerp(-0.55, 0.15, sineInOut(clamp(lt / 6)))) * Math.PI / 180;
+  return { z, rot };
+}
+function nwApply(g, cam) { g.translate(W / 2, H / 2); g.scale(cam.z, cam.z); g.rotate(cam.rot); g.translate(-NW_FOCUS[0], -NW_FOCUS[1]); }
+function valueNoise(seed, cell) { // utjämnat värdebrus 0..1 på ett grovt rutnät
+  const r = mulberry32(seed); const gw = Math.ceil(W / cell) + 2, gh = Math.ceil(H / cell) + 2; const g = new Float32Array(gw * gh); for (let i = 0; i < g.length; i++) g[i] = r();
+  return (x, y) => { const fx = clamp(x, 0, W - 1) / cell, fy = clamp(y, 0, H - 1) / cell, ix = Math.floor(fx), iy = Math.floor(fy), tx = fx - ix, ty = fy - iy; const sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty);
+    const a = g[iy * gw + ix], b = g[iy * gw + ix + 1], c = g[(iy + 1) * gw + ix], d = g[(iy + 1) * gw + ix + 1]; return lerp(lerp(a, b, sx), lerp(c, d, sx), sy); };
+}
+function prepNameWash() {
+  if (P.takt.namn_fokus) NW_FOCUS = P.takt.namn_fokus;
+  const name = P.fornamn.toLocaleUpperCase('sv-SE');
+  const chars = [...name];
+  // storlek: ~80 % av bildbredden på skärmen vid slutzoom
+  const zEnd = 1.36, maxW = 870 / zEnd;
+  const size = fitSize(name, 800, BS, maxW, 560, 0.01);
+  setFont(800, size, BS, size * 0.01);
+  let acc = ''; const xs = chars.map(ch => { const v = textW(acc); acc += ch; return v; });
+  const totalW = textW(name);
+  const x0 = NW_FOCUS[0] - totalW / 2;
+  const m = ctx.measureText('E'); const cap = m.actualBoundingBoxAscent;
+  const base = NW_FOCUS[1] + cap / 2 + 95; // namnet något under bildmitten, plats för ”Välkommen,” ovanför
+  // textmask i markrummet
+  const pad = 40;
+  const bx = Math.floor(x0 - pad), by = Math.floor(base - size * 1.02 - pad), bw = Math.ceil(totalW + 2 * pad), bh = Math.ceil(size * 1.02 + 2 * pad);
+  const tc = offscreen(bw, bh); const tg = tc.getContext('2d');
+  tg.font = `800 ${size}px ${BS}`; tg.letterSpacing = `${size * 0.01}px`; tg.fillStyle = '#fff';
+  tg.filter = 'blur(1.6px)'; tg.fillText(name, x0 - bx, base - by);
+  const td = tg.getImageData(0, 0, bw, bh).data;
+  const n1 = valueNoise(11, 7), n2 = valueNoise(12, 23), n3 = valueNoise(13, 3);
+  const M = new Float32Array(bw * bh), T = new Float32Array(bw * bh);
+  // bokstävernas rutor och tidsfönster
+  const n = chars.length;
+  const TS = 0.3, dur = clamp(0.6 * n, 2.0, 3.5), gap = Math.min(0.08, dur / n * 0.12);
+  const per = (dur - gap * (n - 1)) / n;
+  const L = chars.map((ch, i) => {
+    const mm = ctx.measureText(ch); const l = x0 + xs[i] - mm.actualBoundingBoxLeft, r = x0 + xs[i] + mm.actualBoundingBoxRight;
+    const top = base - mm.actualBoundingBoxAscent, bot = base + mm.actualBoundingBoxDescent;
+    const band = 44; const passes = Math.max(2, Math.round((bot - top) / band)); const bandH = (bot - top) / passes;
+    return { l, r, top, bot, passes, bandH, t0: TS + i * (per + gap), per, mid: x0 + xs[i] + textW(ch) / 2 };
+  });
+  const letterAt = x => { let k = 0; for (let i = 1; i < n; i++) if (x > (L[i - 1].r + L[i].l) / 2) k = i; return k; };
+  for (let yy = 0; yy < bh; yy++) for (let xx = 0; xx < bw; xx++) {
+    const i = yy * bw + xx; const a = td[i * 4 + 3] / 255; if (a < 0.02) { M[i] = 0; continue; }
+    const gx = bx + xx, gy = by + yy;
+    // ojämn kant: tröskel på mjuk textkant med brus i två skalor
+    const nn = (n1(gx, gy) - 0.5) * 0.55 + (n3(gx, gy) - 0.5) * 0.35;
+    M[i] = clamp((a - 0.5 + nn * 0.55) / 0.22 + 0.5);
+    const Lk = L[letterAt(gx)];
+    const v = (gy - Lk.top) / Lk.bandH + (n2(gx, gy) - 0.5) * 0.5;
+    const p = clamp(Math.floor(v), 0, Lk.passes - 1);
+    let u = clamp((gx - Lk.l) / Math.max(1, Lk.r - Lk.l));
+    if (p % 2) u = 1 - u;
+    const passDur = Lk.per / Lk.passes;
+    const dy = (v - p - 0.5) * Lk.bandH; const rad = Lk.bandH * 0.75;
+    const lead = Math.sqrt(Math.max(0, rad * rad - dy * dy)) / Math.max(1, Lk.r - Lk.l) * passDur;
+    T[i] = Lk.t0 + (p + u) * passDur - lead + (n3(gx, gy) - 0.5) * 0.03;
+  }
+  // rännilar: 2 per bokstav, nedåt från bokstavens fot, seedade slingor
+  const rr = mulberry32(77); const riv = [];
+  L.forEach((Lk, i) => { for (let k = 0; k < 2; k++) {
+    const sx = lerp(Lk.l + 10, Lk.r - 10, rr()); const pts = []; let x = sx, y = Lk.bot - 6;
+    const len = 90 + rr() * 170; const seg = 14;
+    for (let s = 0; s <= len; s += seg) { pts.push([x, y]); x += (rr() - 0.5) * 7; y += seg; }
+    riv.push({ pts, t: Lk.t0 + Lk.per * (0.6 + rr() * 0.3), w: 3 + rr() * 3 });
+  } });
+  const mc = offscreen(bw, bh), wc = offscreen(bw, bh), hc = offscreen(bw, bh), tmp = offscreen(bw, bh);
+  NW = { name, size, x0, base, cap, bx, by, bw, bh, M, T, L, TS, TE: TS + dur, riv, mc, wc, hc, tmp,
+    mImg: mc.getContext('2d').createImageData(bw, bh), wImg: wc.getContext('2d').createImageData(bw, bh) };
+  // färdiga varianter av fotona: våt ren yta (mörkare, mer kontrast, kall reflex) och våt smuts
+  const src = R.meta.bilder[(P.takt.namnbild || 1) - 1];
+  const mk = (img, f) => { const c = offscreen(W, H); const g = c.getContext('2d'); g.filter = f; g.drawImage(img, 0, 0, W, H); g.filter = 'none'; return c; };
+  NW.dirty = mk(R.img.nwF, 'none'); NW.clean = mk(R.img.nwE, 'none');
+  NW.cleanWet = mk(R.img.nwE, 'brightness(0.66) contrast(1.22) saturate(1.15)');
+  { const g = NW.cleanWet.getContext('2d'); const gr = g.createLinearGradient(0, 0, W * 0.3, H); gr.addColorStop(0, 'rgba(190,215,235,0.16)'); gr.addColorStop(0.5, 'rgba(190,215,235,0.04)'); gr.addColorStop(1, 'rgba(190,215,235,0.12)'); g.globalCompositeOperation = 'screen'; g.fillStyle = gr; g.fillRect(0, 0, W, H); }
+  NW.dirtyWet = mk(R.img.nwF, 'brightness(0.62) contrast(1.15) saturate(1.1)');
+  NW.mist = (() => { const c = offscreen(128, 128); const g = c.getContext('2d'); const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(235,242,248,0.55)'); gr.addColorStop(0.5, 'rgba(225,235,242,0.18)'); gr.addColorStop(1, 'rgba(225,235,242,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return c; })();
+  NW.drop = (() => { const c = offscreen(16, 16); const g = c.getContext('2d'); const gr = g.createRadialGradient(8, 8, 0, 8, 8, 8); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.5, 'rgba(240,248,255,0.6)'); gr.addColorStop(1, 'rgba(240,248,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 16, 16); return c; })();
+  NW.sprayPath = [];
+  for (let t = NW.TS - 0.05; t <= NW.TE + 0.05; t += 0.05) { const h = nwHead(t); if (h.on) NW.sprayPath.push([+t.toFixed(3), +(h.x / W).toFixed(3)]); }
+}
+function nwHead(t) { // munstyckets läge i markrummet
+  const L = NW.L;
+  for (let i = 0; i < L.length; i++) {
+    const Lk = L[i];
+    if (t >= Lk.t0 && t <= Lk.t0 + Lk.per) {
+      const f = (t - Lk.t0) / Lk.per * Lk.passes; const p = Math.min(Lk.passes - 1, Math.floor(f)); let u = f - p; if (p % 2) u = 1 - u;
+      return { on: true, x: lerp(Lk.l, Lk.r, u), y: Lk.top + (p + 0.5) * Lk.bandH, i };
+    }
+    if (i < L.length - 1 && t > Lk.t0 + Lk.per && t < L[i + 1].t0) { const k = (t - Lk.t0 - Lk.per) / (L[i + 1].t0 - Lk.t0 - Lk.per); const a = nwHead(Lk.t0 + Lk.per - 1e-4), b = nwHead(L[i + 1].t0 + 1e-4); return { on: false, x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k) }; }
+  }
+  return { on: false, x: NW_FOCUS[0], y: NW_FOCUS[1] };
+}
+function maskedDraw(g, srcCanvas, maskCanvas, alpha = 1) {
+  const t = NW.tmp.getContext('2d');
+  t.globalCompositeOperation = 'source-over'; t.clearRect(0, 0, NW.bw, NW.bh);
+  t.drawImage(srcCanvas, NW.bx, NW.by, NW.bw, NW.bh, 0, 0, NW.bw, NW.bh);
+  t.globalCompositeOperation = 'destination-in'; t.drawImage(maskCanvas, 0, 0);
+  g.save(); g.globalAlpha = alpha; g.drawImage(NW.tmp, NW.bx, NW.by); g.restore();
+}
+let NWSCN = null, NWSMALL = null;
+function sceneName(lt) {
+  if (!NWSCN) { NWSCN = offscreen(W, H); NWSMALL = offscreen(W / 6, H / 6); }
+  const g = NWSCN.getContext('2d');
+  const cam = nwCam(lt);
+  g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  g.save(); nwApply(g, cam);
+  g.drawImage(NW.dirty, 0, 0);
+  // masker för denna tidpunkt
+  const { M, T, bw, bh, mImg, wImg } = NW; const md = mImg.data, wd = wImg.data;
+  for (let i = 0; i < M.length; i++) {
+    const m = M[i]; if (m <= 0) { md[i * 4 + 3] = 0; wd[i * 4 + 3] = 0; continue; }
+    const dt = lt - T[i]; const a = m * clamp(dt / 0.05 + 0.5);
+    md[i * 4] = md[i * 4 + 1] = md[i * 4 + 2] = 255; md[i * 4 + 3] = a * 255;
+    const wet = dt > 0 ? a * Math.exp(-dt / 1.1) : a; wd[i * 4] = wd[i * 4 + 1] = wd[i * 4 + 2] = 255; wd[i * 4 + 3] = wet * 255;
+  }
+  NW.mc.getContext('2d').putImageData(mImg, 0, 0); NW.wc.getContext('2d').putImageData(wImg, 0, 0);
+  const hg = NW.hc.getContext('2d'); hg.clearRect(0, 0, bw, bh); hg.filter = 'blur(10px)'; hg.drawImage(NW.wc, 0, 0); hg.drawImage(NW.wc, 0, 0); hg.filter = 'none';
+  // 1) överstänk: smutsen runt det tvättade blir våt och mörkare
+  maskedDraw(g, NW.dirtyWet, NW.hc, 0.9);
+  // 2) rännilar på den smutsiga ytan
+  g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
+  for (const r of NW.riv) {
+    const age = lt - r.t; if (age <= 0) continue;
+    const len = Math.min(1, Math.pow(age / 1.4, 0.7)); const dry = 1 - prog(age, 1.6, 1.6); if (dry <= 0) continue;
+    const k = Math.max(2, Math.floor(r.pts.length * len));
+    g.beginPath(); r.pts.slice(0, k).forEach(([x, y], j) => j ? g.lineTo(x, y) : g.moveTo(x, y));
+    g.filter = 'blur(2.5px)'; g.strokeStyle = `rgba(12,16,14,${0.26 * dry})`; g.lineWidth = r.w * 2.4; g.stroke();
+    g.filter = 'blur(0.8px)'; g.strokeStyle = `rgba(230,240,245,${0.10 * dry})`; g.lineWidth = 1.2; g.translate(-2, 0); g.stroke(); g.translate(2, 0); g.filter = 'none';
+  }
+  g.restore();
+  // 3) ren sten genom masken, 4) våt glans ovanpå som torkar bort
+  maskedDraw(g, NW.clean, NW.mc, 1);
+  maskedDraw(g, NW.cleanWet, NW.wc, 1);
+  // 5) munstycke: träffpunkt, dimma, droppar (seedat, deterministiskt)
+  nwSpray(g, lt);
+  g.restore();
+  // skärpedjup: övre och nedre kanten mjukt oskarpa
+  const sg = NWSMALL.getContext('2d'); sg.imageSmoothingQuality = 'high'; sg.drawImage(NWSCN, 0, 0, NWSMALL.width, NWSMALL.height);
+  ctx.drawImage(NWSCN, 0, 0);
+  ctx.save();
+  for (const [y0, y1, a0, a1] of [[0, 520, 1, 0], [1400, H, 0, 1]]) {
+    ctx.save(); ctx.beginPath(); ctx.rect(0, y0, W, y1 - y0); ctx.clip();
+    const steps = 6; for (let s = 0; s < steps; s++) { const ys = y0 + (y1 - y0) * s / steps, ye = y0 + (y1 - y0) * (s + 1) / steps; const a = lerp(a0, a1, (s + 0.5) / steps);
+      ctx.save(); ctx.beginPath(); ctx.rect(0, ys, W, ye - ys + 1); ctx.clip(); ctx.globalAlpha = a * 0.85; ctx.filter = 'blur(2px)'; ctx.drawImage(NWSMALL, 0, 0, W, H); ctx.restore(); }
+    ctx.restore();
+  }
+  ctx.restore(); ctx.filter = 'none';
+  // ton: lätt mörkare kanter så blicken hamnar på namnet
+  const gr = ctx.createRadialGradient(W / 2, H * 0.5, H * 0.18, W / 2, H * 0.5, H * 0.62); gr.addColorStop(0, 'rgba(6,17,27,0)'); gr.addColorStop(1, 'rgba(6,17,27,0.5)'); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+  // ”Välkommen,” i liten text ovanför namnet, i skärmrummet
+  const tl = (() => { const c = Math.cos(cam.rot), s = Math.sin(cam.rot); const gx = NW.x0 - NW_FOCUS[0], gy = NW.base - NW.cap - NW_FOCUS[1]; return [W / 2 + (gx * c - gy * s) * cam.z, H / 2 + (gx * s + gy * c) * cam.z]; })();
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 26; ctx.shadowOffsetY = 3;
+  letters('Välkommen,', Math.max(SAFE.x0, tl[0]), tl[1] - 44, 96, 700, BS, 0.5, { t: lt, t0: NW.TE + 0.25, stagger: 0.035, dur: 0.85, rise: 60, blur: 10, mask: true });
   ctx.restore();
 }
+function nwSpray(g, lt) {
+  const { TS, TE } = NW;
+  if (lt < TS - 0.1 || lt > TE + 1.6) return;
+  const head = nwHead(lt);
+  g.save();
+  // vått stänkområde runt munstycket: vattnet sprids och mörkar ytan, torkar efter en stund
+  g.globalCompositeOperation = 'multiply';
+  for (let tau = Math.max(TS, lt - 0.9); tau <= Math.min(lt, TE); tau += 0.025) {
+    const h = nwHead(tau); if (!h.on) continue; const age = lt - tau; const a = 0.10 * Math.pow(1 - age / 0.9, 1.5);
+    const rad = 70 + 60 * age; const gr = g.createRadialGradient(h.x, h.y, 0, h.x, h.y, rad);
+    gr.addColorStop(0, `rgba(60,62,58,${a})`); gr.addColorStop(1, 'rgba(60,62,58,0)'); g.fillStyle = gr; g.fillRect(h.x - rad, h.y - rad, rad * 2, rad * 2);
+  }
+  g.globalCompositeOperation = 'source-over';
+  // dimma: stora mjuka moln som driver och växer
+  const MR = 70; const k0 = Math.max(0, Math.floor((lt - 1.4 - TS) * MR)), k1 = Math.floor((Math.min(lt, TE) - TS) * MR);
+  for (let k = k0; k <= k1; k++) {
+    const b = TS + k / MR; const h = nwHead(b); if (!h.on) continue; const age = lt - b; if (age < 0 || age > 1.4) continue;
+    const r = mulberry32(9000 + k); const ang = r() * Math.PI * 2, sp = 25 + r() * 70;
+    const x = h.x + Math.cos(ang) * sp * age + (r() - 0.5) * 30, y = h.y + Math.sin(ang) * sp * age * 0.7 - 18 * age;
+    const rad = 34 + 130 * Math.pow(age / 1.4, 0.6) * (0.6 + r() * 0.6);
+    g.globalAlpha = 0.42 * clamp(age / 0.1) * Math.pow(1 - age / 1.4, 1.4); g.drawImage(NW.mist, x - rad, y - rad, rad * 2, rad * 2);
+  }
+  // droppar som studsar ut från träffpunkten, ritade som korta streck (rörelseoskärpa)
+  g.globalCompositeOperation = 'source-over';
+  const DR = 900; const d0 = Math.max(0, Math.floor((lt - 0.5 - TS) * DR)), d1 = Math.floor((Math.min(lt, TE) - TS) * DR);
+  g.lineCap = 'round';
+  for (let k = d0; k <= d1; k++) {
+    const b = TS + k / DR; const age = lt - b; if (age < 0 || age > 0.5) continue; const h = nwHead(b); if (!h.on) continue;
+    const r = mulberry32(5000 + k); const ang = r() * Math.PI * 2; const v = 200 + 650 * r() * r(); const life = 0.25 + r() * 0.3; if (age > life) continue;
+    const dr = 6; const f = a => (1 - Math.exp(-dr * a)) / dr;
+    const vx = Math.cos(ang) * v, vy = Math.sin(ang) * v * 0.75;
+    const x0 = h.x + (r() - 0.5) * 14, y0 = h.y + (r() - 0.5) * 14;
+    const xa = x0 + vx * f(age), ya = y0 + vy * f(age) + 160 * age * age;
+    const xb = x0 + vx * f(Math.max(0, age - 0.018)), yb = y0 + vy * f(Math.max(0, age - 0.018)) + 160 * Math.max(0, age - 0.018) ** 2;
+    const al = Math.pow(1 - age / life, 1.2) * (0.5 + r() * 0.5);
+    g.strokeStyle = `rgba(242,248,253,${Math.min(1, al * 1.3)})`; g.lineWidth = 1.6 + r() * 3.2;
+    g.beginPath(); g.moveTo(xb, yb); g.lineTo(xa, ya); g.stroke();
+  }
+  // strålen: vattnet kommer snett uppifrån (lansen är utanför bild) och slår i ytan
+  if (head.on) {
+    const fl = 0.8 + 0.2 * Math.sin(lt * 97) * Math.sin(lt * 61 + 1);
+    const sx = head.x + 150, sy = head.y - 900;
+    const fr = Math.floor(lt * 60); const rj = mulberry32(7000 + fr);
+    g.lineCap = 'round';
+    for (let k = 0; k < 9; k++) {
+      const off = (rj() - 0.5) * 26, w = 1 + rj() * 2.5;
+      const gr = g.createLinearGradient(sx, sy, head.x, head.y);
+      gr.addColorStop(0, 'rgba(240,248,255,0)'); gr.addColorStop(0.55, `rgba(240,248,255,${0.10 * fl})`); gr.addColorStop(1, `rgba(245,250,255,${0.55 * fl})`);
+      g.strokeStyle = gr; g.lineWidth = w; g.beginPath(); g.moveTo(sx + off * 0.2, sy); g.lineTo(head.x + off, head.y + (rj() - 0.5) * 10); g.stroke();
+    }
+    // skum i träffpunkten: många små vita fläckar som flimrar
+    for (let k = 0; k < 70; k++) {
+      const a = rj() * Math.PI * 2, rr = 52 * Math.pow(rj(), 0.7); const x = head.x + Math.cos(a) * rr * 1.3, y = head.y + Math.sin(a) * rr * 0.75;
+      const sz = 3 + rj() * 9; g.globalAlpha = (0.25 + rj() * 0.5) * (1 - rr / 60) * fl; g.drawImage(NW.drop, x - sz, y - sz, sz * 2, sz * 2);
+    }
+    g.globalAlpha = 0.85 * fl; const R1 = 110; g.drawImage(NW.mist, head.x - R1, head.y - R1 * 0.75, R1 * 2, R1 * 1.5);
+    g.globalAlpha = 0.9 * fl; const R2 = 34; g.drawImage(NW.drop, head.x - R2, head.y - R2 * 0.7, R2 * 2, R2 * 1.4);
+  }
+  g.restore();
+}
 
-// 3. Kartan
+// 3. Montage: filmklipp på takten, eller tre foton som reserv
+function drawCover(img, fx, fy, zoom, dx = 0) {
+  const s = Math.max(W / img.width, H / img.height) * zoom; const w = img.width * s, h = img.height * s;
+  ctx.drawImage(img, W * fx - w * fx + dx, H * fy - h * fy, w, h);
+}
+function sceneMontage(lt) {
+  const segs = P.montageSegs; // [{start, dur, typ, ...}]
+  let i = segs.findIndex(s => lt < s.start + s.dur); if (i < 0) i = segs.length - 1; if (lt < 0) i = 0;
+  const drawSeg = (k, u) => {
+    const s = segs[k];
+    if (s.typ === 'klipp') {
+      const f = clamp(Math.floor(u * 30), 0, s.frames - 1); const img = R.clip['m' + k + '_' + f];
+      ctx.fillStyle = C.n1; ctx.fillRect(0, 0, W, H);
+      if (img) drawCover(img, 0.5, 0.5, 1 + 0.04 * clamp(u / s.dur));
+    } else {
+      const img = R.img['res' + k]; const [fx, fy] = s.fokus;
+      drawCover(img, fx, fy, 1.04 + 0.07 * sineInOut(clamp((u + 0.3) / (s.dur + 0.6))), (k % 2 ? -1 : 1) * 30 * (clamp((u + 0.3) / (s.dur + 0.6)) - 0.5));
+    }
+  };
+  // fotoreserven byter med en kort diagonal kant på slaget; klipp skärs hårt på slaget
+  const s = segs[i]; const u = lt - s.start;
+  if (s.typ === 'foto' && i > 0 && u < 0.18) wipe((u + 0.18) / 0.36, () => drawSeg(i - 1, lt - segs[i - 1].start), () => drawSeg(i, u));
+  else if (s.typ === 'foto' && i < segs.length - 1 && u > s.dur - 0.18) wipe((u - s.dur + 0.18) / 0.36, () => drawSeg(i, u), () => drawSeg(i + 1, lt - segs[i + 1].start));
+  else drawSeg(i, u);
+}
+
+// 4. Kartan
 let MAP = null;
 function prepMap() {
   const K = R.karta; const rnd = mulberry32(4242);
@@ -347,14 +562,14 @@ function ringPath(r, cam, close = true) {
   for (let i = 2; i < r.length; i += 2) ctx.lineTo(W / 2 + (r[i] - cx) * k, sy + (r[i + 1] - cy) * k);
   if (close) ctx.closePath();
 }
-const T_FLY0 = 2.55, T_FLY = 2.5, T_CASC = 4.55;
+const T_FLY0 = 0.95, T_FLY = 2.2, T_CASC = 2.75;
 function camAt(lt) {
   const a = fullView(), b = regionView();
   const f = heavy(prog(lt, T_FLY0, T_FLY));
   const zi = zoomInterp([a.cx, a.cy, W / a.k], [b.cx, b.cy, W / b.k]);
   const [ux, uy, w] = zi(f);
   // långsam fortsatt inzoomning efter landning så bilden lever
-  const drift = 1 + 0.035 * sineInOut(prog(lt, T_FLY0 + T_FLY - 0.2, 3.5));
+  const drift = 1 + 0.03 * sineInOut(prog(lt, T_FLY0 + T_FLY - 0.2, 3.0));
   return { cx: ux, cy: uy, k: W / w * drift, sy: lerp(a.sy, b.sy, f) };
 }
 function sceneMap(lt) {
@@ -363,7 +578,7 @@ function sceneMap(lt) {
   const fly = prog(lt, T_FLY0, T_FLY);
   const z = cam.k / fullView().k;
   // grannländer (mörkare, ger sammanhang: Danmark, Norge, Finland ...)
-  const nb = clamp(prog(lt, 0.9, 1.2) * 0.55 + fly * 0.45);
+  const nb = clamp(prog(lt, -0.3, 0.9) * 0.55 + fly * 0.45);
   if (nb > 0) {
     ctx.save(); ctx.globalAlpha = nb;
     ctx.beginPath(); for (const c of ['NO', 'FI', 'DK', 'DE', 'PL', 'EE', 'LV', 'LT']) MAP.land[c].forEach(r => ringPath(r, cam));
@@ -372,12 +587,12 @@ function sceneMap(lt) {
     ctx.restore();
   }
   // Sverige: fyllning tonar in när konturen ritats
-  const fillA = prog(lt, 1.15, 1.1);
+  const fillA = prog(lt, -0.1, 0.8);
   ctx.save(); ctx.beginPath(); MAP.se.forEach(o => ringPath(o.r, cam));
   if (fillA > 0) { ctx.globalAlpha = fillA; ctx.fillStyle = '#1c4260'; ctx.fill(); }
   ctx.restore();
   // inre länsgränser, svaga
-  const lanA = prog(lt, 1.6, 0.9) * 0.55;
+  const lanA = prog(lt, 0.5, 0.8) * 0.55;
   if (lanA > 0) {
     ctx.save(); ctx.beginPath(); MAP.se.forEach(o => ringPath(o.r, cam)); ctx.clip();
     ctx.beginPath(); for (const s of MAP.inner) { ctx.moveTo(W / 2 + (s[0] - cam.cx) * cam.k, cam.sy + (s[1] - cam.cy) * cam.k); ctx.lineTo(W / 2 + (s[2] - cam.cx) * cam.k, cam.sy + (s[3] - cam.cy) * cam.k); }
@@ -387,7 +602,7 @@ function sceneMap(lt) {
   // konturen ritas fram (stroke reveal), största ringen först, öar tonar in
   ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = C.vl;
   ctx.lineWidth = lerp(1.7, 2.2, clamp(fly));
-  const draw = quartInOut(prog(lt, -0.15, 1.9));
+  const draw = quartInOut(prog(lt, -0.45, 1.3));
   MAP.se.forEach((o, i) => {
     const pp = i === 0 ? draw : clamp((draw - 0.25 - (i % 7) * 0.03) / 0.6);
     if (pp <= 0) return;
@@ -401,7 +616,7 @@ function sceneMap(lt) {
   const rv = regionView();
   const rcx = W / 2, rcy = rv.sy;
   const coreR = lerp(1.1, 1.9, clamp(fly)), glowR = lerp(6, 16, clamp(fly));
-  const dimIn = prog(lt, 1.5, 1.1);
+  const dimIn = prog(lt, 0.0, 0.9);
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
   const maxD = 620;
   for (const p of MAP.pts) {
@@ -414,7 +629,7 @@ function sceneMap(lt) {
       // kaskad från regionens mitt, räknat i landad kamera
       const fx = rcx + (p.x - rv.cx) * rv.k, fy = rcy + (p.y - rv.cy) * rv.k;
       const d = Math.hypot(fx - rcx, fy - rcy);
-      const q = prog(lt, T_CASC + Math.min(1, d / maxD) * 1.45 + p.j * 0.14, 0.55);
+      const q = prog(lt, T_CASC + Math.min(1, d / maxD) * 1.2 + p.j * 0.12, 0.5);
       if (q > 0) { const e = expoOut(q); a = lerp(a, 0.9, e); gl = 0.16 + 0.75 * Math.pow(1 - q, 2); sz = p.s * (0.7 + 0.3 * e + 0.6 * Math.pow(1 - q, 3)); }
     }
     if (a <= 0.003) continue;
@@ -423,28 +638,22 @@ function sceneMap(lt) {
   }
   ctx.restore();
   // rubrik över hela landet
-  const outA = 1 - prog(lt, T_FLY0 + 0.1, 0.6);
-  if (outA > 0) {
-    ctx.save(); ctx.globalAlpha = outA;
-    kicker('HÄR JOBBAR VI', SAFE.x0, 262, lt, 0.05, C.vl, 34);
-    ctx.restore();
-  }
   // regionens namn
   const ty = 1560;
   // läsbarhet: mjuk mörk ton bakom texten
-  const sh = prog(lt, T_FLY0 + 1.2, 1.2);
+  const sh = prog(lt, T_FLY0 + 0.9, 1.0);
   if (sh > 0) { const gr = ctx.createLinearGradient(0, 1080, 0, H); gr.addColorStop(0, 'rgba(6,17,27,0)'); gr.addColorStop(0.3, `rgba(6,17,27,${0.72 * sh})`); gr.addColorStop(1, `rgba(6,17,27,${0.9 * sh})`); ctx.fillStyle = gr; ctx.fillRect(0, 1080, W, H - 1080); }
-  const t0 = T_FLY0 + T_FLY - 0.55;
+  const t0 = T_FLY0 + T_FLY - 0.6;
   if (lt > t0) {
     ctx.save(); const rp = expoOut(prog(lt, t0, 0.8)); ctx.fillStyle = C.red; ctx.fillRect(SAFE.x0, ty - 214, 52 * rp, 5); ctx.restore();
     kicker('DITT OMRÅDE', SAFE.x0 + 70, ty - 200, lt, t0 + 0.1, C.t2, 34);
     const z = fitSize(P.region, 800, BS, 864, 178, -0.01);
     letters(P.region, SAFE.x0 - 4, ty, z, 800, BS, -0.01 * z, { t: lt, t0: t0 + 0.2, stagger: 0.035, dur: 0.9, rise: z * 0.9, blur: 12, mask: true });
-    words('Varje ljuspunkt är ett jobb vi har gjort.', SAFE.x0, ty + 86, 40, 400, OS, 0, { t: lt, t0: t0 + 0.9, stagger: 0.05, dur: 0.8, rise: 16, color: C.t2 });
+    words('Varje ljuspunkt är ett jobb vi har gjort.', SAFE.x0, ty + 86, 40, 400, OS, 0, { t: lt, t0: t0 + 0.7, stagger: 0.05, dur: 0.8, rise: 16, color: C.t2 });
   }
 }
 
-// 4. Det här gör vi: före/efter
+
 function drawPhoto(img, fx, fy, kb) {
   const s = (W / img.width) * (1 + 0.055 * kb);
   const w = img.width * s, h = img.height * s;
@@ -458,89 +667,35 @@ function chip(s, x, y, align, bg) {
   ctx.moveTo(x0, y); ctx.lineTo(x0 + w, y); ctx.lineTo(x0 + w - sl, y + h); ctx.lineTo(x0 - sl, y + h); ctx.closePath(); ctx.fill();
   ctx.fillStyle = C.white; ctx.fillText(s, x0 + 24 - sl / 2, y + 40); ctx.restore();
 }
-const PANEL = 8 / 3;
-function scenePhotos(lt) {
-  const n = R.meta.bilder.length;
-  const idx = clamp(Math.floor((lt + 0.32) / PANEL), 0, n - 1);
-  const drawPanel = (i, u) => {
-    const b = R.meta.bilder[i]; const fo = R.img['f' + i], ef = R.img['e' + i];
-    const kb = sineInOut(clamp((u + 0.6) / (PANEL + 0.9)));
-    const [fx, fy] = b.fokus;
-    drawPhoto(fo, fx, fy, kb);
-    const wp = sineInOut(prog(u, 0.6, 1.2));
-    const s = lerp(NMIN - 20, NMAX + 20, wp);
-    if (wp > 0) {
-      ctx.save(); bandPoly(ctx, -6000, s); ctx.clip(); drawPhoto(ef, fx, fy, kb); ctx.restore();
-      if (wp < 1) {
-        // tunn röd kant med mjuk ljuskant
-        ctx.save(); ctx.strokeStyle = 'rgba(6,17,27,0.35)'; ctx.lineWidth = 14; ctx.filter = 'blur(7px)'; lineAt(ctx, s + 6); ctx.stroke(); ctx.restore();
-        ctx.save(); ctx.strokeStyle = C.red; ctx.lineWidth = 6; lineAt(ctx, s); ctx.stroke(); ctx.restore();
-      }
+
+// 5. Ett starkt före/efter
+function sceneBeforeAfter(lt) {
+  const b = R.meta.bilder[(P.takt.fore_efter || 3) - 1]; const fo = R.img.baF, ef = R.img.baE; const [fx, fy] = b.fokus;
+  const kb = sineInOut(clamp((lt + 0.4) / 4.6));
+  drawPhoto(fo, fx, fy, kb);
+  const wp = sineInOut(prog(lt, 0.45, 1.15));
+  const s = lerp(NMIN - 20, NMAX + 20, wp);
+  if (wp > 0) {
+    ctx.save(); bandPoly(ctx, -6000, s); ctx.clip(); drawPhoto(ef, fx, fy, kb); ctx.restore();
+    if (wp < 1) {
+      ctx.save(); ctx.strokeStyle = 'rgba(6,17,27,0.35)'; ctx.lineWidth = 14; ctx.filter = 'blur(7px)'; lineAt(ctx, s + 6); ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.strokeStyle = C.red; ctx.lineWidth = 6; lineAt(ctx, s); ctx.stroke(); ctx.restore();
     }
-    // tonplattor för läsbarhet
-    let gr = ctx.createLinearGradient(0, 0, 0, 420); gr.addColorStop(0, 'rgba(6,17,27,0.55)'); gr.addColorStop(1, 'rgba(6,17,27,0)'); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, 420);
-    gr = ctx.createLinearGradient(0, 1150, 0, H); gr.addColorStop(0, 'rgba(6,17,27,0)'); gr.addColorStop(0.55, 'rgba(6,17,27,0.62)'); gr.addColorStop(1, 'rgba(6,17,27,0.86)'); ctx.fillStyle = gr; ctx.fillRect(0, 1150, W, H - 1150);
-    // FÖRE / EFTER: varje etikett lever på sin sida av torkkanten
-    // etiketterna byter när torkkanten passerat: FÖRE tonar ut före kanten, EFTER glider in efter den
-    const sNow = wp > 0 ? s : NMIN - 400;
-    const fa = clamp(prog(u, 0.12, 0.45)) * clamp((560 - sNow) / 160);
-    const ea = expoOut(clamp((sNow - 300) / 260));
-    if (fa > 0) { ctx.save(); ctx.globalAlpha = fa; ctx.translate(-14 * (1 - fa), 0); chip('FÖRE', SAFE.x1, 250, 'right', 'rgba(6,17,27,0.72)'); ctx.restore(); }
-    if (ea > 0) { ctx.save(); ctx.globalAlpha = clamp(ea * 1.5); ctx.translate(-30 * (1 - ea), 0); chip('EFTER', SAFE.x0 + 30, 250, 'left', C.red); ctx.restore(); }
-    // tjänst
-    const z = fitSize(b.tjanst, 800, BS, 864, 200, -0.01);
-    letters(b.tjanst, SAFE.x0 - 4, 1590, z, 800, BS, -0.01 * z, { t: u, t0: 0.12, stagger: 0.035, dur: 0.8, rise: z * 0.9, blur: 12, mask: true });
-  };
-  const drawAt = i => drawPanel(i, lt - i * PANEL);
-  // byte mellan bildpar med samma diagonala ridå
-  const tb = idx * PANEL;
-  if (idx > 0 && lt < tb + 0.42) wipe(prog(lt, tb - 0.32, 0.74), () => drawAt(idx - 1), () => drawAt(idx));
-  else drawAt(idx);
-  // fast rubrik för hela scenen
-  kicker('DET HÄR GÖR VI', SAFE.x0, 1590 - fitSize(R.meta.bilder[idx].tjanst, 800, BS, 864, 200, -0.01) * 0.92 - 4, lt, 0.2, C.t2, 32);
+  }
+  const gr = ctx.createLinearGradient(0, 0, 0, 420); gr.addColorStop(0, 'rgba(6,17,27,0.5)'); gr.addColorStop(1, 'rgba(6,17,27,0)'); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, 420);
+  const sNow = wp > 0 ? s : NMIN - 400;
+  const fa = clamp(prog(lt, -0.1, 0.4)) * clamp((560 - sNow) / 160);
+  const ea = expoOut(clamp((sNow - 300) / 260));
+  if (fa > 0) { ctx.save(); ctx.globalAlpha = fa; chip('FÖRE', SAFE.x1, 250, 'right', 'rgba(6,17,27,0.72)'); ctx.restore(); }
+  if (ea > 0) { ctx.save(); ctx.globalAlpha = clamp(ea * 1.5); ctx.translate(-30 * (1 - ea), 0); chip('EFTER', SAFE.x0 + 30, 250, 'left', C.red); ctx.restore(); }
 }
 
-// 5. Din första vecka: redaktionell kalender, stora datumsiffror
-const WEEK = { x0: 108, tx: 336, tw: 636, size: 42, lh: 56 };
-function weekRows() {
-  setFont(400, WEEK.size, OS, 0);
-  return P.dagar.map(d => { const lines = wrap(d.text, WEEK.tw); return { ...d, lines, h: Math.max(200, 96 + lines.length * WEEK.lh) }; });
-}
-function sceneWeek(lt) {
-  background(lt + 20, 140);
-  ghostMark(lt, 640, 1560, 520, 0.7 * clamp(prog(lt, -0.3, 1.2)));
-  kicker(P.veckaText, SAFE.x0, 372, lt, 0.15, C.vl, 34);
-  letters('Din första vecka', SAFE.x0 - 4, 520, 150, 800, BS, -1.5, { t: lt, t0: 0.22, stagger: 0.022, dur: 0.85, rise: 130, blur: 12, mask: true });
-  let y = 640;
-  weekRows().forEach((d, i) => {
-    const t0 = 0.85 + i * 0.42;
-    const p = prog(lt, t0, 1.1); const e = expoOut(p);
-    if (p > 0) {
-      // hårlinje som ritas fram, röd markering på första dagen
-      ctx.save(); ctx.fillStyle = 'rgba(134,174,176,0.32)'; ctx.fillRect(WEEK.x0, y, 864 * e, 2);
-      if (i === 0) { ctx.fillStyle = C.red; ctx.fillRect(WEEK.x0, y - 1, 64 * expoOut(prog(lt, t0 + 0.25, 0.8)), 4); }
-      ctx.restore();
-      const off = 260 * (1 - e);
-      ctx.save(); ctx.translate(DIR[0] * off * 0.35, DIR[1] * off * 0.35);
-      letters(d.nr, WEEK.x0 - 6, y + 178, 168, 800, BS, -2, { t: lt, t0: t0 + 0.05, stagger: 0.07, dur: 0.95, rise: 150, blur: 14, mask: true });
-      kicker(d.veckodag, WEEK.tx, y + 64, lt, t0 + 0.2, i === 0 ? C.white : C.vl, 32);
-      d.lines.forEach((ln, j) => words(ln, WEEK.tx, y + 64 + 62 + j * WEEK.lh, WEEK.size, 400, OS, 0, { t: lt, t0: t0 + 0.38 + j * 0.1, stagger: 0.04, dur: 0.75, rise: 18, color: C.t2 }));
-      ctx.restore();
-    }
-    y += d.h + 34;
-  });
-}
-
-// 5b. Hälsning från gruppledaren (valfri)
+// 6. Hälsning från gruppledaren (valfri, filmens känslomässiga topp)
 function sceneHalsning(lt) {
   ctx.fillStyle = C.n1; ctx.fillRect(0, 0, W, H);
   const h = P.halsning; const f = clamp(Math.floor(lt * 30), 0, h.frames - 1);
-  const img = R.clip[f];
-  if (img) {
-    const push = 1 + 0.06 * sineInOut(clamp(lt / h.langd));
-    const s = (W / img.width) * push; const w = img.width * s, hh = img.height * s;
-    ctx.drawImage(img, (W - w) / 2, (H - hh) / 2, w, hh);
-  }
+  const img = R.clip['h' + f];
+  if (img) { const push = 1 + 0.06 * sineInOut(clamp(lt / h.langd)); drawCover(img, 0.5, 0.5, push); }
   const gr = ctx.createLinearGradient(0, 1180, 0, H); gr.addColorStop(0, 'rgba(6,17,27,0)'); gr.addColorStop(0.6, 'rgba(6,17,27,0.62)'); gr.addColorStop(1, 'rgba(6,17,27,0.85)'); ctx.fillStyle = gr; ctx.fillRect(0, 1180, W, H - 1180);
   const t0 = 0.55; const ty = 1560;
   ctx.save(); const rp = expoOut(prog(lt, t0, 0.8)); ctx.fillStyle = C.red; ctx.fillRect(SAFE.x0, ty - 150, 52 * rp, 5); ctx.restore();
@@ -549,68 +704,74 @@ function sceneHalsning(lt) {
   words('din gruppledare', SAFE.x0, ty + 70, 44, 600, OS, 0, { t: lt, t0: t0 + 0.55, stagger: 0.08, dur: 0.8, rise: 18, color: C.t2 });
 }
 
-// 6. Vi ses måndag.
+// 7. Vi ses måndag. Ett kompakt block över den rena stenen, nedtonad mot marin
 function sceneSee(lt) {
-  background(lt + 30, 60);
-  ghostMark(lt, 560, 1420, 760, clamp(prog(lt, -0.3, 1.2)));
+  const ef = R.img.nwE;
+  drawCover(ef, 0.5, 0.55, 1.22 + 0.05 * sineInOut(clamp((lt + 0.3) / 5.3)));
+  ctx.fillStyle = 'rgba(10,27,42,0.80)'; ctx.fillRect(0, 0, W, H);
+  const gr = ctx.createLinearGradient(0, 0, W, H); gr.addColorStop(0, 'rgba(15,38,58,0.0)'); gr.addColorStop(1, 'rgba(6,17,27,0.55)'); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
   const x = SAFE.x0;
-  const s1 = 'Vi ses';
   const s2 = P.startdag + '.';
   const z2 = fitSize(s2, 800, BS, 864, 330, -0.015);
   const z1 = Math.min(240, z2 * 0.78);
-  const y1 = 640, y2 = y1 + z2 * 0.97;
-  const push = 1 + 0.02 * sineInOut(prog(lt, 0, 4.2));
+  const y1 = 700, y2 = y1 + z2 * 0.97;
+  const push = 1 + 0.02 * sineInOut(prog(lt, 0, 5));
   ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(push, push); ctx.translate(-W / 2, -H / 2);
-  letters(s1, x - 4, y1, z1, 800, BS, -0.01 * z1, { t: lt, t0: 0.06, stagger: 0.04, dur: 0.85, rise: z1 * 0.95, blur: 12, mask: true });
+  letters('Vi ses', x - 4, y1, z1, 800, BS, -0.01 * z1, { t: lt, t0: -0.05, stagger: 0.04, dur: 0.85, rise: z1 * 0.95, blur: 12, mask: true });
   const last = [...s2].length - 1;
-  letters(s2, x - 6, y2, z2, 800, BS, -0.015 * z2, { t: lt, t0: 0.3, stagger: 0.05, dur: 0.95, rise: z2 * 0.9, blur: 16, mask: true, color: i => i === last ? C.red : C.white });
-  // linje
-  const lp = expoOut(prog(lt, 1.05, 1.0));
+  letters(s2, x - 6, y2, z2, 800, BS, -0.015 * z2, { t: lt, t0: 0.2, stagger: 0.05, dur: 0.95, rise: z2 * 0.9, blur: 16, mask: true, color: i => i === last ? C.red : C.white });
+  const lp = expoOut(prog(lt, 0.9, 1.0));
   ctx.fillStyle = 'rgba(134,174,176,0.45)'; ctx.fillRect(x, y2 + 80, 864 * lp, 2);
   let yy = y2 + 160;
-  words(P.datumTid, x, yy, 50, 600, OS, 0, { t: lt, t0: 1.2, stagger: 0.07, dur: 0.8, rise: 20, color: C.white });
+  words(P.datumTid, x, yy, 50, 600, OS, 0, { t: lt, t0: 1.05, stagger: 0.07, dur: 0.8, rise: 20, color: C.white });
   yy += 68;
-  words(P.platsText, x, yy, 46, 400, OS, 0, { t: lt, t0: 1.38, stagger: 0.06, dur: 0.8, rise: 20, color: C.t2 });
-  yy += 118;
-  words(P.gruppledare + ' möter dig.', x, yy, 54, 700, OS, 0, { t: lt, t0: 1.85, stagger: 0.09, dur: 0.85, rise: 22, color: C.vl });
+  words(P.platsText, x, yy, 46, 400, OS, 0, { t: lt, t0: 1.2, stagger: 0.06, dur: 0.8, rise: 20, color: C.t2 });
+  yy += 100;
+  words(P.gruppledare + ' möter dig.', x, yy, 54, 700, OS, 0, { t: lt, t0: 1.6, stagger: 0.09, dur: 0.85, rise: 22, color: C.vl });
   ctx.restore();
 }
 
-// 7. Slutbild
+// 8. Slutbild
 function sceneEnd(lt) {
   background(lt + 40, 30);
-  const om = R.meta.ordbild; const S = 128;
-  drawLockup(W / 2, H * 0.47, S, lt, 0.55, { p: [prog(lt, 0.08, 0.9), prog(lt, 0.18, 0.9), prog(lt, 0.28, 0.9)] });
+  const S = 128;
+  drawLockup(W / 2, H * 0.47, S, lt, 0.45, { p: [prog(lt, 0.0, 0.8), prog(lt, 0.08, 0.8), prog(lt, 0.16, 0.8)] });
   setFont(600, 40, OS, 40 * 0.06); const s = 'nanostone.se'; const w = textW(s);
-  words(s, W / 2 - w / 2, H * 0.47 + S / 2 + 110, 40, 600, OS, 40 * 0.06, { t: lt, t0: 1.0, stagger: 0, dur: 0.9, rise: 14, color: C.vl });
+  words(s, W / 2 - w / 2, H * 0.47 + S / 2 + 110, 40, 600, OS, 40 * 0.06, { t: lt, t0: 0.8, stagger: 0, dur: 0.9, rise: 14, color: C.vl });
 }
 
-// ------------------------------------------------------------ tidslinje
+// ------------------------------------------------------------ tidslinje på takten
 let P = null, SC = [];
-const TD = 0.74, TPRE = 0.32; // ridåns längd och hur långt före scengränsen den startar
+const TD = 0.5, TPRE = 0.25; // övergången är ett slag lång och centrerad på scengränsen
 function buildTimeline() {
-  const list = [
-    ['Bomärke', 3.5, sceneMark],
-    ['Välkommen', 3.5, sceneHello],
-    ['Karta', 7.6, sceneMap],
-    ['Det här gör vi', 8.0, scenePhotos],
-    ['Din första vecka', 6.6, sceneWeek],
-  ];
-  if (P.halsning) list.push(['Hälsning', P.halsning.langd + 0.1, sceneHalsning]);
-  list.push(['Vi ses', 4.2, sceneSee], ['Slut', 3.0, sceneEnd]);
-  let t = 0; SC = list.map(([namn, dur, fn]) => { const o = { namn, start: t, dur, fn }; t += dur; return o; });
-  window.duration = t;
-  window.timeline = SC.map(s => ({ namn: s.namn, start: +s.start.toFixed(2), slut: +(s.start + s.dur).toFixed(2) }));
+  const T = P.takt; const beat = 60 / T.bpm; const sl = T.slag;
+  const list = [['Bomärke', sl.bomarke, sceneMark], ['Namn', sl.namn, sceneName], ['Montage', P.montageSlag, sceneMontage],
+    ['Karta', sl.karta, sceneMap], ['Före/efter', sl.fore_efter, sceneBeforeAfter]];
+  if (P.halsning) list.push(['Hälsning', Math.ceil(P.halsning.langd / beat), sceneHalsning]);
+  list.push(['Vi ses', sl.vi_ses, sceneSee], ['Slut', sl.slut, sceneEnd]);
+  let b = 0; SC = list.map(([namn, slag, fn]) => { const o = { namn, start: b * beat, dur: slag * beat, slag0: b, slag, fn }; b += slag; return o; });
+  window.duration = b * beat;
+  window.timeline = SC.map(s => ({ namn: s.namn, start: +s.start.toFixed(2), slut: +(s.start + s.dur).toFixed(2), slag: s.slag0, antalSlag: s.slag }));
+  // ljudhändelser för ljudbädden (rendera.js syntetiserar dem)
+  const at = n => SC.find(s => s.namn === n);
+  const ev = [{ typ: 'hit', t: 0.42, styrka: 1 }];
+  SC.slice(1).forEach(s => ev.push({ typ: 'whoosh', t: s.start - TPRE, dur: TD, styrka: 0.8 }));
+  const nm = at('Namn'); ev.push({ typ: 'spray', t0: nm.start + NW.TS, t1: nm.start + NW.TE, bana: NW.sprayPath.map(([t, x]) => [+(nm.start + t).toFixed(3), x]), bokstav: NW.L.map(l => [+(nm.start + l.t0).toFixed(3), +(nm.start + l.t0 + l.per).toFixed(3)]) });
+  const mp = at('Karta'); ev.push({ typ: 'shimmer', t0: mp.start + T_CASC, t1: mp.start + T_CASC + 1.5 });
+  const ba = at('Före/efter'); ev.push({ typ: 'whoosh', t: ba.start + 0.45, dur: 1.15, styrka: 0.45 });
+  const hs = at('Hälsning'); if (hs) ev.push({ typ: 'riser', t1: hs.start - 0.05, dur: 1.6 });
+  const en = at('Slut'); ev.push({ typ: 'hit', t: en.start + 0.45, styrka: 0.55 });
+  ev.push({ typ: 'luft', t0: 0.1, t1: window.duration - 0.2, tyst: hs ? [hs.start - 0.2, hs.start + hs.dur + 0.1] : null });
+  window.ljud = ev;
 }
-/* Rörelseoskärpa: under snabba rörelser (ridåer, kartflygning, torkningar, snabba textintåg) ritas
- * flera delbilder inom en halv bildrutas slutartid och medelvärdesbildas. Kornet läggs på efteråt. */
 let ACC = null;
-function fastAt(t) { // antal delbilder: fler där rörelsen är snabbast så att oskärpan blir slät, inte stroboskopisk
-  for (let i = 1; i < SC.length; i++) { const b = SC[i].start; const u = (t - (b - TPRE)) / TD; if (u > -0.03 && u < 1.03) return u > 0.2 && u < 0.8 ? 10 : 5; }
-  const m = SC.find(s => s.namn === 'Karta'); if (m) { const lt = t - m.start; if (lt > T_FLY0 && lt < T_FLY0 + T_FLY) { const u = (lt - T_FLY0) / T_FLY; return u > 0.2 && u < 0.8 ? 10 : 5; } }
-  const ph = SC.find(s => s.namn === 'Det här gör vi');
-  if (ph) { const lt = t - ph.start; for (let k = 0; k < 3; k++) { const u = lt - k * PANEL; if (u > 0.6 && u < 1.8) return [4, 0.18]; } }
-  const mk = SC[0]; if (t - mk.start > 0.15 && t - mk.start < 1.1) return 6;
+function fastAt(t) { // antal delbilder (rörelseoskärpa): fler där rörelsen är snabbast
+  for (let i = 1; i < SC.length; i++) { const u = (t - (SC[i].start - TPRE)) / TD; if (u > -0.05 && u < 1.05) return u > 0.2 && u < 0.8 ? 10 : 6; }
+  const m = SC.find(s => s.namn === 'Karta'); if (m) { const lt = t - m.start; if (lt > T_FLY0 && lt < T_FLY0 + T_FLY) { const u = (lt - T_FLY0) / T_FLY; return u > 0.2 && u < 0.8 ? 10 : 6; } }
+  const ba = SC.find(s => s.namn === 'Före/efter'); if (ba) { const u = t - ba.start; if (u > 0.4 && u < 1.65) return [4, 0.18]; }
+  const mo = SC.find(s => s.namn === 'Montage'); if (mo && P.montageSegs[0].typ === 'foto') { const u = t - mo.start; for (const s of P.montageSegs) if (Math.abs(u - s.start) < 0.2 && s.start > 0) return [6, 0.35]; }
+  const nm = SC.find(s => s.namn === 'Namn'); if (nm) { const u = t - nm.start; if (u > NW.TS && u < NW.TE + 0.4) return [3, 0.5]; }
+  if (t > 0.02 && t < 0.75) return 6;
   return 1;
 }
 function renderAt(t, opt = {}) {
@@ -621,15 +782,12 @@ function renderAt(t, opt = {}) {
   if (!ACC) ACC = offscreen(W, H);
   const a = ACC.getContext('2d');
   const shutter = sh / fps;
-  for (let k = 0; k < n; k++) {
-    drawFrame(t + shutter * ((k + 0.5) / n - 0.5));
-    a.globalAlpha = 1 / (k + 1); a.drawImage(cv, 0, 0);
-  }
+  for (let k = 0; k < n; k++) { drawFrame(t + shutter * ((k + 0.5) / n - 0.5)); a.globalAlpha = 1 / (k + 1); a.drawImage(cv, 0, 0); }
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
   ctx.drawImage(ACC, 0, 0); finish(t); fadeEdges(t); return n;
 }
 function fadeEdges(t) {
-  const fin = clamp(t / 0.35), fout = 1 - prog(t, window.duration - 0.45, 0.45);
+  const fin = clamp(t / 0.25), fout = 1 - prog(t, window.duration - 0.4, 0.4);
   const a = 1 - Math.min(fin, fout);
   if (a > 0) { ctx.fillStyle = `rgba(6,17,27,${a})`; ctx.fillRect(0, 0, W, H); }
 }
@@ -637,26 +795,21 @@ function drawFrame(t) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
   let i = SC.findIndex(s => t < s.start + s.dur); if (i < 0) i = SC.length - 1;
   const cur = SC[i], next = SC[i + 1];
-  if (next && t >= next.start - TPRE) {
-    wipe((t - (next.start - TPRE)) / TD, () => cur.fn(t - cur.start), () => next.fn(t - next.start));
-  } else if (i > 0 && t < cur.start - TPRE + TD) {
-    const prev = SC[i - 1];
-    wipe((t - (cur.start - TPRE)) / TD, () => prev.fn(t - prev.start), () => cur.fn(t - cur.start));
-  } else cur.fn(t - cur.start);
+  if (next && t >= next.start - TPRE) wipe((t - (next.start - TPRE)) / TD, () => cur.fn(t - cur.start), () => next.fn(t - next.start));
+  else if (i > 0 && t < cur.start - TPRE + TD) { const prev = SC[i - 1]; wipe((t - (cur.start - TPRE)) / TD, () => prev.fn(t - prev.start), () => cur.fn(t - cur.start)); }
+  else cur.fn(t - cur.start);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
-/* Kontroll av att texterna får plats i layouten (körs efter init, med riktiga typsnitt). */
+/* Kontroll av att texterna får plats (körs efter init, med riktiga typsnitt). */
 function validate() {
   const fel = [];
-  const zName = fitSize(P.fornamn + '.', 800, BS, 864, 430, -0.015);
-  if (zName < 230) fel.push(`förnamnet "${P.fornamn}" är för långt för rubriken (max cirka 9 tecken)`);
+  if (NW.size * 1.36 < 190) fel.push(`förnamnet "${P.fornamn}" är för långt för namnscenen (max cirka 11 tecken)`);
   const zReg = fitSize(P.region, 800, BS, 864, 178, -0.01); if (zReg < 120) fel.push('regionnamnet är för långt');
   const zDay = fitSize(P.startdag + '.', 800, BS, 864, 330, -0.015); if (zDay < 200) fel.push('startdagen blir för liten');
   const zGl = fitSize(P.gruppledare + ',', 800, BS, 760, 150, -0.01); if (zGl < 110) fel.push(`gruppledarens namn "${P.gruppledare}" är för långt`);
   setFont(700, 54, OS, 0); if (textW(P.gruppledare + ' möter dig.') > 864) fel.push(`"${P.gruppledare} möter dig." får inte plats på en rad`);
   setFont(400, 46, OS, 0); if (textW(P.platsText) > 864) fel.push(`platsen "${P.platsText}" är för lång (max en rad, cirka 30 tecken)`);
   setFont(600, 50, OS, 0); if (textW(P.datumTid) > 864) fel.push('datum och tid får inte plats');
-  weekRows().forEach((d, i) => { if (d.lines.length > 3) fel.push(`dag${i + 1}: texten "${d.text}" blir ${d.lines.length} rader, max 3 (korta texten)`); });
   return fel;
 }
 window.validate = () => validate();
@@ -666,26 +819,41 @@ async function init(person) {
   P = person;
   R.meta = await (await fetch('assets/meta.json')).json();
   R.karta = await (await fetch('assets/karta.json')).json();
-  const jobs = [loadImg('assets/ordbild.png').then(i => R.img.ordbild = i)];
-  R.meta.bilder.forEach((b, i) => { jobs.push(loadImg(b.fore).then(x => R.img['f' + i] = x)); jobs.push(loadImg(b.efter).then(x => R.img['e' + i] = x)); });
+  const nb = R.meta.bilder[(P.takt.namnbild || 1) - 1], fb = R.meta.bilder[(P.takt.fore_efter || 3) - 1];
+  const jobs = [loadImg('assets/ordbild.png').then(i => R.img.ordbild = i),
+    loadImg(nb.fore).then(i => R.img.nwF = i), loadImg(nb.efter).then(i => R.img.nwE = i),
+    loadImg(fb.fore).then(i => R.img.baF = i), loadImg(fb.efter).then(i => R.img.baE = i)];
+  // montage: klipp (bildrutor laddas i prepare) eller reservfoton
+  const beat = 60 / P.takt.bpm;
+  if (P.montage && P.montage.length) {
+    let b = 0; P.montageSegs = P.montage.map(m => { const slag = Math.max(2, Math.round(m.langd / beat)); const o = { typ: 'klipp', start: b * beat, dur: slag * beat, frames: m.frames, url: m.url }; b += slag; return o; });
+    P.montageSlag = b;
+  } else {
+    const rs = R.meta.reservbilder || []; const slag = P.takt.slag.montage_reserv; const each = Math.floor(slag / rs.length);
+    P.montageSegs = rs.map((r, k) => ({ typ: 'foto', start: k * each * beat, dur: (k === rs.length - 1 ? slag - each * k : each) * beat, fokus: r.fokus }));
+    rs.forEach((r, k) => jobs.push(loadImg(r.fil).then(i => R.img['res' + k] = i)));
+    P.montageSlag = slag;
+  }
   const fonts = ['800 100px "BSD"', '700 100px "BSD"', '400 40px "OS"', '600 40px "OS"', '700 40px "OS"'];
   await Promise.all([...jobs, ...fonts.map(f => document.fonts.load(f, 'ÅÄÖåäö'))]);
   await document.fonts.ready;
   for (const f of fonts) if (!document.fonts.check(f, 'Åäö')) throw new Error('Typsnitt saknas: ' + f);
-  buildStatic(); prepMap(); buildTimeline();
-  return { duration: window.duration, timeline: window.timeline };
+  buildStatic(); prepMap(); prepNameWash(); buildTimeline();
+  return { duration: window.duration, timeline: window.timeline, ljud: window.ljud };
 }
 async function prepare(t) {
-  if (!P || !P.halsning) return;
-  const s = SC.find(x => x.namn === 'Hälsning'); if (!s) return;
-  const lt = t - s.start;
-  if (lt < -TPRE - 0.1 || lt > s.dur + 0.5) return;
-  const f = clamp(Math.floor(lt * 30), 0, P.halsning.frames - 1);
-  for (const g of [f - 1, f, f + 1]) {
-    if (g < 0 || g >= P.halsning.frames || R.clip[g]) continue;
-    R.clip[g] = await loadImg(P.halsning.url + String(g + 1).padStart(5, '0') + '.jpg');
+  if (!P) return;
+  const need = [];
+  const hs = SC.find(x => x.namn === 'Hälsning');
+  if (hs) { const lt = t - hs.start; if (lt > -TPRE - 0.1 && lt < hs.dur + 0.4) { const f = clamp(Math.floor(lt * 30), 0, P.halsning.frames - 1); for (const g of [f - 1, f, f + 1]) if (g >= 0 && g < P.halsning.frames) need.push(['h' + g, P.halsning.url + String(g + 1).padStart(5, '0') + '.jpg']); } }
+  const mo = SC.find(x => x.namn === 'Montage');
+  if (mo && P.montageSegs[0].typ === 'klipp') {
+    const lt = t - mo.start;
+    P.montageSegs.forEach((s, k) => { const u = lt - s.start; if (u > -0.4 && u < s.dur + 0.4) { const f = clamp(Math.floor(u * 30), 0, s.frames - 1); for (const g of [f - 1, f, f + 1]) if (g >= 0 && g < s.frames) need.push(['m' + k + '_' + g, s.url + String(g + 1).padStart(5, '0') + '.jpg']); } });
   }
-  for (const k in R.clip) if (+k < f - 3) delete R.clip[k];
+  const keep = new Set(need.map(n => n[0]));
+  for (const [k, u] of need) if (!R.clip[k]) R.clip[k] = await loadImg(u);
+  for (const k in R.clip) if (!keep.has(k)) delete R.clip[k];
 }
 window.init = init; window.renderAt = renderAt; window.prepare = prepare;
 })();

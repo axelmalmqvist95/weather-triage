@@ -63,7 +63,8 @@ const datumText = d => `${d.getUTCDate()} ${MANAD[d.getUTCMonth()]}`;
 // ------------------------------------------------------------------ validering + formatering
 function person(r) {
   const fel = [];
-  const need = ['fornamn', 'region', 'startdatum', 'starttid', 'plats', 'gruppledare', 'dag1', 'dag2', 'dag3'];
+  // dag1–dag3 (veckoschemat) accepteras i gamla CSV-filer men används inte längre i filmen
+  const need = ['fornamn', 'region', 'startdatum', 'starttid', 'plats', 'gruppledare'];
   need.forEach(k => { if (!r[k]) fel.push(`kolumnen "${k}" är tom`); });
   if (fel.length) return { fel };
   const namnOk = s => /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ' -]*$/.test(s);
@@ -79,25 +80,6 @@ function person(r) {
   if (r.plats.length > 34) fel.push(`platsen "${r.plats}" är för lång (max 34 tecken)`);
   if (fel.length) return { fel };
   const tid = r.starttid.replace('.', ':');
-  const fyll = s => s.replace(/\{gruppledare\}/g, r.gruppledare).replace(/\{starttid\}/g, tid).replace(/\{plats\}/g, r.plats).replace(/\{fornamn\}/g, r.fornamn);
-  // dagN: "tisdag: Du åker med {gruppledare}". Utan veckodag gäller startdagen för dag1.
-  const dagar = [];
-  ['dag1', 'dag2', 'dag3'].forEach((k, i) => {
-    let txt = r[k], d = null;
-    const m = /^\s*(måndag|tisdag|onsdag|torsdag|fredag|lördag|söndag)\s*[:·\-–]\s*(.+)$/i.exec(txt);
-    if (m) {
-      const wd = VECKODAG.indexOf(m[1].toLowerCase()); txt = m[2];
-      d = new Date(start); while (d.getUTCDay() !== wd) d.setUTCDate(d.getUTCDate() + 1);
-    } else if (i === 0) d = new Date(start);
-    else { fel.push(`${k}: börja med veckodag, t.ex. "tisdag: Du åker med {gruppledare}"`); return; }
-    txt = fyll(txt.trim());
-    if (txt.length > 80) fel.push(`${k}: texten är ${txt.length} tecken, max 80`);
-    dagar.push({ veckodag: VECKODAG[d.getUTCDay()].toLocaleUpperCase('sv-SE'), nr: String(d.getUTCDate()), text: stor(txt), d });
-  });
-  for (let i = 1; i < dagar.length; i++) if (+dagar[i].d <= +dagar[i - 1].d) fel.push(`dag${i + 1} måste ligga efter dag${i} i veckan`);
-  const d1 = dagar[0] && dagar[0].d, d3 = dagar[dagar.length - 1] && dagar[dagar.length - 1].d;
-  const veckaText = !d1 ? '' : (d1.getUTCMonth() === d3.getUTCMonth()
-    ? `${d1.getUTCDate()}–${d3.getUTCDate()} ${MANAD[d1.getUTCMonth()]}` : `${datumText(d1)} – ${datumText(d3)}`).toLocaleUpperCase('sv-SE');
   let halsning = null;
   if (r.halsning) {
     const p = path.resolve(HAR, r.halsning);
@@ -112,13 +94,9 @@ function person(r) {
   return {
     p: {
       fornamn: stor(r.fornamn), region, gruppledare: stor(r.gruppledare),
-      sasong: `SÄSONG ${start.getUTCFullYear()}`,
-      subline: 'Du är en del av Nanostone nu.',
       startdag: VECKODAG[start.getUTCDay()],
       datumTid: `${stor(VECKODAG[start.getUTCDay()])} ${datumText(start)} · kl. ${tid}`,
       platsText: stor(r.plats),
-      veckaText,
-      dagar: dagar.map(({ veckodag, nr, text }) => ({ veckodag, nr, text })),
     }, halsning,
   };
 }
@@ -127,22 +105,27 @@ function person(r) {
 function run(cmd, a) { const r = spawnSync(cmd, a, { encoding: 'utf8', maxBuffer: 1 << 26 }); if (r.status !== 0) throw new Error(`${cmd} misslyckades: ${(r.stderr || '').slice(-1500)}`); return r.stdout; }
 function probe(f) { return JSON.parse(run('ffprobe', ['-v', 'error', '-print_format', 'json', '-show_streams', '-show_format', f])); }
 
-/* Hälsningsklipp: avkodas en gång per (fil, start, längd) och cachas som JPG-rutor + normaliserat ljud. */
-function forberedHalsning(h, fps) {
+/* Filmklipp (hälsning eller montage): avkodas en gång per (fil, start, längd, inställning) och cachas som
+ * JPG-rutor (+ normaliserat ljud för hälsningen). 40 filmer med samma klipp avkodar det alltså bara en gång.
+ * typ 'halsning': täcks till 9:16 från mitten, ljudet behålls. typ 'montage': samma gradering som fotona
+ * (svärtan lyft mot marin, mjuk kontrast), valfri slowmotion med rörelseinterpolering. */
+function forberedKlipp(h, fps, typ) {
   const st = fs.statSync(h.fil);
-  const key = crypto.createHash('sha1').update([h.fil, st.size, st.mtimeMs, h.start, h.langd, fps, 'v2'].join('|')).digest('hex').slice(0, 16);
-  const dir = path.join(HAR, 'cache', 'halsning-' + key);
+  const key = crypto.createHash('sha1').update([h.fil, st.size, st.mtimeMs, h.start, h.langd, fps, typ, !!h.slowmo, 'v3'].join('|')).digest('hex').slice(0, 16);
+  const dir = path.join(HAR, 'cache', typ + '-' + key);
   const infoF = path.join(dir, 'info.json');
-  if (fs.existsSync(infoF)) return { ...JSON.parse(fs.readFileSync(infoF, 'utf8')), dir, key, cache: true };
+  if (fs.existsSync(infoF)) return { ...JSON.parse(fs.readFileSync(infoF, 'utf8')), dir, key, url: `cache/${typ}-${key}/`, cache: true };
   fs.mkdirSync(dir, { recursive: true });
   const pr = probe(h.fil);
   const dur = +pr.format.duration;
-  if (h.start >= dur - 0.5) throw new Error(`halsning_start ${h.start}s ligger efter klippets slut (${dur.toFixed(1)}s)`);
-  const langd = Math.min(h.langd, dur - h.start);
-  const harLjud = pr.streams.some(s => s.codec_type === 'audio');
-  // täck 9:16 (centrerat), lite större än bilden för långsam inzoomning; ffmpeg roterar enligt metadata
+  if (h.start >= dur - 0.5) throw new Error(`${path.basename(h.fil)}: start ${h.start}s ligger efter klippets slut (${dur.toFixed(1)}s)`);
+  const fart = h.slowmo ? 0.5 : 1; // slowmotion: halv fart, mellanrutor räknas fram
+  const langd = Math.min(h.langd * fart, dur - h.start);
+  const harLjud = typ === 'halsning' && pr.streams.some(s => s.codec_type === 'audio');
+  const grade = typ === 'montage' ? ",eq=contrast=1.05:saturation=0.92,colorbalance=bs=0.035:bm=0.01,curves=all='0/0.035 0.5/0.5 1/0.985'" : '';
+  const slow = h.slowmo ? `minterpolate=fps=${fps * 2}:mi_mode=mci:mc_mode=aobmc:vsbmc=1,setpts=2*PTS,` : '';
   run('ffmpeg', ['-v', 'error', '-y', '-ss', String(h.start), '-t', String(langd), '-i', h.fil,
-    '-vf', `fps=${fps},scale=1188:2112:force_original_aspect_ratio=increase:flags=lanczos,crop=1188:2112,setsar=1`,
+    '-vf', `${slow}fps=${fps},scale=1188:2112:force_original_aspect_ratio=increase:flags=lanczos,crop=1188:2112,setsar=1${grade}`,
     '-q:v', '2', path.join(dir, '%05d.jpg')]);
   const frames = fs.readdirSync(dir).filter(f => f.endsWith('.jpg')).length;
   if (harLjud) {
@@ -152,7 +135,22 @@ function forberedHalsning(h, fps) {
   }
   const info = { frames, langd: frames / fps, ljud: harLjud };
   fs.writeFileSync(infoF, JSON.stringify(info));
-  return { ...info, dir, key, cache: false };
+  return { ...info, dir, key, url: `cache/${typ}-${key}/`, cache: false };
+}
+function filmData(pers, o) {
+  const data = { ...pers.p, takt: CFG.film, halsning: null, montage: [] };
+  let hals = null;
+  if (pers.halsning) {
+    hals = forberedKlipp(pers.halsning, o.fps, 'halsning');
+    data.halsning = { url: hals.url, frames: hals.frames, langd: hals.langd };
+    console.log(`  hälsningsklipp: ${hals.frames} rutor, ${hals.langd.toFixed(2)} s, ${hals.ljud ? 'med ljud' : 'utan ljud'}${hals.cache ? ' (från cache)' : ''}`);
+  }
+  const montage = o.montage ? JSON.parse(fs.readFileSync(o.montage, 'utf8')) : (CFG.montage || []);
+  for (const m of montage) {
+    const k = forberedKlipp({ fil: m.fil, start: m.start || 0, langd: m.langd || 1.5, slowmo: !!m.slowmo }, o.fps, 'montage');
+    data.montage.push({ url: k.url, frames: k.frames, langd: m.langd || 1.5 });
+  }
+  return { data, hals };
 }
 
 // ------------------------------------------------------------------ statisk server för film.html + assets
@@ -184,47 +182,48 @@ async function bildruta(s, t, fps) {
 }
 
 // ------------------------------------------------------------------ ljud
-function ljudArgs(dur, musik, hals, halsStart) {
-  const inp = [], filt = []; let n = 1; const mix = [];
-  inp.push('-f', 'lavfi', '-t', dur.toFixed(3), '-i', 'anullsrc=r=48000:cl=stereo'); const tyst = n++; mix.push(`[${tyst}:a]`);
+/* Ljudet byggs före bilden: syntetisk effektbädd (ljud.js) + valfri musik (under effekterna, sänkt under
+ * hälsningen) + hälsningens eget ljud. Mixen normaliseras sedan linjärt till -16 LUFS (två pass) med
+ * toppbegränsning på -1,5 dBTP. */
+function byggLjud(ljud, dur, musik, hals, halsStart, tmpDir) {
+  fs.mkdirSync(tmpDir, { recursive: true });
+  const fx = path.join(tmpDir, 'effekter.wav');
+  require('./ljud.js').syntes(ljud, dur, fx);
+  const inp = ['-i', fx], filt = []; const mix = ['[0:a]']; let n = 1;
   if (musik) {
-    inp.push('-stream_loop', '-1', '-i', musik); const m = n++; // loopas om musiken är kortare än filmen
-    let f = `[${m}:a]aresample=48000,aformat=channel_layouts=stereo,atrim=0:${dur.toFixed(3)},asetpts=N/SR/TB,loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=in:d=1.2,afade=t=out:st=${(dur - 2.5).toFixed(3)}:d=2.5`;
-    if (hals && hals.ljud) { // duckning under hälsningen
-      const a = halsStart - 0.3, b = halsStart + hals.langd + 0.3;
-      f += `,volume='1-0.82*max(0,min(1,min((t-${a.toFixed(3)})/0.4,(${b.toFixed(3)}-t)/0.4)))':eval=frame`;
-    }
+    inp.push('-stream_loop', '-1', '-i', musik); const m = n++;
+    let f = `[${m}:a]aresample=48000,aformat=channel_layouts=stereo,atrim=0:${dur.toFixed(3)},asetpts=N/SR/TB,loudnorm=I=-18:TP=-2:LRA=11,afade=t=in:d=1.2,afade=t=out:st=${(dur - 2.5).toFixed(3)}:d=2.5`;
+    if (hals && hals.ljud) { const a = halsStart - 0.4, b = halsStart + hals.langd + 0.3; f += `,volume='1-0.8*max(0,min(1,min((t-${a.toFixed(3)})/0.5,(${b.toFixed(3)}-t)/0.5)))':eval=frame`; }
     filt.push(f + '[mus]'); mix.push('[mus]');
   }
-  if (hals && hals.ljud) {
-    inp.push('-i', path.join(hals.dir, 'ljud.wav')); const h = n++;
-    const ms = Math.round(halsStart * 1000);
-    filt.push(`[${h}:a]adelay=${ms}|${ms}[hal]`); mix.push('[hal]');
-  }
-  filt.push(`${mix.join('')}amix=inputs=${mix.length}:duration=first:normalize=0,alimiter=limit=0.89[aout]`);
-  return { inp, filt: filt.join(';') };
+  if (hals && hals.ljud) { inp.push('-i', path.join(hals.dir, 'ljud.wav')); const h = n++; const ms = Math.round(halsStart * 1000); filt.push(`[${h}:a]adelay=${ms}|${ms}[hal]`); mix.push('[hal]'); }
+  filt.push(`${mix.join('')}amix=inputs=${mix.length}:duration=first:normalize=0,apad=whole_dur=${dur.toFixed(3)}[aout]`);
+  const mixF = path.join(tmpDir, 'mix.wav');
+  run('ffmpeg', ['-v', 'error', '-y', ...inp, '-filter_complex', filt.join(';'), '-map', '[aout]', '-t', dur.toFixed(3), '-c:a', 'pcm_s24le', '-ar', '48000', mixF]);
+  const m = spawnSync('ffmpeg', ['-hide_banner', '-i', mixF, '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json', '-f', 'null', '-'], { encoding: 'utf8' });
+  const js = JSON.parse(m.stderr.slice(m.stderr.lastIndexOf('{')));
+  const gain = -16 - parseFloat(js.input_i);
+  const ut = path.join(tmpDir, 'slutmix.wav');
+  run('ffmpeg', ['-v', 'error', '-y', '-i', mixF, '-af', `volume=${gain.toFixed(2)}dB,alimiter=limit=0.84:level=false`, '-c:a', 'pcm_s24le', ut]);
+  return { fil: ut, uppmatt: parseFloat(js.input_i), gain };
 }
 
 // ------------------------------------------------------------------ rendera en film
 async function renderaFilm(browser, base, row, pers, o, utfil) {
   const t0 = Date.now();
-  const data = { ...pers.p, halsning: null };
-  let hals = null;
-  if (pers.halsning) {
-    hals = forberedHalsning(pers.halsning, o.fps);
-    data.halsning = { url: `cache/halsning-${hals.key}/`, frames: hals.frames, langd: hals.langd };
-    console.log(`  hälsningsklipp: ${hals.frames} rutor, ${hals.langd.toFixed(2)} s, ${hals.ljud ? 'med ljud' : 'utan ljud'}${hals.cache ? ' (från cache)' : ''}`);
-  }
+  const { data, hals } = filmData(pers, o);
   const sidor = [];
   for (let i = 0; i < o.arbetare; i++) sidor.push(await oppnaSida(browser, base + '/film.html', data));
   const fel = await sidor[0].page.evaluate(() => window.validate());
   if (fel.length) { await Promise.all(sidor.map(s => s.ctx.close())); throw new Error(fel.join('\n  ')); }
-  const { duration, timeline } = sidor[0].info;
+  const { duration, timeline, ljud } = sidor[0].info;
   const N = Math.round(duration * o.fps);
   const halsStart = (timeline.find(s => s.namn === 'Hälsning') || {}).start;
-  const lj = ljudArgs(N / o.fps, o.musik, hals, halsStart);
-  const ff = spawn('ffmpeg', ['-v', 'error', '-y', '-f', 'image2pipe', '-framerate', String(o.fps), '-c:v', 'mjpeg', '-i', '-', ...lj.inp,
-    '-filter_complex', lj.filt, '-map', '0:v', '-map', '[aout]',
+  const tmp = path.join(HAR, 'cache', 'ljud-' + path.basename(utfil, '.mp4'));
+  const lj = byggLjud(ljud, N / o.fps, o.musik, hals, halsStart, tmp);
+  console.log(`  ljud: mix ${lj.uppmatt.toFixed(1)} LUFS, justerad ${lj.gain >= 0 ? '+' : ''}${lj.gain.toFixed(1)} dB till -16 LUFS`);
+  const ff = spawn('ffmpeg', ['-v', 'error', '-y', '-f', 'image2pipe', '-framerate', String(o.fps), '-c:v', 'mjpeg', '-i', '-', '-i', lj.fil,
+    '-map', '0:v', '-map', '1:a',
     '-c:v', 'libx264', '-profile:v', 'high', '-preset', o.snabb ? 'veryfast' : 'slow', '-crf', '17', '-pix_fmt', 'yuv420p',
     '-maxrate', o.maxrate || '5M', '-bufsize', '10M', '-x264-params', 'aq-mode=3:deblock=-1,-1', '-r', String(o.fps),
     '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-movflags', '+faststart', '-t', (N / o.fps).toFixed(3), utfil], { stdio: ['pipe', 'inherit', 'inherit'] });
@@ -247,10 +246,11 @@ async function renderaFilm(browser, base, row, pers, o, utfil) {
   await Promise.all(ws); ff.stdin.end(); await ffDone;
   await Promise.all(sidor.map(s => s.ctx.close()));
   process.stdout.write('\n');
-  // affisch: namnet fullt utskrivet
-  const hello = timeline.find(s => s.namn === 'Välkommen');
-  run('ffmpeg', ['-v', 'error', '-y', '-ss', (hello.start + 3.0).toFixed(3), '-i', utfil, '-frames:v', '1', '-q:v', '2', utfil.replace(/\.mp4$/, '.jpg')]);
+  // affisch: namnet framtvättat
+  const nm = timeline.find(s => s.namn === 'Namn');
+  run('ffmpeg', ['-v', 'error', '-y', '-ss', (nm.start + 5.0).toFixed(3), '-i', utfil, '-frames:v', '1', '-q:v', '2', utfil.replace(/\.mp4$/, '.jpg')]);
   if (o.kontaktark) kontaktark(utfil, timeline, N, o.fps);
+  fs.writeFileSync(utfil.replace(/\.mp4$/, '-tidslinje.json'), JSON.stringify({ bpm: CFG.film.bpm, scener: timeline }, null, 1));
   const sek = (Date.now() - t0) / 1000;
   return { sek, N, duration, bytes: fs.statSync(utfil).size, timeline };
 }
@@ -259,14 +259,15 @@ function kontaktark(mp4, timeline, N, fps) {
   const ark = (n, cols, ut) => {
     const idx = [...Array(n)].map((_, i) => Math.round((i + 0.5) * N / n));
     const sel = idx.map(i => `eq(n\\,${i})`).join('+');
-    run('ffmpeg', ['-v', 'error', '-y', '-i', mp4, '-vf', `select='${sel}',scale=270:480:flags=lanczos,tile=${cols}x${Math.ceil(n / cols)}:padding=8:margin=8:color=0x06111b`, '-frames:v', '1', '-fps_mode', 'vfr', ut]);
+    run('ffmpeg', ['-v', 'error', '-y', '-i', mp4, '-vf', `select='${sel}',format=rgb24,scale=270:480:flags=lanczos+accurate_rnd+full_chroma_int,tile=${cols}x${Math.ceil(n / cols)}:padding=8:margin=8:color=0x06111b`, '-frames:v', '1', '-fps_mode', 'vfr', ut]);
   };
   const b = mp4.replace(/\.mp4$/, '');
   ark(12, 6, b + '-kontaktark-12.png');
   ark(24, 6, b + '-kontaktark-24.png');
-  // tre stillbilder i full storlek: rubrik, karta i regionen, före/efter mitt i torkningen
+  // stillbilder i full storlek för granskning
   const st = n => timeline.find(s => s.namn === n).start;
-  const stills = { rubrik: st('Välkommen') + 3.0, karta: st('Karta') + 7.4, torkning: st('Det här gör vi') + 1.17 };
+  const stills = { 'namn-start': st('Namn') + 0.9, 'namn-mitt': st('Namn') + 2.1, 'namn-klar': st('Namn') + 5.3, karta: st('Karta') + 5.3,
+    torkning: st('Före/efter') + 1.03, 'vi-ses': st('Vi ses') + 3.6, slutbild: st('Slut') + 1.9 };
   for (const [k, t] of Object.entries(stills))
     run('ffmpeg', ['-v', 'error', '-y', '-ss', t.toFixed(3), '-i', mp4, '-frames:v', '1', `${b}-still-${k}.png`]);
 }
@@ -290,14 +291,13 @@ function kontaktark(mp4, timeline, N, fps) {
   const browser = await chromium.launch();
   // layoutkontroll med riktiga typsnitt
   for (const p of personer) {
-    const s = await oppnaSida(browser, base + '/film.html', { ...p.p, halsning: p.halsning ? { url: '', frames: 1, langd: p.halsning.langd } : null });
+    const s = await oppnaSida(browser, base + '/film.html', { ...p.p, takt: CFG.film, montage: [], halsning: p.halsning ? { url: '', frames: 1, langd: p.halsning.langd } : null });
     const fel = await s.page.evaluate(() => window.validate()); await s.ctx.close();
     if (fel.length) { await browser.close(); srv.close(); fail(`rad ${p.r._rad} (${p.r.fornamn}): texten får inte plats:\n  ${fel.join('\n  ')}\n\nIngen film renderades.`); }
   }
   if (o.kontrollera) { console.log(`${personer.length} rader kontrollerade, inga fel.`); await browser.close(); srv.close(); return; }
   if (o.stillbilder) { // snabb förhandsgranskning: enskilda bildrutor som PNG, ingen film
-    const p = personer[0]; const data = { ...p.p, halsning: null };
-    if (p.halsning) { const h = forberedHalsning(p.halsning, o.fps); data.halsning = { url: `cache/halsning-${h.key}/`, frames: h.frames, langd: h.langd }; }
+    const p = personer[0]; const { data } = filmData(p, o);
     const s = await oppnaSida(browser, base + '/film.html', data); s.png = true;
     console.log('tidslinje:', JSON.stringify(s.info.timeline));
     for (const t of String(o.stillbilder).split(',').map(Number)) {
