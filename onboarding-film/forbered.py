@@ -287,6 +287,33 @@ def gradera_par(f, e):
             for x in (f, e)]
 
 
+def tvatta_digitalt(smutsig, ref, yta):
+    """Gör en "tvättad" version av den smutsiga bilden. I LAB-färgrymd delas bilden i en grov nivå
+    (fläckar, algbeläggning, ojämn ton; gaussisk oskärpa) och en fin nivå (stenens ballast, fogar, kanter).
+    Den grova nivån flyttas mot referensens (rena bildens) medelvärde med kraftigt minskad variation,
+    så fläckar och grönton försvinner; den fina nivån behålls nästan helt, så fogarna står kvar som mörka
+    linjer exakt där de var. Färg- och ljushetsstatistik hämtas från ett stenområde i båda bilderna."""
+    import cv2
+    h, w = smutsig.shape[:2]
+    x0, y0, x1, y1 = int(yta[0] * w), int(yta[1] * h), int(yta[2] * w), int(yta[3] * h)
+    S = cv2.cvtColor(smutsig, cv2.COLOR_RGB2LAB).astype(np.float32)
+    Rf = cv2.cvtColor(ref, cv2.COLOR_RGB2LAB).astype(np.float32)
+    out = np.empty_like(S)
+    for c, (behall_grov, fin, skift) in enumerate([(0.25, 0.92, -9.0), (0.12, 0.6, 0.0), (0.12, 0.6, 0.0)]):
+        ch = S[..., c]
+        grov = cv2.GaussianBlur(ch, (0, 0), 18)
+        detalj = ch - grov
+        ms = grov[y0:y1, x0:x1].mean()
+        mr = Rf[y0:y1, x0:x1, c].mean()
+        ny_grov = mr + skift + (grov - ms) * behall_grov
+        out[..., c] = ny_grov + detalj * fin
+    # fogar: behåll dem tydligt mörkare än stenen (förstärk den fina nivåns mörka del lite)
+    L = out[..., 0]; d = S[..., 0] - cv2.GaussianBlur(S[..., 0], (0, 0), 6)
+    out[..., 0] = L + np.minimum(d, 0) * 0.35
+    out = np.clip(out, 0, 255).astype(np.uint8)
+    return cv2.cvtColor(out, cv2.COLOR_LAB2RGB)
+
+
 def bilder():
     import cv2
     ut = ASSETS / 'bilder'; ut.mkdir(parents=True, exist_ok=True)
@@ -315,6 +342,10 @@ def bilder():
             info(f'VARNING: {b["id"]} utsnitt {x1 - x0}px brett, skalas upp till {W_UT}px')
         cf, ce = (cv2.cvtColor(cv2.resize(img[y0:y1, x0:x1], (W_UT, H_UT), interpolation=cv2.INTER_AREA), cv2.COLOR_BGR2RGB)
                   for img in (a, wb))
+        if b.get('ren_fran_fore'):
+            # Ren version byggd av SAMMA foto som den smutsiga: geometrin (fogar, ballast) blir identisk.
+            # Den riktiga efterbilden används bara som färg- och ljushetsreferens.
+            ce = tvatta_digitalt(cf, ce, b.get('referensyta', [0.0, 0.45, 1.0, 1.0]))
         cf, ce = gradera_par(cf, ce)
         for namn, c in (('fore', cf), ('efter', ce)):
             im = Image.fromarray(c).filter(ImageFilter.UnsharpMask(radius=1.1, percent=45, threshold=2))  # skärpa efter skalning

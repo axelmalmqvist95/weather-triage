@@ -147,6 +147,13 @@
       "fokus": [
         0.5,
         0.7
+      ],
+      "ren_fran_fore": true,
+      "referensyta": [
+        0.0,
+        0.45,
+        1.0,
+        1.0
       ]
     }
   ],
