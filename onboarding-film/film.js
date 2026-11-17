@@ -280,46 +280,73 @@ function valueNoise(seed, cell) { // utjämnat värdebrus 0..1 på ett grovt rut
   return (x, y) => { const fx = clamp(x, 0, W - 1) / cell, fy = clamp(y, 0, H - 1) / cell, ix = Math.floor(fx), iy = Math.floor(fy), tx = fx - ix, ty = fy - iy; const sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty);
     const a = g[iy * gw + ix], b = g[iy * gw + ix + 1], c = g[(iy + 1) * gw + ix], d = g[(iy + 1) * gw + ix + 1]; return lerp(lerp(a, b, sx), lerp(c, d, sx), sy); };
 }
+/* Namnets layout: en eller två rader. Namn med bindestreck eller mellanslag bryts där (bindestrecket stannar
+ * på rad 1), båda raderna i samma storlek, centrerade som block. Ett långt ord krymps; under läsbarhetsgolvet
+ * spärras det tätare och pressas som mest 8 % på bredden. Returnerar mått i markrummet. */
+const NW_ZEND = 1.36, NW_MAXW = 900 / 1.36, NW_GOLV = 125, NW_TAT = 175; // under NW_TAT sätts namnet tätare (spärr −2 %, press 8 %) // golv: versalhöjd på skärmen i px vid slutzoom (bedömt på telefonstorlek)
+function nameLayout(name) {
+  const cands = [[name]];
+  [...name].forEach((ch, i) => { if (ch === '-' || ch === ' ') { const a = name.slice(0, ch === '-' ? i + 1 : i).trim(), b = name.slice(i + 1).trim(); if (a && b) cands.push([a, b]); } });
+  const fit = (lines, track, sx) => { setFont(800, 100, BS, track * 100); const w = Math.max(...lines.map(l => textW(l))) * sx; return Math.min(lines.length > 1 ? 330 : 560, Math.floor(100 * NW_MAXW / w)); };
+  if (cands.length > 1) cands.shift(); // bindestreck/mellanslag: alltid två rader
+  let best = null;
+  for (const lines of cands) {
+    const multi = lines.length > 1;
+    let track = 0.01, sx = 1, size = fit(lines, track, sx);
+    setFont(800, size, BS, size * track); const capF = ctx.measureText('E').actualBoundingBoxAscent / size;
+    if (size * capF * NW_ZEND < NW_TAT) { track = -0.02; sx = 0.92; size = fit(lines, track, sx); }
+    // välj den brytning som ger störst text (jämnast rader)
+    const score = size;
+    if (!best || score > best.score) best = { lines, size, track, sx, score };
+  }
+  return best;
+}
 function prepNameWash() {
   if (P.takt.namn_fokus) NW_FOCUS = P.takt.namn_fokus;
   const name = P.fornamn.toLocaleUpperCase('sv-SE');
-  const chars = [...name];
-  // storlek: ~80 % av bildbredden på skärmen vid slutzoom
-  const zEnd = 1.36, maxW = 870 / zEnd;
-  const size = fitSize(name, 800, BS, maxW, 560, 0.01);
-  setFont(800, size, BS, size * 0.01);
-  let acc = ''; const xs = chars.map(ch => { const v = textW(acc); acc += ch; return v; });
-  const totalW = textW(name);
-  const x0 = NW_FOCUS[0] - totalW / 2;
-  const m = ctx.measureText('E'); const cap = m.actualBoundingBoxAscent;
-  const base = NW_FOCUS[1] + cap / 2 + 95; // namnet något under bildmitten, plats för ”Välkommen,” ovanför
+  const lay = nameLayout(name); const { size, track, sx } = lay;
+  setFont(800, size, BS, size * track);
+  const cap = ctx.measureText('E').actualBoundingBoxAscent;
+  const lineGap = cap * 0.22;
+  const blockH = lay.lines.length * cap + (lay.lines.length - 1) * lineGap;
+  const top0 = NW_FOCUS[1] + (lay.lines.length > 1 ? 40 : 95) - blockH / 2;
+  // varje rad: centrerad, med horisontell press sx kring radens mitt
+  const rows = lay.lines.map((txt, r) => { const w = textW(txt) * sx; const base = top0 + cap + r * (cap + lineGap); return { txt, w, x0: NW_FOCUS[0] - w / 2, base }; });
+  const x0 = Math.min(...rows.map(r => r.x0)), x1 = Math.max(...rows.map(r => r.x0 + r.w));
+  const base = rows[0].base; const lastBase = rows[rows.length - 1].base;
   // textmask i markrummet
   const pad = 40;
-  const bx = Math.floor(x0 - pad), by = Math.floor(base - size * 1.02 - pad), bw = Math.ceil(totalW + 2 * pad), bh = Math.ceil(size * 1.02 + 2 * pad);
+  const asc = Math.max(...rows.map(rw => ctx.measureText(rw.txt).actualBoundingBoxAscent)); // Å/Ä/Ö når över versalhöjden
+  const bx = Math.floor(x0 - pad), by = Math.floor(rows[0].base - asc - pad), bw = Math.ceil(x1 - x0 + 2 * pad), bh = Math.ceil(lastBase - (rows[0].base - asc) + size * 0.3 + 2 * pad);
   const tc = offscreen(bw, bh); const tg = tc.getContext('2d');
-  tg.font = `800 ${size}px ${BS}`; tg.letterSpacing = `${size * 0.01}px`; tg.fillStyle = '#fff';
-  tg.filter = 'blur(1.6px)'; tg.fillText(name, x0 - bx, base - by);
+  tg.font = `800 ${size}px ${BS}`; tg.letterSpacing = `${size * track}px`; tg.fillStyle = '#fff'; tg.filter = 'blur(1.6px)';
+  rows.forEach(rw => { tg.save(); tg.translate(rw.x0 - bx, rw.base - by); tg.scale(sx, 1); tg.fillText(rw.txt, 0, 0); tg.restore(); });
   const td = tg.getImageData(0, 0, bw, bh).data;
   const n1 = valueNoise(11, 7), n2 = valueNoise(12, 23), n3 = valueNoise(13, 3);
   const M = new Float32Array(bw * bh), T = new Float32Array(bw * bh);
-  // bokstävernas rutor och tidsfönster
-  const n = chars.length;
-  const TS = 0.3, dur = clamp(0.6 * n, 2.0, 3.5), gap = Math.min(0.08, dur / n * 0.12);
-  const per = (dur - gap * (n - 1)) / n;
-  const L = chars.map((ch, i) => {
-    const mm = ctx.measureText(ch); const l = x0 + xs[i] - mm.actualBoundingBoxLeft, r = x0 + xs[i] + mm.actualBoundingBoxRight;
-    const top = base - mm.actualBoundingBoxAscent, bot = base + mm.actualBoundingBoxDescent;
-    const band = 44; const passes = Math.max(2, Math.round((bot - top) / band)); const bandH = (bot - top) / passes;
-    return { l, r, top, bot, passes, bandH, t0: TS + i * (per + gap), per, mid: x0 + xs[i] + textW(ch) / 2 };
+  // bokstävernas rutor; tiden per bokstav följer bokstavens yta så långa namn ryms i scenen
+  const L0 = [];
+  rows.forEach((rw, r) => {
+    let acc = ''; [...rw.txt].forEach(ch => {
+      const xx = textW(acc) * sx; acc += ch; if (ch === ' ') return;
+      const mm = ctx.measureText(ch);
+      const l = rw.x0 + xx - mm.actualBoundingBoxLeft * sx, rr = rw.x0 + xx + mm.actualBoundingBoxRight * sx;
+      const top = rw.base - mm.actualBoundingBoxAscent, bot = rw.base + mm.actualBoundingBoxDescent;
+      const band = Math.max(26, Math.min(44, (bot - top) / 4)); const passes = Math.max(2, Math.round((bot - top) / band)); const bandH = (bot - top) / passes;
+      L0.push({ l, r: rr, top, bot, passes, bandH, rad: Math.max(1, rr - l) * (bot - top), row: r });
+    });
   });
-  const letterAt = x => { let k = 0; for (let i = 1; i < n; i++) if (x > (L[i - 1].r + L[i].l) / 2) k = i; return k; };
+  const n = L0.length; const TS = 0.3; const areaSum = L0.reduce((a, b) => a + b.rad, 0);
+  const dur = clamp(0.62 * n, 2.0, 3.5), gap = Math.min(0.07, dur / n * 0.12);
+  let tc0 = TS; const L = L0.map(Lk => { const per = (dur - gap * (n - 1)) * Lk.rad / areaSum; const o = { ...Lk, t0: tc0, per }; tc0 += per + gap; return o; });
+  const letterAt = (x, y) => { let best = 0, bd = 1e9; L.forEach((Lk, i) => { const dy = y < Lk.top ? Lk.top - y : y > Lk.bot ? y - Lk.bot : 0; const dx = x < Lk.l ? Lk.l - x : x > Lk.r ? x - Lk.r : 0; const d = dy * 3 + dx; if (d < bd) { bd = d; best = i; } }); return best; };
   for (let yy = 0; yy < bh; yy++) for (let xx = 0; xx < bw; xx++) {
     const i = yy * bw + xx; const a = td[i * 4 + 3] / 255; if (a < 0.02) { M[i] = 0; continue; }
     const gx = bx + xx, gy = by + yy;
     // ojämn kant: tröskel på mjuk textkant med brus i två skalor
     const nn = (n1(gx, gy) - 0.5) * 0.55 + (n3(gx, gy) - 0.5) * 0.35;
     M[i] = clamp((a - 0.5 + nn * 0.55) / 0.22 + 0.5);
-    const Lk = L[letterAt(gx)];
+    const Lk = L[letterAt(gx, gy)];
     const v = (gy - Lk.top) / Lk.bandH + (n2(gx, gy) - 0.5) * 0.5;
     const p = clamp(Math.floor(v), 0, Lk.passes - 1);
     let u = clamp((gx - Lk.l) / Math.max(1, Lk.r - Lk.l));
@@ -331,14 +358,15 @@ function prepNameWash() {
   }
   // rännilar: 2 per bokstav, nedåt från bokstavens fot, seedade slingor
   const rr = mulberry32(77); const riv = [];
-  L.forEach((Lk, i) => { for (let k = 0; k < 2; k++) {
+  const perL = L.length > 8 ? 1 : 2;
+  L.forEach((Lk, i) => { for (let k = 0; k < perL; k++) {
     const sx = lerp(Lk.l + 10, Lk.r - 10, rr()); const pts = []; let x = sx, y = Lk.bot - 6;
     const len = 90 + rr() * 170; const seg = 14;
     for (let s = 0; s <= len; s += seg) { pts.push([x, y]); x += (rr() - 0.5) * 7; y += seg; }
     riv.push({ pts, t: Lk.t0 + Lk.per * (0.6 + rr() * 0.3), w: 3 + rr() * 3 });
   } });
   const mc = offscreen(bw, bh), wc = offscreen(bw, bh), hc = offscreen(bw, bh), tmp = offscreen(bw, bh);
-  NW = { name, size, x0, base, cap, bx, by, bw, bh, M, T, L, TS, TE: TS + dur, riv, mc, wc, hc, tmp,
+  NW = { name, size, lay, asc, x0: rows[0].x0, base, cap, bx, by, bw, bh, M, T, L, TS, TE: TS + dur, riv, mc, wc, hc, tmp,
     mImg: mc.getContext('2d').createImageData(bw, bh), wImg: wc.getContext('2d').createImageData(bw, bh) };
   // färdiga varianter av fotona: våt ren yta (mörkare, mer kontrast, kall reflex) och våt smuts
   const src = R.meta.bilder[(P.takt.namnbild || 1) - 1];
@@ -422,7 +450,7 @@ function sceneName(lt) {
   // ton: lätt mörkare kanter så blicken hamnar på namnet
   const gr = ctx.createRadialGradient(W / 2, H * 0.5, H * 0.18, W / 2, H * 0.5, H * 0.62); gr.addColorStop(0, 'rgba(6,17,27,0)'); gr.addColorStop(1, 'rgba(6,17,27,0.5)'); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
   // ”Välkommen,” i liten text ovanför namnet, i skärmrummet
-  const tl = (() => { const c = Math.cos(cam.rot), s = Math.sin(cam.rot); const gx = NW.x0 - NW_FOCUS[0], gy = NW.base - NW.cap - NW_FOCUS[1]; return [W / 2 + (gx * c - gy * s) * cam.z, H / 2 + (gx * s + gy * c) * cam.z]; })();
+  const tl = (() => { const c = Math.cos(cam.rot), s = Math.sin(cam.rot); const gx = NW.x0 - NW_FOCUS[0], gy = NW.base - Math.max(NW.cap, NW.asc - NW.cap * 0.04) - NW_FOCUS[1]; /* ovanför prickar och ringar */ return [W / 2 + (gx * c - gy * s) * cam.z, H / 2 + (gx * s + gy * c) * cam.z]; })();
   ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 26; ctx.shadowOffsetY = 3;
   letters('Välkommen,', Math.max(SAFE.x0, tl[0]), tl[1] - 44, 96, 700, BS, 0.5, { t: lt, t0: NW.TE + 0.25, stagger: 0.035, dur: 0.85, rise: 60, blur: 10, mask: true });
   ctx.restore();
@@ -803,7 +831,7 @@ function drawFrame(t) {
 /* Kontroll av att texterna får plats (körs efter init, med riktiga typsnitt). */
 function validate() {
   const fel = [];
-  if (NW.size * 1.36 < 190) fel.push(`förnamnet "${P.fornamn}" är för långt för namnscenen (max cirka 11 tecken)`);
+  if (NW.cap * NW_ZEND < NW_GOLV * 0.98) fel.push(`förnamnet "${P.fornamn}" får inte plats i namnscenen ens hoptryckt (versalhöjd ${Math.round(NW.cap * NW_ZEND)} px, minst ${NW_GOLV} px krävs). Använd ett kortare tilltalsnamn.`);
   const zReg = fitSize(P.region, 800, BS, 864, 178, -0.01); if (zReg < 120) fel.push('regionnamnet är för långt');
   const zDay = fitSize(P.startdag + '.', 800, BS, 864, 330, -0.015); if (zDay < 200) fel.push('startdagen blir för liten');
   const zGl = fitSize(P.gruppledare + ',', 800, BS, 760, 150, -0.01); if (zGl < 110) fel.push(`gruppledarens namn "${P.gruppledare}" är för långt`);
@@ -839,7 +867,8 @@ async function init(person) {
   await document.fonts.ready;
   for (const f of fonts) if (!document.fonts.check(f, 'Åäö')) throw new Error('Typsnitt saknas: ' + f);
   buildStatic(); prepMap(); prepNameWash(); buildTimeline();
-  return { duration: window.duration, timeline: window.timeline, ljud: window.ljud };
+  const namn = { rader: NW.lay.lines, versalhojd: Math.round(NW.cap * NW_ZEND), storlek: NW.size, spärr: NW.lay.track, press: NW.lay.sx };
+  return { duration: window.duration, timeline: window.timeline, ljud: window.ljud, namn };
 }
 async function prepare(t) {
   if (!P) return;

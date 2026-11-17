@@ -69,7 +69,7 @@ function person(r) {
   if (fel.length) return { fel };
   const namnOk = s => /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ' -]*$/.test(s);
   if (!namnOk(r.fornamn)) fel.push(`förnamnet "${r.fornamn}" innehåller otillåtna tecken (bara bokstäver, bindestreck, mellanslag)`);
-  if (r.fornamn.length > 12) fel.push(`förnamnet "${r.fornamn}" är för långt (max 12 tecken, bara förnamn)`);
+  if (r.fornamn.length > 20) fel.push(`förnamnet "${r.fornamn}" är för långt (max 20 tecken, bara förnamn)`);
   if (!namnOk(r.gruppledare)) fel.push(`gruppledarens namn "${r.gruppledare}" innehåller otillåtna tecken`);
   if (r.gruppledare.length > 14) fel.push(`gruppledarens namn "${r.gruppledare}" är för långt (max 14 tecken, bara förnamn)`);
   const region = REGIONER.find(x => x.toLowerCase() === r.region.toLowerCase());
@@ -300,6 +300,7 @@ function kontaktark(mp4, timeline, N, fps) {
     const p = personer[0]; const { data } = filmData(p, o);
     const s = await oppnaSida(browser, base + '/film.html', data); s.png = true;
     console.log('tidslinje:', JSON.stringify(s.info.timeline));
+    console.log('namn:', JSON.stringify(s.info.namn));
     for (const t of String(o.stillbilder).split(',').map(Number)) {
       const f = path.join(o.ut, `still-${t.toFixed(2).padStart(6, '0')}.png`);
       fs.writeFileSync(f, await bildruta(s, t, o.fps)); console.log(f);
