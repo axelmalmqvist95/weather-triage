@@ -15,7 +15,7 @@ import json, math, re, shutil, subprocess, sys, tempfile
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageOps
+from PIL import Image, ImageFilter, ImageOps
 
 HAR = Path(__file__).resolve().parent
 ASSETS = HAR / 'assets'
@@ -262,6 +262,31 @@ def vit_kant(a):
     return bad
 
 
+NAVY = np.array([15, 38, 58], np.float32) / 255
+
+
+def gradera_par(f, e):
+    """Färgmatchning av paret + gemensam gradering för alla foton.
+    1) Vitbalans: efter-bildens kanalbalans dras halvvägs mot före-bildens (gråvärld), ljusheten
+       lämnas orörd så att skillnaden i ytan (det rena) syns, men inte en skillnad i ljus/kamera.
+    2) Svärtan lyfts mot varumärkets marinblå, mjuk S-kurva, lätt sänkt mättnad i högdagrar."""
+    f = f.astype(np.float32) / 255; e = e.astype(np.float32) / 255
+    rf = f.reshape(-1, 3).mean(0); re_ = e.reshape(-1, 3).mean(0)
+    bf = rf / rf.mean(); be = re_ / re_.mean()
+    e = np.clip(e * (bf / be) ** 0.5, 0, 1)
+    def grade(x):
+        lum = x @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+        s = x * x * (3 - 2 * x)                       # smoothstep
+        x = x + (s - x) * 0.22                        # mjuk kontrast
+        lift = (1 - lum)[..., None] ** 3 * 0.11       # lyft svärtan mot marin
+        x = x * (1 - lift) + NAVY * lift * 1.25
+        g = (x @ np.array([0.2126, 0.7152, 0.0722], np.float32))[..., None]
+        x = g + (x - g) * 0.94                        # lite lugnare färger
+        return np.clip(x, 0, 1)
+    return [(grade(x) * 255 + np.random.default_rng(5).uniform(-0.5, 0.5, x.shape)).round().clip(0, 255).astype(np.uint8)
+            for x in (f, e)]
+
+
 def bilder():
     import cv2
     ut = ASSETS / 'bilder'; ut.mkdir(parents=True, exist_ok=True)
@@ -288,9 +313,12 @@ def bilder():
             sys.exit(f'Bildpar {b["id"]}: hittar inget giltigt 9:16-utsnitt efter inriktning.')
         if x1 - x0 < W_UT:
             info(f'VARNING: {b["id"]} utsnitt {x1 - x0}px brett, skalas upp till {W_UT}px')
-        for namn, img in (('fore', a), ('efter', wb)):
-            c = cv2.resize(img[y0:y1, x0:x1], (W_UT, H_UT), interpolation=cv2.INTER_AREA)
-            Image.fromarray(cv2.cvtColor(c, cv2.COLOR_BGR2RGB)).save(ut / f'{nr}-{namn}.jpg', quality=95, subsampling=0)
+        cf, ce = (cv2.cvtColor(cv2.resize(img[y0:y1, x0:x1], (W_UT, H_UT), interpolation=cv2.INTER_AREA), cv2.COLOR_BGR2RGB)
+                  for img in (a, wb))
+        cf, ce = gradera_par(cf, ce)
+        for namn, c in (('fore', cf), ('efter', ce)):
+            im = Image.fromarray(c).filter(ImageFilter.UnsharpMask(radius=1.1, percent=45, threshold=2))  # skärpa efter skalning
+            im.save(ut / f'{nr}-{namn}.jpg', quality=95, subsampling=0)
         info(f'{b["id"]}: ECC {cc:.2f}, utsnitt {x1 - x0}x{y1 - y0} px')
         lista.append({'nr': nr, 'id': b['id'], 'tjanst': b['tjanst'], 'fokus': b.get('fokus', [0.5, 0.5]),
                       'fore': f'assets/bilder/{nr}-fore.jpg', 'efter': f'assets/bilder/{nr}-efter.jpg'})

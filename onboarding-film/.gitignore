@@ -6,3 +6,4 @@ ut/
 *.png
 *.wav
 *.mp3
+cache/
