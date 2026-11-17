@@ -25,9 +25,17 @@ const DIR = [0.5, Math.sqrt(3) / 2];          // varumärkets diagonal \ (30° f
 const NRM = [Math.sqrt(3) / 2, -0.5];         // normal till diagonalen (uppåt-höger)
 const NMIN = -H * 0.5, NMAX = W * NRM[0];      // n·x över bildytan: [-960, 935]
 const SAFE = { x0: 108, x1: 972, y0: 192, y1: 1728 };
-// Bomärket på 208-rutnät (aldrig speglat)
-const STRIPE = [[0, 0], [90, 0], [208, 204.5], [208, 208], [120, 208]];
-const TRI = [[115, 0], [208, 0], [208, 161]];
+// Bomärket: röd kvadrat som två diagonala luckor delar i TRE delar (aldrig speglat).
+// Koordinater på 208-rutnätet, anpassade pixel för pixel mot den officiella logo_vit.png
+// (högsta avvikelse 0,27 i kantutjämningen). I logotypfilen (209 px hög) ligger rutan 0,75 px ned.
+const MARK = {
+  triL: [[0, 44.75], [0, 208], [93.2, 208]],
+  stripe: [[-0.25, 0], [89.75, 0], [208, 207.6], [208, 208], [118.25, 208]],
+  triR: [[115, 0], [208, 0], [208, 163.3]],
+};
+const MARK_DY = 0.75; // rutans förskjutning i logotypfilens 209-höjd
+// Beskurna grafiska motivet (inte logotypen): mittbandet och högra triangeln, som i trycksakernas sidhuvud
+const STRIPE = MARK.stripe, TRI = MARK.triR;
 
 // ------------------------------------------------------------ matte
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -179,22 +187,27 @@ function finish(t) {
 }
 
 // ------------------------------------------------------------ bomärke och logga
-function drawMark(x, y, S, pStripe = 1, pTri = 1, alpha = 1) {
-  const k = S / 208;
+/* Logotypens bomärke. S = logotypens höjd (motsvarar 209 px i logotypfilen), x/y = logotypens övre vänstra hörn.
+ * p = [vänster triangel, mittband, höger triangel]: varje del glider in längs sitt eget band (\-diagonalen)
+ * inne i kvadraten, så delarna aldrig överlappar. Luckorna ritas inte: där syns bakgrunden, precis som i logo_vit.png. */
+function drawMark(x, y, S, p = [1, 1, 1], alpha = 1) {
+  const k = S / 209, bx = x, by = y + MARK_DY * k, bs = 208 * k;
   ctx.save(); ctx.globalAlpha = alpha;
-  ctx.beginPath(); ctx.rect(x, y, S, S); ctx.clip();
+  ctx.beginPath(); ctx.rect(bx, by, bs, bs); ctx.clip();
   ctx.fillStyle = C.red;
-  const L = 300 * k; // glider längs diagonalen
-  const a = 1 - expoOut(pStripe), b = 1 - expoOut(pTri);
-  if (pStripe > 0) poly(ctx, STRIPE, x - DIR[0] * L * a, y - DIR[1] * L * a, k), ctx.fill();
-  if (pTri > 0) poly(ctx, TRI, x + DIR[0] * L * b * 0.9, y + DIR[1] * L * b * 0.9, k), ctx.fill();
+  const L = 330 * k;
+  const parts = [[MARK.triL, 1], [MARK.stripe, -1], [MARK.triR, 1]]; // +1 underifrån, -1 uppifrån
+  parts.forEach(([pts, dir], i) => {
+    if (p[i] <= 0) return; const a = (1 - expoOut(p[i])) * L * dir;
+    poly(ctx, pts, bx + DIR[0] * a, by + DIR[1] * a, k); ctx.fill();
+  });
   ctx.restore();
 }
 function drawLockup(cx, cy, S, t, t0, opts = {}) {
   // Mark + ordbild i officiella proportioner (ordbilden börjar 292/209 av markhöjden)
   const om = R.meta.ordbild; const k = S / om.h;
   const total = (om.x0 + om.w) * k; const x = cx - total / 2, y = cy - S / 2;
-  drawMark(x, y, S, opts.pS ?? 1, opts.pT ?? 1);
+  drawMark(x, y, S, opts.p || [1, 1, 1]);
   const p = prog(t, t0, 0.95); if (p <= 0) return;
   const e = expoOut(p);
   const wx = x + om.x0 * k, ww = om.w * k;
@@ -250,9 +263,9 @@ function sceneMark(lt) {
   const total1 = (om.x0 + om.w) * S1 / om.h;
   const x = lerp(W / 2 - S0 / 2, W / 2 - total1 / 2, m), y = lerp(H * 0.47 - S0 / 2, H * 0.47 - S1 / 2, m);
   // svag glöd bakom märket när det landar
-  const gl = prog(lt, 0.4, 0.8) * (1 - prog(lt, 1.6, 1.2));
+  const gl = prog(lt, 0.4, 0.8) * (1 - prog(lt, 1.2, 0.8));
   if (gl > 0) { ctx.save(); ctx.globalAlpha = gl * 0.25; ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(GLOW, x + S / 2 - S * 1.4, y + S / 2 - S * 1.4, S * 2.8, S * 2.8); ctx.restore(); }
-  drawMark(x, y, S, prog(lt, 0.2, 1.05), prog(lt, 0.42, 1.05));
+  drawMark(x, y, S, [prog(lt, 0.18, 1.05), prog(lt, 0.3, 1.05), prog(lt, 0.42, 1.05)]);
   if (lt > 1.6) {
     const k = S1 / om.h, wx = x + om.x0 * k, ww = om.w * k;
     const p = prog(lt, 1.75, 0.95), e = expoOut(p);
@@ -567,7 +580,7 @@ function sceneSee(lt) {
 function sceneEnd(lt) {
   background(lt + 40, 30);
   const om = R.meta.ordbild; const S = 128;
-  drawLockup(W / 2, H * 0.47, S, lt, 0.55, { pS: prog(lt, 0.1, 0.9), pT: prog(lt, 0.25, 0.9) });
+  drawLockup(W / 2, H * 0.47, S, lt, 0.55, { p: [prog(lt, 0.08, 0.9), prog(lt, 0.18, 0.9), prog(lt, 0.28, 0.9)] });
   setFont(600, 40, OS, 40 * 0.06); const s = 'nanostone.se'; const w = textW(s);
   words(s, W / 2 - w / 2, H * 0.47 + S / 2 + 110, 40, 600, OS, 40 * 0.06, { t: lt, t0: 1.0, stagger: 0, dur: 0.9, rise: 14, color: C.vl });
 }
