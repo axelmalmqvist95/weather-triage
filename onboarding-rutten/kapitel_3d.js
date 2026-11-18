@@ -1,6 +1,8 @@
 /* ---------- Kapitel i 3D (three.js r128, inbäddad) ---------- */
 const LOGOF = "__LOGOF__";
 const HUSFILM = "__HUSFILM_DATA__";
+const KAPFOTO = __KAPFOTO__;
+const BILINFILM = "__BILINFILM__";
 const T3 = window.THREE;
 
 function d3(cls, css, foralder, html){ const e=document.createElement("div"); if(cls) e.className=cls; if(css) e.style.cssText=css; if(html!=null) e.innerHTML=html; foralder && foralder.appendChild(e); return e; }
@@ -90,7 +92,7 @@ function byggBil(c){
     x.fillStyle="#05080b"; x.beginPath(); x.ellipse(w*.2,h*.42,w*.17,h*.05,0,0,7); x.fill();                              // mätarhus
     x.strokeStyle="#7fd0ff"; x.lineWidth=5; x.beginPath(); x.arc(w*.2,h*.435,w*.11,Math.PI*1.1,Math.PI*1.9); x.stroke();
     x.strokeStyle="#e52f19"; x.lineWidth=6; x.beginPath(); x.moveTo(w*.2,h*.435); x.lineTo(w*.27,h*.395); x.stroke();
-    x.fillStyle="#eaf6ff"; x.font="700 30px OS, sans-serif"; x.textAlign="center"; x.fillText("84 512", w*.2, h*.462);
+    x.fillStyle="#eaf6ff"; x.font="700 30px OS, sans-serif"; x.textAlign="center"; x.fillText("148 230", w*.2, h*.462);
     x.strokeStyle="#0a0d10"; x.lineWidth=26; x.beginPath(); x.ellipse(w*.36,h*.53,w*.1,h*.105,-.25,0,7); x.stroke();     // ratt
     x.strokeStyle="#3b4753"; x.lineWidth=6; x.beginPath(); x.ellipse(w*.36,h*.53,w*.1,h*.105,-.25,0,7); x.stroke();
     x.fillStyle="#0a0d10"; x.fillRect(w*.32,h*.52,w*.09,h*.02);
@@ -197,9 +199,9 @@ function visaKapitel(id, klart){
   $("kap-kicker").textContent = k.kicker; $("kap-titel").textContent = k.titel;
   $("kap-prog").innerHTML = k.steg.map(()=>"<i></i>").join("");
   $("kapitel").classList.toggle("smal", kapitelSmal()); $("kapitel").classList.toggle("filmlage", film);
-  $("mobil").classList.toggle("hidden", id!=="bil"); $("kap-remsa").innerHTML = ""; $("kap-sokare").classList.remove("on","tagen"); $("kap-skick").classList.toggle("hidden", !film);
+  $("mobil").classList.toggle("hidden", id!=="bil"); $("kap-remsa").innerHTML = ""; $("kap-foto").classList.remove("on"); $("kap-sokare").classList.remove("on","tagen"); $("kap-skick").classList.toggle("hidden", !film);
   visa("kapitel");
-  if(!film) ljud.motor(2400, .5);
+  if(!film && id==="bil") spelaIntro(); else ljud.motor && !film && ljud.motor(2400, .5);
   if(!film){ storlek(); R3.nu = null; const m0 = kamMal(k.steg[0]); const start = { p:m0.p.clone().sub(m0.t).multiplyScalar(1.6).add(m0.t), t:m0.t.clone() }; R3.nu = { p:start.p.clone(), t:start.t.clone() }; kamTill(m0); }
   kapSteg(0, true);
 }
@@ -240,11 +242,12 @@ function kapSteg(i, forsta){
   $("inst-monster").classList.toggle("on", !!s.monster);
   if(s.monster){ $("mm-varde").textContent = s.monster; $("mm-grans").textContent = s.varn ? "Gräns vintertid: 3,0 mm" : "Gräns: 1,6 mm sommar, 3,0 mm vinter"; $("mm-varde").style.color = s.varn ? "var(--red2)" : "#fff"; }
   if(s.tel) ritaMobil(s.tel, i);
+  $("kap-foto").classList.remove("on"); if(s.foto && !s.blixt){ const jag2 = kap; setTimeout(()=>{ if(kap===jag2 && kap.i===i) visaFoto(s); }, 900); }
   const sok = $("kap-sokare"); sok.classList.remove("on","tagen"); sok.querySelector("b").textContent = "Ta bild";
   if(s.blixt && !kap.k.film){ const jag = kap; clearTimeout(kap.fotoT);
     setTimeout(()=>{ if(kap===jag && kap.i===i) sok.classList.add("on"); }, 700);
     kap.fotoT = setTimeout(()=>{ if(kap!==jag || kap.i!==i) return;
-      const bild = fota(); ljud.klick(); const b=$("kap-blixt"); if(!RM){ b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); }
+      const bild = s.foto ? KAPFOTO[[].concat(s.foto)[0]] : fota(); ljud.klick(); if(s.foto) visaFoto(s); const b=$("kap-blixt"); if(!RM){ b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); }
       sok.classList.add("tagen"); sok.querySelector("b").textContent = "Bild tagen";
       const vy = $("skarm").querySelector(".vy"); if(vy && bild){ vy.classList.add("tagen"); vy.innerHTML = `<img alt="" src="${bild}">`; }
       if(bild){ const rm = $("kap-remsa"); let fg = rm.querySelector(`[data-i="${i}"]`); if(!fg){ fg = document.createElement("figure"); fg.dataset.i = i; rm.appendChild(fg); }
@@ -256,6 +259,19 @@ function kapSteg(i, forsta){
   $("kap-in").scrollTop = 0;
 }
 /* Tar en riktig bild av 3D-scenen från där kameran står. */
+let introUrl = null;
+function spelaIntro(){
+  const v = $("kap-intro"); if(RM){ v.classList.add("hidden"); return; }
+  if(!introUrl){ const bin = atob(BILINFILM); const u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); introUrl = URL.createObjectURL(new Blob([u], {type:"video/mp4"})); v.src = introUrl; }
+  $("kapitel").classList.add("intro"); v.classList.remove("hidden","ut"); try{ v.currentTime = 0; }catch(e){}
+  const p = v.play(); p && p.catch(()=>slutIntro()); ljud.motor(7600, .7);
+}
+function slutIntro(){ const v = $("kap-intro"); if(v.classList.contains("hidden")) return; v.classList.add("ut"); $("kapitel").classList.remove("intro"); setTimeout(()=>{ v.pause(); v.classList.add("hidden"); }, 900); }
+$("kap-intro").addEventListener("ended", slutIntro);
+$("kap-intro").addEventListener("click", slutIntro);
+function visaFoto(s){ const kf = $("kap-foto"), fs = [].concat(s.foto), ts = [].concat(s.fototext||""), jag = kap, i0 = kap.i; let n = 0;
+  const visa1 = () => { kf.innerHTML = `<img alt="" src="${KAPFOTO[fs[n]]}"><span>${ts[n]||""}</span><em>Visualisering</em>`; kf.classList.add("on"); };
+  visa1(); clearInterval(kap.fotoV); if(fs.length > 1) kap.fotoV = setInterval(()=>{ if(kap!==jag || kap.i!==i0){ clearInterval(jag.fotoV); return; } kf.classList.remove("on"); setTimeout(()=>{ n = (n+1) % fs.length; visa1(); }, 350); }, 3600); }
 function fota(){
   try{ rendera(performance.now()); const src = R3.r.domElement, c = document.createElement("canvas"); c.width = 320; c.height = 240;
     const w = src.width, h = src.height, sw = w*.52, sh = sw*.75, sx = w*.09, sy = Math.max(0, h*.17 + (h*.62 - sh)/2);
@@ -267,12 +283,12 @@ function ritaMobil(t, i){
   if(t.vy==="qr") vy = `<div class="vy"><img src="${QR}" alt=""><div class="linje"></div></div>`;
   else if(t.vy==="skanna") vy = `<div class="vy"><img src="${QR}" alt=""><div class="linje"></div></div><div class="fl">${t.f}</div>`;
   else if(t.vy==="bild") vy = `<h4>${t.ti||""}</h4><div class="tips">${t.tip||""}</div><div class="vy">Kameran</div>${t.f?`<div class="fl">${t.f}</div>`:""}<div class="kn">Ta bild</div>`;
-  else if(t.vy==="lampa") vy = `<h4>Lyser någon varningslampa?</h4><div class="tg"><span>Ja</span><span class="on">Nej</span></div><div class="fl">${t.f}</div><div class="kn">Skicka</div>`;
+  else if(t.vy==="lampa") vy = `<h4>Lyser någon varningslampa?</h4><div class="tg"><span class="${t.ja?"on":""}">Ja</span><span class="${t.ja?"":"on"}">Nej</span></div><div class="fl">${t.f}</div><div class="kn">Skicka</div>`;
   else if(t.vy==="klar") vy = `<div class="vy" style="background:#1f8a4c;color:#fff;font-size:13px">Skickad<br>11 bilder · 4 däck</div><div class="kn ok">Klar</div>`;
   $("skarm").innerHTML = `<div class="hd"><b>${t.h}</b><span>${t.s}</span></div><div class="pr"><i style="width:${pr}%"></i></div><div class="bd">${vy}</div>`;
 }
 function kapFram(){ if(!kap) return; if(kap.i >= kap.k.steg.length-1){ const k = kap.klart; kap.klart = null; k ? k() : visa("start"); return; } kapSteg(kap.i+1); }
 function kapBak(){ if(kap) kapSteg(kap.i-1); }
-$("kap-fram").onclick = kapFram; $("kap-bak").onclick = kapBak;
+$("kap-fram").onclick = () => { if($("kapitel").classList.contains("intro")){ slutIntro(); return; } kapFram(); }; $("kap-bak").onclick = kapBak;
 $("kap-stang").onclick = () => { if(!kap) return; const k = kap.klart; kap.klart = null; k ? k() : visa("start"); };
 window.addEventListener("resize", ()=>{ if(kap && !kap.k.film && R3 && $("kapitel").classList.contains("on")){ $("kapitel").classList.toggle("smal", kapitelSmal()); storlek(); kamTill(kamMal(kap.k.steg[kap.i]), true); } });

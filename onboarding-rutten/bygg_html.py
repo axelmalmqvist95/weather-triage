@@ -58,6 +58,7 @@ FE = {
 html = html.replace("__FE__", json.dumps(FE))
 html = html.replace("__KAPITEL_CSS__", (HAR / "kapitel.css").read_text())
 html = html.replace("__KAPITEL_JS__", "\n".join((HAR / f).read_text() for f in ("kapitel_3d.js", "kapitel_innehall.js", "kapitel_fe.js")))
+html = html.replace("__KAPFOTO__", json.dumps({k: jpeg({"forar":"kf-forar-qr"}.get(k,"kf-"+k), 820, 72) for k in ("dack","matare","skada","fv","fh","bh","bv","forar","last","qr","dack28","lampa")}))
 html = html.replace("__LOGOF__", "data:image/png;base64," + b64(LOGO.with_name("logo_farg.png")))
 html = html.replace("__KARTA__", (RUT / "karta.json").read_text())
 html = html.replace("__LOGO__", "data:image/png;base64," + b64(LOGO))
@@ -66,9 +67,11 @@ html = html.replace("__BSD800X__", b64(FONT / "big-shoulders-display-latin-ext-8
 html = html.replace("__OS400__", b64(FONT / "OpenSans-Regular.ttf"))
 html = html.replace("__OS700__", b64(FONT / "OpenSans-Bold.ttf"))
 import re as _re
-assert not _re.search(r"__(?!THREE__|HUSFILM_DATA__)[A-Z_]+__", html), _re.findall(r"__[A-Z_]+__", html)[:3]
+assert not _re.search(r"__(?!THREE__|HUSFILM_DATA__|BILINFILM__|KORFILM__)[A-Z_]+__", html), _re.findall(r"__[A-Z_]+__", html)[:3]
 html = html.replace("__THREE__", (HAR / "three.min.js").read_text())
 html = html.replace("__HUSFILM_DATA__", base64.b64encode((HAR / "husfilm.mp4").read_bytes()).decode())
+html = html.replace("__KORFILM__", base64.b64encode((HAR / "korfilm.mp4").read_bytes()).decode())
+html = html.replace("__BILINFILM__", base64.b64encode((HAR / "bilinfilm.mp4").read_bytes()).decode())
 for tecken in ("—", "–"):
     assert tecken not in json.dumps(data, ensure_ascii=False), "tankstreck i texten"
 ut = RUT / "en-dag-pa-rutten.html"
