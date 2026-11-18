@@ -24,11 +24,11 @@ const KAPITEL = {
       { t:"Ett däck mäter för lite", cam:{p:[560,170,-470],t:[175,45,-60]}, varn:"vf", foto:"dack28", fototext:"Mätaren visar 2,8 mm", monster:"2,8", tel:{h:"Däck", s:"Vänster fram", vy:"bild", n:8, ti:"Däck vänster fram", tip:"Nära och rakt mot slitbanan.", f:"Mönsterdjup: 2,8 mm"},
         p:["Det är den 12 december. Vänster framdäck visar 2,8 mm. Vad gör du?"],
         fraga:{ alt:["Skriver 3,0 mm. Det är nästan samma sak.", "Skriver in 2,8 mm som det är och säger till närmast ansvarig direkt.", "Skriver 2,8 mm men säger inget, kontrollen sköter resten."], ratt:1,
-          svar:"Skriv alltid in exakt värde. 2,8 mm är under lagkravet vintertid, så kontrollen flaggas och ansvarig får ett mejl. Säg ändå till närmast ansvarig direkt, så att bilen kan åtgärdas innan nästa körning." } },
+          svar:"Skriv alltid in exakt värde. 2,8 mm är under lagkravet vintertid, så kontrollen flaggas och Axel och Yvette ser det i dashboarden. Säg ändå till närmast ansvarig direkt, så att bilen kan åtgärdas innan nästa körning." } },
       { t:"Varningslampa och anmärkning", cam:{p:[760,430,920],t:[40,80,0]}, foto:["lampa","skada"], fototext:["Varningslampan lyser: svara Ja i kontrollen","Skada fotad med måttstock, så att storleken syns"], tel:{h:"Sista steget", s:"Varningslampa", vy:"lampa", ja:true, f:"Servicelampa lyser. Skada vänster bak, ca 15 cm."},
         p:["Svara om någon varningslampa lyser.", "Skriv en anmärkning om något behöver åtgärdas, till exempel en skada, en lampa som inte fungerar eller utrustning som saknas.", "Fota en skada nära och med något som visar storleken, till exempel en måttstock."] },
       { t:"Skicka", cam:{p:[820,480,-980],t:[40,80,0]}, tel:{h:"Bilkontroll · ABC 123", s:"Vecka 47", vy:"klar"},
-        p:["Tryck på Skicka. Bilderna sparas på bilen och veckan.", "Är något utanför gränserna, till exempel slitna däck eller en varningslampa, går det direkt till ansvarig.", "Saknas en kontroll går det ut en påminnelse. Gör den sista arbetsdagen, så slipper du den."] }
+        p:["Tryck på Skicka. Bilderna sparas på bilen och veckan.", "Är något utanför gränserna, till exempel slitna däck eller en varningslampa, flaggas det direkt till Axel och Yvette, som följer bilkontrollen i dashboarden.", "Axel och Yvette ser i dashboarden vilka bilar som är kontrollerade. Saknas en kontroll går det ut en påminnelse. Gör den sista arbetsdagen, så slipper du den."] }
     ] },
   hus: { kicker:"14:10 · Svedala · Merförsäljning", titel:"Se hela huset", film:true, slut:"Tillbaka till dagen",
     steg: [

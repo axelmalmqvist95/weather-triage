@@ -248,7 +248,7 @@ REGLER = [
  "Kanter och hörn med lansen. Efterbilder från samma punkt som förebilderna.",
  "Allt i Diroto samma dag.",
  "Nöjd med ett jobb? Skicka bilder och film till Amanda på marknad, utan adresser, skyltar eller ansikten.",
- "Sista arbetsdagen i veckan gör du bilkontrollen. Skanna QR-koden i bilen, det tar ungefär tre minuter.",
+ "Sista arbetsdagen i veckan gör du bilkontrollen. Skanna QR-koden i bilen, det tar ungefär tre minuter. Axel och Yvette följer kontrollerna i dashboarden.",
 ]
 
 for s in S:
