@@ -84,8 +84,22 @@ function byggBil(c){
   const dorrGlas = new T3.Shape(); dorrGlas.moveTo(-4,108); dorrGlas.lineTo(-44,160); dorrGlas.lineTo(-70,160); dorrGlas.lineTo(-70,108); dorrGlas.lineTo(-4,108);
   const dg = nat(new T3.ExtrudeGeometry(dorrGlas,{depth:1, bevelEnabled:false}), glas); dg.position.z=-7.2; dorrPivot.add(dg);
   const qrMat = new T3.MeshBasicMaterial({map:new T3.CanvasTexture(QRC)}); const qr = new T3.Mesh(new T3.PlaneGeometry(18,18), qrMat); qr.position.set(-58,118,-7.6); qr.rotation.y=Math.PI; dorrPivot.add(qr);
-  const hytt = nat(new T3.BoxGeometry(72,128,2), mat({color:0x232c35, roughness:.8}), 177,100,-73.3); bil.add(hytt); hytt.visible=false;
-  const ratt = nat(new T3.TorusGeometry(15,2.5,10,32), svart, 192,118,-36); ratt.rotation.y=Math.PI/2.4; bil.add(ratt);
+  const inne = duk(576,1024,(x,w,h)=>{ // förarplatsen sedd genom dörren: fronten åt vänster
+    const g=x.createLinearGradient(0,0,0,h); g.addColorStop(0,"#1b232b"); g.addColorStop(1,"#0c1116"); x.fillStyle=g; x.fillRect(0,0,w,h);
+    x.fillStyle="#2a343e"; x.fillRect(0,h*.36,w*.5,h*.2); x.fillStyle="#333f4a"; x.fillRect(0,h*.36,w*.5,h*.03);         // instrumentbräda
+    x.fillStyle="#05080b"; x.beginPath(); x.ellipse(w*.2,h*.42,w*.17,h*.05,0,0,7); x.fill();                              // mätarhus
+    x.strokeStyle="#7fd0ff"; x.lineWidth=5; x.beginPath(); x.arc(w*.2,h*.435,w*.11,Math.PI*1.1,Math.PI*1.9); x.stroke();
+    x.strokeStyle="#e52f19"; x.lineWidth=6; x.beginPath(); x.moveTo(w*.2,h*.435); x.lineTo(w*.27,h*.395); x.stroke();
+    x.fillStyle="#eaf6ff"; x.font="700 30px OS, sans-serif"; x.textAlign="center"; x.fillText("84 512", w*.2, h*.462);
+    x.strokeStyle="#0a0d10"; x.lineWidth=26; x.beginPath(); x.ellipse(w*.36,h*.53,w*.1,h*.105,-.25,0,7); x.stroke();     // ratt
+    x.strokeStyle="#3b4753"; x.lineWidth=6; x.beginPath(); x.ellipse(w*.36,h*.53,w*.1,h*.105,-.25,0,7); x.stroke();
+    x.fillStyle="#0a0d10"; x.fillRect(w*.32,h*.52,w*.09,h*.02);
+    x.fillStyle="#3a4652"; x.beginPath(); x.roundRect(w*.56,h*.2,w*.36,h*.46,40); x.fill();                                  // ryggstöd
+    x.fillStyle="#465563"; x.beginPath(); x.roundRect(w*.6,h*.11,w*.26,h*.1,26); x.fill();                                   // nackstöd
+    x.fillStyle="#3a4652"; x.beginPath(); x.roundRect(w*.4,h*.64,w*.54,h*.11,30); x.fill();                                  // sits
+    x.fillStyle="#e52f19"; x.fillRect(w*.56,h*.3,w*.36,h*.012);
+    x.fillStyle="#11161b"; x.fillRect(0,h*.82,w,h*.18); x.fillStyle="#1d252d"; x.fillRect(0,h*.82,w,h*.012); });           // golv
+  const hytt = nat(new T3.BoxGeometry(72,128,2), [svart,svart,svart,svart,svart,new T3.MeshBasicMaterial({map:inne})], 177,100,-73.3); bil.add(hytt); hytt.visible=false;
   // Bakdörrar på -x med lastutrymme bakom
   const bakInne = nat(new T3.BoxGeometry(1,140,134), mat({color:0x2a333d, roughness:.9}), -195.6,102,0); bil.add(bakInne); bakInne.visible=false;
   const hylla = mat({color:0x6c7a87, metalness:.5, roughness:.5});
@@ -109,7 +123,7 @@ function byggBil(c){
       const q = RM ? 1 : Math.min(1, (performance.now()-in0)/2600), ut = 1500*Math.pow(1-q,3);
       bil.position.x = -ut; sk.position.x = 40 - ut; hjulG.children.forEach(g=>{ g.rotation.z = ut/32; });
       const k = RM ? 1 : .07; nu.dorr += (mal.dorr-nu.dorr)*k; nu.bak += (mal.bak-nu.bak)*k;
-      dorrPivot.rotation.y = -nu.dorr * 1.15; hytt.visible = nu.dorr > .02;
+      dorrPivot.rotation.y = -nu.dorr * 1.5; dorrPivot.visible = nu.dorr < .55; hytt.visible = nu.dorr > .02;
       bak.forEach(pv=>{ pv.rotation.y = pv.userData.s * nu.bak * 1.9; }); bakInne.visible = nu.bak > .02; bil.children.forEach(o=>{ if(o.userData.inne) o.visible = nu.bak > .02; });
       hjulG.children.forEach(g=>{ const r=g.userData.ring; if(r.visible){ const s = 1 + .06*Math.sin(ms/220); r.scale.set(s,s,1); } });
     }
@@ -185,6 +199,7 @@ function visaKapitel(id, klart){
   $("kapitel").classList.toggle("smal", kapitelSmal()); $("kapitel").classList.toggle("filmlage", film);
   $("mobil").classList.toggle("hidden", id!=="bil"); $("kap-remsa").innerHTML = ""; $("kap-sokare").classList.remove("on","tagen"); $("kap-skick").classList.toggle("hidden", !film);
   visa("kapitel");
+  if(!film) ljud.motor(2400, .5);
   if(!film){ storlek(); R3.nu = null; const m0 = kamMal(k.steg[0]); const start = { p:m0.p.clone().sub(m0.t).multiplyScalar(1.6).add(m0.t), t:m0.t.clone() }; R3.nu = { p:start.p.clone(), t:start.t.clone() }; kamTill(m0); }
   kapSteg(0, true);
 }
@@ -207,8 +222,9 @@ const SKICK = [[0,0],[2.77,0],[19.7,30],[33.15,60],[50.1,90],[53.5,100],[60,100]
   $("kap-skicktal").textContent = Math.round(v); $("kap-skickrad").style.width = v.toFixed(1)+"%"; })();
 function kapSteg(i, forsta){
   const k = kap.k; i = Math.max(0, Math.min(k.steg.length-1, i)); kap.i = i; const s = k.steg[i];
-  if(kap.k.film) filmSeg(s.seg[0], s.seg[1]);
+  if(kap.k.film){ filmSeg(s.seg[0], s.seg[1]); const v = $("kap-film"); v.style.transformOrigin = s.zoom ? s.zoom[1] : "50% 50%"; v.style.transform = s.zoom ? `scale(${s.zoom[0]})` : ""; }
   else { kamTill(kamMal(s)); kap.scen.satt({ bak:s.bak, dorr:s.dorr, dack:s.dack, varn:s.varn, mark:s.mark, qr:s.qr || i<2 }); }
+  { const feb = $("kap-fe"); feb.innerHTML = ""; if(s.fe) foreEfter(feb, s.fe); }
   $("kap-prog").querySelectorAll("i").forEach((e,j)=>{ e.className = j<i ? "klar" : j===i ? "on" : ""; });
   $("kap-steg").textContent = `${k.titel} · ${i+1} av ${k.steg.length}`;
   $("kap-rubrik").textContent = s.t;
@@ -217,7 +233,7 @@ function kapSteg(i, forsta){
   const fr = $("kap-fraga"); fr.innerHTML = "";
   if(s.fraga){ const sv = d3("kap-svar", "", null, s.fraga.svar);
     s.fraga.alt.forEach((t,j)=>{ const b = document.createElement("button"); b.type="button"; b.innerHTML = `<b>${"ABC"[j]}</b><span>${t}</span>`;
-      b.onclick = () => { fr.querySelectorAll("button").forEach((x,n)=>{ x.classList.toggle("r", n===s.fraga.ratt); x.classList.toggle("f", n===j && j!==s.fraga.ratt); }); sv.classList.add("on"); kap.svarat[i]=true; };
+      b.onclick = () => { fr.querySelectorAll("button").forEach((x,n)=>{ x.classList.toggle("r", n===s.fraga.ratt); x.classList.toggle("f", n===j && j!==s.fraga.ratt); }); sv.classList.add("on"); kap.svarat[i]=true; j===s.fraga.ratt ? ljud.ratt() : ljud.fel(); };
       fr.appendChild(b); });
     fr.appendChild(sv); }
   $("inst-matare").classList.toggle("on", !!s.matare);
@@ -228,7 +244,7 @@ function kapSteg(i, forsta){
   if(s.blixt && !kap.k.film){ const jag = kap; clearTimeout(kap.fotoT);
     setTimeout(()=>{ if(kap===jag && kap.i===i) sok.classList.add("on"); }, 700);
     kap.fotoT = setTimeout(()=>{ if(kap!==jag || kap.i!==i) return;
-      const bild = fota(); const b=$("kap-blixt"); if(!RM){ b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); }
+      const bild = fota(); ljud.klick(); const b=$("kap-blixt"); if(!RM){ b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); }
       sok.classList.add("tagen"); sok.querySelector("b").textContent = "Bild tagen";
       const vy = $("skarm").querySelector(".vy"); if(vy && bild){ vy.classList.add("tagen"); vy.innerHTML = `<img alt="" src="${bild}">`; }
       if(bild){ const rm = $("kap-remsa"); let fg = rm.querySelector(`[data-i="${i}"]`); if(!fg){ fg = document.createElement("figure"); fg.dataset.i = i; rm.appendChild(fg); }
@@ -250,7 +266,7 @@ function ritaMobil(t, i){
   let vy = "";
   if(t.vy==="qr") vy = `<div class="vy"><img src="${QR}" alt=""><div class="linje"></div></div>`;
   else if(t.vy==="skanna") vy = `<div class="vy"><img src="${QR}" alt=""><div class="linje"></div></div><div class="fl">${t.f}</div>`;
-  else if(t.vy==="bild") vy = `<div class="vy">Kameran<br>${t.n ? "bild "+t.n : ""}</div>${t.f?`<div class="fl">${t.f}</div>`:""}<div class="kn">Ta bild</div>`;
+  else if(t.vy==="bild") vy = `<h4>${t.ti||""}</h4><div class="tips">${t.tip||""}</div><div class="vy">Kameran</div>${t.f?`<div class="fl">${t.f}</div>`:""}<div class="kn">Ta bild</div>`;
   else if(t.vy==="lampa") vy = `<h4>Lyser någon varningslampa?</h4><div class="tg"><span>Ja</span><span class="on">Nej</span></div><div class="fl">${t.f}</div><div class="kn">Skicka</div>`;
   else if(t.vy==="klar") vy = `<div class="vy" style="background:#1f8a4c;color:#fff;font-size:13px">Skickad<br>11 bilder · 4 däck</div><div class="kn ok">Klar</div>`;
   $("skarm").innerHTML = `<div class="hd"><b>${t.h}</b><span>${t.s}</span></div><div class="pr"><i style="width:${pr}%"></i></div><div class="bd">${vy}</div>`;

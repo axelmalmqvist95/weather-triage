@@ -95,7 +95,7 @@ S = [
             B=dict(t="En halvtimme går, och resten av rutten blir sen.", tid=-30, kv=0, ku=0),
             C=dict(t="Närmast ansvarig får ett tydligt läge. Antingen löses vattnet, eller så flyttas jobbet med bild som visar varför.", tid=-8, kv=1, ku=1))),
 
- dict(id="s13", tid="11:15", tjanst="Altantvätt", bild="provtvatt", rubrik="Kunden vill inte ha provtvätt",
+ dict(id="s13", tid="11:15", tjanst="Altantvätt", bild="provtvatt", fe="trall", rubrik="Kunden vill inte ha provtvätt",
   lage="Nästa kund är hemma. Du förklarar att du börjar med en provtvätt på ungefär en kvadratmeter. Kunden blir irriterad: \"Ni ska tvätta hela altanen, inte en ruta. Kör hela eller inget.\"",
   alt=dict(A="Strunta i provtvätten och kör hela altanen, kunden har ju bestämt sig.",
            B="Förklara lugnt varför vi provtvättar. Säger kunden ändå nej: kör inte, ring närmast ansvarig och berätta att en bomkörningsavgift kan tas ut.",

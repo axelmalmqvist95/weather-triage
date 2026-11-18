@@ -150,6 +150,7 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .mat.tid .tal{color:var(--w)}
 .ikonknapp{width:44px;height:44px;display:grid;place-items:center;color:var(--t3)}
 .ikonknapp:hover{color:var(--w)}
+.ljudknapp .kryss{display:none}.ljudknapp.av .vag{display:none}.ljudknapp.av .kryss{display:inline}
 .ikonknapp svg{width:22px;height:22px}
 
 .scen{flex:1;display:grid;grid-template-columns:minmax(0,40fr) minmax(0,60fr);min-height:0;position:relative}
@@ -315,12 +316,12 @@ __KAPITEL_CSS__
   <div class="stage3d" id="kap-scen"><canvas id="kap-duk"></canvas><video id="kap-film" class="hidden" muted playsinline preload="auto"></video><div class="kap-filmskugga"></div><div id="kap-pins"></div><div class="sokare" id="kap-sokare"><i></i><i></i><i></i><i></i><b>Ta bild</b></div><div class="skick hidden" id="kap-skick"><small>Husets skick</small><b id="kap-skicktal">0</b><span>/100</span><div class="skickrad"><i id="kap-skickrad"></i></div></div><div class="remsa" id="kap-remsa"></div><span class="kap-filmtag hidden" id="kap-filmtag">Visualisering · exempelhus</span></div>
   <div class="blixt" id="kap-blixt"></div>
   <div class="kap-topp"><img class="logo" src="__LOGO__" alt="Nanostone"><div class="kicker" id="kap-kicker"></div><div class="kap-prog" id="kap-prog"></div>
-    <button class="ikonknapp" id="kap-stang" type="button" aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <button class="ikonknapp ljudknapp" type="button" aria-label="Ljud av eller på"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="vag" d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/><path class="kryss" d="M16 9l5 6M21 9l-5 6"/></svg></button><button class="ikonknapp" id="kap-stang" type="button" aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="instrument" id="inst-matare"><div class="matare3"><div class="bage"></div><div class="nal"></div><div class="km">84 512</div></div></div>
   <div class="instrument" id="inst-monster"><div class="monster3"><div class="dack"></div><div><small>Mönsterdjup</small><div class="mm"><span id="mm-varde">4,2</span> mm</div><div class="grans" id="mm-grans"></div></div></div></div>
   <div class="mobil" id="mobil"><div class="skarm" id="skarm"></div></div>
   <div class="kap-panel">
-    <div class="kap-in" id="kap-in"><div class="kap-steg" id="kap-steg"></div><h2 class="kap-rubrik" id="kap-rubrik"></h2><ul class="kap-text" id="kap-text"></ul><div class="kap-kort" id="kap-kort"></div><div class="kap-fraga" id="kap-fraga"></div></div>
+    <div class="kap-in" id="kap-in"><div class="kap-steg" id="kap-steg"></div><h2 class="kap-rubrik" id="kap-rubrik"></h2><ul class="kap-text" id="kap-text"></ul><div class="kap-kort" id="kap-kort"></div><div id="kap-fe"></div><div class="kap-fraga" id="kap-fraga"></div></div>
     <div class="kap-nav"><button class="knapp sek" id="kap-bak" type="button">Tillbaka</button><button class="knapp" id="kap-fram" type="button">Nästa</button></div>
   </div>
   <h1 class="hidden" id="kap-titel"></h1>
@@ -349,6 +350,7 @@ __KAPITEL_CSS__
       <div class="mat"><small>Kvalitet</small><div class="rad"><b id="m-kv"></b></div><div class="tal" id="m-kvt">70</div></div>
       <div class="mat"><small>Kund</small><div class="rad"><b id="m-ku"></b></div><div class="tal" id="m-kut">70</div></div>
     </div>
+<button class="ikonknapp ljudknapp" type="button" aria-label="Ljud av eller på"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="vag" d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/><path class="kryss" d="M16 9l5 6M21 9l-5 6"/></svg></button>
     <button class="ikonknapp" id="hem" type="button" aria-label="Till start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></button>
   </div>
   <div class="scen" id="scen">
@@ -427,6 +429,30 @@ const FE = __FE__;
 const S = DATA.situationer;
 const $ = id => document.getElementById(id);
 const L = ["A","B","C"];
+/* Ljud, syntetiserat i webbläsaren. Startar först efter ett klick. */
+const ljud = (() => {
+  let ac = null, pa = true; try{ pa = localStorage.getItem("rutten-ljud") !== "av"; }catch(e){}
+  const ctx = () => { if(!pa) return null; try{ ac = ac || new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==="suspended") ac.resume(); return ac; }catch(e){ return null; } };
+  const ton = (f, t0, d, typ, v) => { const a = ctx(); if(!a) return; const o = a.createOscillator(), g = a.createGain(); o.type = typ||"sine"; o.frequency.value = f;
+    g.gain.setValueAtTime(0, a.currentTime+t0); g.gain.linearRampToValueAtTime(v||.12, a.currentTime+t0+.015); g.gain.exponentialRampToValueAtTime(.0001, a.currentTime+t0+d); o.connect(g).connect(a.destination); o.start(a.currentTime+t0); o.stop(a.currentTime+t0+d+.05); };
+  const brus = (d, f, v) => { const a = ctx(); if(!a) return; const n = a.createBuffer(1, a.sampleRate*d, a.sampleRate), ch = n.getChannelData(0); for(let i=0;i<ch.length;i++) ch[i] = (Math.random()*2-1)*Math.pow(1-i/ch.length,2);
+    const s = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(); s.buffer = n; fl.type = "bandpass"; fl.frequency.value = f; g.gain.value = v; s.connect(fl).connect(g).connect(a.destination); s.start(); };
+  return {
+    get pa(){ return pa; },
+    vaxla(){ pa = !pa; try{ localStorage.setItem("rutten-ljud", pa ? "pa" : "av"); }catch(e){} if(!pa && ac) ac.suspend(); return pa; },
+    ratt(){ ton(660,0,.18,"triangle"); ton(880,.11,.22,"triangle"); ton(1320,.22,.4,"triangle",.09); },
+    fel(){ ton(196,0,.3,"sawtooth",.07); ton(147,.16,.45,"sawtooth",.07); },
+    klick(){ brus(.07,3200,.5); setTimeout(()=>brus(.05,1800,.35), 70); },
+    tick(){ ton(1100,0,.05,"square",.03); },
+    framme(){ ton(784,0,.16,"sine",.1); ton(1047,.12,.3,"sine",.1); },
+    motor(ms, niva){ const a = ctx(); if(!a) return; const d = ms/1000, o = a.createOscillator(), o2 = a.createOscillator(), fl = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime;
+      o.type = "sawtooth"; o2.type = "square"; fl.type = "lowpass"; fl.frequency.value = 260; const v = .05*(niva||1);
+      o.frequency.setValueAtTime(52,t); o.frequency.linearRampToValueAtTime(96,t+d*.35); o.frequency.linearRampToValueAtTime(84,t+d*.8); o.frequency.linearRampToValueAtTime(48,t+d);
+      o2.frequency.setValueAtTime(26,t); o2.frequency.linearRampToValueAtTime(48,t+d*.35); o2.frequency.linearRampToValueAtTime(24,t+d);
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(v,t+.25); g.gain.setValueAtTime(v,t+d-.5); g.gain.linearRampToValueAtTime(0,t+d);
+      o.connect(fl); o2.connect(fl); fl.connect(g).connect(a.destination); o.start(t); o2.start(t); o.stop(t+d+.05); o2.stop(t+d+.05); return () => { try{ g.gain.cancelScheduledValues(a.currentTime); g.gain.linearRampToValueAtTime(0, a.currentTime+.15); }catch(e){} }; }
+  };
+})();
 const lagra = {
   get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},
@@ -578,10 +604,11 @@ function kor(i, klart){ // kör till läge i (i = S.length betyder hemfärd)
   const kmTot = kor ? km(d) : 0; $("kor-km").textContent = kor ? "0 km" : "Dagens rutt i Diroto";
   const m0 = minuter(tidFran), m1 = minuter(tidTill);
   const T = RM ? 200 : (tel ? 2200 : 3200), t0 = performance.now();
+  const tyst = kor ? ljud.motor(T+500) : null;
   const mid = [(fran[0]+till[0])/2, (fran[1]+till[1])/2];
   let klar = false;
   const stang = () => { ov.style.transition = "none"; ov.classList.remove("on","iris"); ov.style.webkitMaskImage = ov.style.maskImage = ""; void ov.offsetWidth; ov.style.transition = ""; ov.setAttribute("aria-hidden","true"); };
-  const fardig = () => { if(klar) return; klar = true; cancelAnimationFrame(korAnim); korKlar=null; klart && klart();
+  const fardig = () => { if(klar) return; klar = true; cancelAnimationFrame(korAnim); korKlar=null; tyst && tyst(); if(kor) ljud.framme(); klart && klart();
     if(RM){ stang(); return; }
     // Iris: nästa skärm öppnar sig från bilens plats på kartan.
     ov.classList.add("iris");
@@ -618,6 +645,7 @@ function starta(l, fortsatt){
   byggRutt(); visa("spel"); rita(true);
   if(!fortsatt || st.i===0) kor(st.i);
 }
+document.querySelectorAll(".ljudknapp").forEach(b=>{ b.classList.toggle("av", !ljud.pa); b.onclick = () => { const p = ljud.vaxla(); document.querySelectorAll(".ljudknapp").forEach(x=>x.classList.toggle("av", !p)); if(p) ljud.tick(); }; });
 $("go-grupp").onclick = () => starta("grupp");
 $("go-tel").onclick = () => starta("tel");
 $("fortsatt").onclick = () => starta("tel", true);
@@ -716,6 +744,7 @@ function visaSvar(){
   st.svar[st.i]=st.valt; st.visat=true;
   st.tid += k.tid||0; st.kv = kl(st.kv + (k.kv||0)*8); st.ku = kl(st.ku + (k.ku||0)*8);
   const chip = (id, txt, neg) => { const m = $(id).closest(".mat"); m.querySelectorAll(".dchip").forEach(e=>e.remove()); const c = document.createElement("span"); c.className = "dchip"+(neg?" neg":""); c.textContent = txt; m.appendChild(c); setTimeout(()=>c.remove(), 1800); };
+  st.valt===s.ratt ? ljud.ratt() : ljud.fel();
   if(k.kv) chip("m-kv", (k.kv>0?"+":"−")+Math.abs(k.kv*8), k.kv<0);
   if(k.ku) chip("m-ku", (k.ku>0?"+":"−")+Math.abs(k.ku*8), k.ku<0);
   if(k.tid) chip("m-tid", (k.tid<0?"+":"−")+Math.abs(k.tid)+" min", k.tid<0);

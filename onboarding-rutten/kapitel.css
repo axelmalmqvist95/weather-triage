@@ -159,3 +159,8 @@
 .skickrad{height:5px;background:rgba(255,255,255,.14);margin-top:8px}.skickrad i{display:block;height:100%;width:0;background:var(--ok)}
 #kapitel.smal .remsa,#kapitel.smal .sokare{display:none}
 #kapitel.smal .skick{top:64px;padding:8px 12px;min-width:0}#kapitel.smal .skick b{font-size:34px}
+
+#kap-film{transition:transform 2.4s cubic-bezier(.4,0,.2,1)}
+.skarm .tips{font-size:10.5px;line-height:1.3;color:#5b6773}.skarm .bd h4{font-size:12.5px;line-height:1.2}
+.skarm .kn{background:#e19b10;color:#1d2833}.skarm .kn.ok{background:#1f8a4c;color:#fff}
+#kap-fe{margin-top:14px}#kap-fe:empty{display:none}

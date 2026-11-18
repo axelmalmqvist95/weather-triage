@@ -52,6 +52,7 @@ FE = {
     "uppfart": dict(f=jpeg("uppfart-fore", 900, 74), e=jpeg("uppfart-efter", 900, 74), svep=False, t="Stentvätt av uppfart"),
     "gang": dict(f=jpeg("gang-fore", 900, 74), e=jpeg("gang-efter", 900, 74), svep=False, t="Stentvätt med ogräsrensning"),
     "vitlav": dict(f=jpeg("vitlav-fore", 900, 74), e=jpeg("vitlav-efter", 900, 74), svep=True, t="Stentvätt, vitlav borta"),
+    "trall": dict(f=jpeg("trall-fore", 900, 74), e=jpeg("trall-efter", 900, 74), svep=True, t="Altantvätt"),
     "fasad": dict(f=jpeg("fasad-fore", 900, 74), e=jpeg("fasad-efter", 900, 74), svep=True, t="Fasad före och efter"),
 }
 html = html.replace("__FE__", json.dumps(FE))
