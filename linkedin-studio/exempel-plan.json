@@ -1,0 +1,39 @@
+{
+  "vecka": "2026-v47",
+  "inlagg": [
+    {
+      "dag": "måndag",
+      "datum": "2026-11-16",
+      "text": "Före och efter från en av våra operatörer.\n\nPlattorna gick knappt att se under mossan och gräset. Allt växtligt spolades bort, varje platta tvättades och hela ytan skumbehandlades med algmedel som sista steg.\n\nI det här jobbet ser man resultatet av sin arbetsdag med egna ögon innan man åker hem. Det är en stor del av varför jag tycker att det är ett av de bästa hantverksjobben som finns.\n\n@Nanostone",
+      "media": [
+        {"typ": "fore-efter", "fore": "fasad_fore.jpg", "efter": "fasad_efter.jpg"}
+      ]
+    },
+    {
+      "dag": "tisdag",
+      "datum": "2026-11-17",
+      "text": "Varje yta vi tvättar fotograferas före och efter.\n\nBilderna laddas upp på ordern tillsammans med uppmätt yta och det operatören noterat på plats, och kunden får dem skickade till sig. Innan vi åker går vi igenom resultatet med kunden om någon är hemma.\n\nFör en förvaltare betyder det att man kan visa styrelsen exakt vad som gjorts utan att själv ha varit där. Ett halvår senare finns svaret fortfarande i bild.\n\nDokumentationen är en del av leveransen, lika mycket som själva tvätten.\n\n@Nanostone",
+      "media": [
+        {"typ": "bild", "in": "tak.jpg", "rubrik": "Varje yta fotograferas före och efter", "etikett": "Drift och ledarskap"}
+      ]
+    },
+    {
+      "dag": "torsdag",
+      "datum": "2026-11-19",
+      "text": "Förvaltarens fråga #2.\n\nEn vanlig fråga efter en stentvätt: hur håller man ytan fri från påväxt år efter år?\n\nKort svar: med ett årligt underhåll. Det är också där garantin mot stenpest ligger.\n\nSvaret i bilden.\n\n@Nanostone",
+      "media": [
+        {"typ": "fraga", "nummer": 2,
+         "fraga": "Hur håller man stenläggningen fri från påväxt år efter år?",
+         "svar": "Efter tvätt och impregnering desinficerar vi ytan en gång om året, på våren.\n\nMed ett aktivt underhållsavtal har ni 15 års garanti mot stenpest. Kommer den tillbaka mellan besöken behandlar vi området utan kostnad.",
+         "sist": "Tvätten ger resultatet. Underhållet gör att det håller."},
+        {"typ": "film", "format": "9:16", "rubrik": "Hängrännan från operatörens håll",
+         "klipp": [
+           {"in": "tvatt.mp4", "start": 1, "langd": 5, "text": "Kameran sitter längst ut på röret"},
+           {"in": "tak.jpg", "langd": 2.5, "text": "Före"},
+           {"in": "lift.mov", "langd": 3}
+         ],
+         "slut_text": "Nanostone", "slut_undertext": "Tak, fasader och markytor"}
+      ]
+    }
+  ]
+}
