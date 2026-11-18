@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a1b2a">
+<title>En dag på rutten</title>
+<style>
+/* Typsnitt inbäddade, sidan fungerar utan nät. */
+@font-face{font-family:"BSD";font-weight:800;src:url(data:font/woff2;base64,__BSD800__) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"BSD";font-weight:800;src:url(data:font/woff2;base64,__BSD800X__) format("woff2");unicode-range:U+0100-024F,U+0259,U+1E00-1EFF,U+2020,U+20A0-20AB,U+20AD-20CF,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"OS";font-weight:400;src:url(data:font/ttf;base64,__OS400__) format("truetype")}
+@font-face{font-family:"OS";font-weight:700;src:url(data:font/ttf;base64,__OS700__) format("truetype")}
+
+/* Färger: samma som välkomstfilmen. */
+:root{
+  --n0:#06111b;--n1:#0a1b2a;--n2:#0f263a;--n3:#14314a;--n4:#1b3f5d;--n5:#24506f;
+  --red:#e52f19;--red2:#ff5a40;--ok:#62c3a4;--ok2:#86aeb0;--w:#fff;--t2:#d2dee3;--t3:#9fb8c0;
+  --fs:clamp(16px,1.15vw + 6px,26px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--n1);color:var(--w);font-family:"OS",system-ui,sans-serif;font-size:var(--fs);line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--w);outline-offset:3px}
+.bsd{font-family:"BSD","OS",sans-serif;font-weight:800;letter-spacing:.01em;line-height:.92;text-transform:uppercase}
+.hidden{display:none!important}
+#app{position:fixed;inset:0;overflow:hidden}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .45s ease}
+.screen.on{opacity:1;pointer-events:auto}
+
+/* Bakgrundens struktur, svag diagonal. */
+.grain{position:absolute;inset:0;pointer-events:none;background:
+  radial-gradient(120% 80% at 85% -10%,rgba(84,140,145,.18),transparent 60%),
+  radial-gradient(90% 70% at -10% 110%,rgba(229,47,25,.10),transparent 55%),
+  repeating-linear-gradient(115deg,rgba(255,255,255,.018) 0 2px,transparent 2px 9px)}
+
+/* ---------- Startskärm ---------- */
+#start{background:var(--n0)}
+.wipe{position:absolute;inset:0;overflow:hidden}
+.wipe img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.wipe .efter{clip-path:inset(0 0 0 var(--x,50%))}
+.wipe .linje{position:absolute;top:0;bottom:0;left:var(--x,50%);width:3px;background:var(--w);box-shadow:0 0 24px rgba(255,255,255,.6)}
+.wipe .lbl{position:absolute;top:22px;font-size:.62em;letter-spacing:.2em;text-transform:uppercase;font-weight:700;padding:6px 10px;background:rgba(6,17,27,.6)}
+.wipe .lbl.f{left:calc(var(--x,50%) - 90px)}.wipe .lbl.e{right:22px}
+.start-skugga{position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,17,27,.96) 0%,rgba(6,17,27,.86) 38%,rgba(6,17,27,.25) 70%,rgba(6,17,27,.05) 100%)}
+.start-inner{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:clamp(20px,4vw,64px);max-width:min(1100px,100%)}
+.logo{height:clamp(26px,2.6vw,44px);width:auto;display:block}
+.kicker{font-size:.7em;letter-spacing:.24em;text-transform:uppercase;color:var(--t3);font-weight:700;display:flex;align-items:center;gap:12px}
+.kicker::before{content:"";width:34px;height:3px;background:var(--red)}
+.start-titel{font-size:clamp(64px,11vw,190px);margin:.18em 0 .12em;line-height:1.12}
+.start-titel span{color:var(--red)}
+.start-ingress{max-width:34em;color:var(--t2);font-size:1.05em;margin:0}
+.lagen{display:flex;gap:clamp(14px,2vw,30px);margin:1.4em 0 1.6em;flex-wrap:wrap}
+.lagen div{display:flex;flex-direction:column}
+.lagen b{font-family:"BSD";font-size:2.4em;line-height:1}
+.lagen small{color:var(--t3);font-size:.62em;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.val{display:flex;gap:16px;flex-wrap:wrap}
+.knapp{white-space:nowrap;display:inline-flex;align-items:center;gap:14px;padding:.85em 1.3em;min-height:56px;font-weight:700;background:var(--red);color:var(--w);clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%);transition:transform .15s ease,background .15s}
+.knapp:hover{background:var(--red2)}.knapp:active{transform:translateY(1px)}
+.knapp.sek{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 2px rgba(255,255,255,.28)}
+.knapp.sek:hover{background:rgba(255,255,255,.15)}
+.knapp svg{width:1.2em;height:1.2em}
+.fot{color:var(--t3);font-size:.6em;letter-spacing:.06em}
+
+/* ---------- Spel ---------- */
+#spel{background:var(--n1)}
+.topp{position:relative;z-index:5;display:flex;align-items:center;gap:clamp(12px,2vw,32px);padding:14px clamp(16px,2.4vw,40px);background:linear-gradient(var(--n0),rgba(6,17,27,.92));border-bottom:1px solid rgba(255,255,255,.07)}
+.topp .logo{height:clamp(20px,1.7vw,30px)}
+.rutt{flex:1;position:relative;height:40px;min-width:0}
+.rutt .bana{position:absolute;left:0;right:0;top:19px;height:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 8px,transparent 8px 14px)}
+.rutt .kord{position:absolute;left:0;top:18px;height:4px;background:var(--red);width:0;transition:width .9s cubic-bezier(.6,0,.2,1)}
+.stopp{position:absolute;top:12px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--n1);box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);transition:all .4s}
+.stopp.klar{background:var(--ok2);box-shadow:none}.stopp.fel{background:var(--red);box-shadow:none}
+.stopp.nu{background:var(--w);box-shadow:0 0 0 6px rgba(255,255,255,.18)}
+.stopp i{position:absolute;top:22px;left:50%;transform:translateX(-50%);font-style:normal;font-size:11px;color:var(--t3);white-space:nowrap;font-weight:700;letter-spacing:.04em}
+.bil{position:absolute;top:6px;width:30px;height:28px;margin-left:-15px;transition:left .9s cubic-bezier(.6,0,.2,1);color:var(--w)}
+.matare{display:flex;gap:clamp(10px,1.4vw,22px)}
+.mat{min-width:clamp(86px,8vw,140px)}
+.mat small{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--t3);font-weight:700;margin-bottom:5px}
+.mat .rad{height:6px;background:rgba(255,255,255,.12);position:relative;overflow:hidden}
+.mat .rad b{position:absolute;left:0;top:0;bottom:0;background:var(--ok2);transition:width .8s cubic-bezier(.4,0,.2,1),background .4s}
+.mat .tal{font-family:"BSD";font-size:22px;line-height:1;margin-top:5px;font-variant-numeric:tabular-nums}
+.mat.tid .tal{color:var(--w)}
+.ikonknapp{width:44px;height:44px;display:grid;place-items:center;color:var(--t3)}
+.ikonknapp:hover{color:var(--w)}
+.ikonknapp svg{width:22px;height:22px}
+
+.scen{flex:1;display:grid;grid-template-columns:minmax(0,40fr) minmax(0,60fr);min-height:0;position:relative}
+.foto{position:relative;overflow:hidden;background:var(--n0)}
+.foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(1.06);transition:transform 9s ease-out,opacity .5s}
+.scen.in .foto img{transform:scale(1)}
+.foto::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,17,27,.55) 0%,transparent 30%,transparent 55%,rgba(6,17,27,.92) 100%)}
+.foto .ill{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(80% 60% at 50% 40%,var(--n4),var(--n0))}
+.foto .ill svg{width:62%;height:auto;max-height:70%}
+.foto-info{position:absolute;left:clamp(16px,2.4vw,40px);right:clamp(16px,2.4vw,40px);bottom:clamp(16px,2.6vw,44px);z-index:2}
+.klocka{font-size:clamp(70px,8.4vw,170px);color:var(--w);display:block}
+.tjanst{display:inline-block;margin-top:.6em;padding:.35em .7em;background:var(--red);font-weight:700;font-size:.72em;letter-spacing:.12em;text-transform:uppercase}
+.nr{position:absolute;top:clamp(16px,2vw,32px);left:clamp(16px,2.4vw,40px);z-index:2;font-size:.66em;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--t2)}
+
+.text{position:relative;overflow-y:auto;padding:clamp(20px,3vw,56px) clamp(18px,3.4vw,64px) 120px;scrollbar-width:thin}
+.rubrik{font-size:clamp(40px,4.4vw,92px);margin:0 0 .28em}
+.lage{color:var(--t2);margin:0 0 1.1em;max-width:40em;font-size:1.04em}
+.alts{display:flex;flex-direction:column;gap:12px}
+.alt{position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:start;gap:16px;text-align:left;padding:16px 18px;background:var(--n3);box-shadow:inset 0 0 0 2px transparent;transition:background .2s,box-shadow .2s,opacity .4s,transform .2s;clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)}
+.alt:hover{background:var(--n4)}
+.alt .bok{font-family:"BSD";font-size:1.7em;line-height:1;width:1.25em;text-align:center;color:var(--t3);transition:color .2s}
+.alt .txt{padding-top:.12em}
+.alt.vald{background:var(--n4);box-shadow:inset 0 0 0 2px var(--w)}
+.alt.vald .bok{color:var(--w)}
+.roster{display:flex;align-items:center;gap:4px;align-self:center}
+.roster button{width:36px;height:36px;display:grid;place-items:center;background:rgba(255,255,255,.07);font-weight:700;font-size:20px;line-height:1}
+.roster button:hover{background:rgba(255,255,255,.16)}
+.roster b{min-width:2ch;text-align:center;font-family:"BSD";font-size:1.5em;font-variant-numeric:tabular-nums}
+.alt .stapel{position:absolute;left:0;bottom:0;height:4px;background:var(--t3);width:0;transition:width .5s}
+.alt .kons{grid-column:2 / 4;display:none;color:var(--t2);font-size:.92em;border-top:1px solid rgba(255,255,255,.12);padding-top:10px;margin-top:2px}
+.visat .alt{cursor:default}
+.visat .alt .kons{display:block}
+.visat .alt.ratt{background:rgba(98,195,164,.16);box-shadow:inset 0 0 0 2px var(--ok)}
+.visat .alt.ratt .bok{color:var(--ok)}
+.visat .alt.vald:not(.ratt){background:rgba(229,47,25,.14);box-shadow:inset 0 0 0 2px var(--red)}
+.visat .alt.vald:not(.ratt) .bok{color:var(--red2)}
+.visat .alt:not(.ratt):not(.vald){opacity:.62}
+.tagg{display:inline-block;font-size:.62em;letter-spacing:.16em;text-transform:uppercase;font-weight:700;padding:3px 7px;margin-left:10px;vertical-align:.2em}
+.tagg.ok{background:var(--ok);color:var(--n0)}.tagg.no{background:var(--red)}
+.svar{display:none;margin-top:26px;display:none;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:22px}
+.visat .svar{display:grid;animation:upp .5s ease both .15s}
+@keyframes upp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.foto .svar{position:absolute;inset:0;z-index:3;padding:clamp(20px,2.6vw,48px);background:rgba(6,17,27,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);grid-template-columns:1fr;align-content:center;margin:0;gap:18px}
+.foto .svar .panel{background:rgba(20,49,74,.7)}
+.visat .foto-info,.visat .nr{opacity:0;transition:opacity .3s}
+.panel{background:var(--n2);padding:20px 22px;border-left:5px solid var(--ok)}
+.panel.v{border-left-color:var(--red)}
+.panel h3{margin:0 0 10px;font-family:"BSD";font-weight:800;text-transform:uppercase;font-size:1.5em;letter-spacing:.02em;line-height:1}
+.panel ol{margin:0;padding-left:1.2em;color:var(--t2)}
+.panel ol li{margin:.35em 0;padding-left:.2em}
+.panel p{margin:0;color:var(--t2)}
+.risk{display:none;margin-top:14px;padding:12px 14px;background:var(--red);font-weight:700}
+.visat .risk.on{display:block}
+
+.styr{position:absolute;left:40%;right:0;bottom:0;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px clamp(18px,3.4vw,64px) calc(16px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--n1) 40%)}
+.hint{color:var(--t3);font-size:.68em}
+.hint kbd{font-family:inherit;font-weight:700;color:var(--t2);padding:1px 6px;border:1px solid rgba(255,255,255,.25);margin:0 2px}
+
+/* ---------- Slut ---------- */
+#slut{background:var(--n0);overflow-y:auto}
+.slut-in{position:relative;padding:clamp(22px,4vw,64px);max-width:1280px;margin:0 auto;width:100%}
+.slut-titel{font-size:clamp(56px,8vw,150px);margin:.15em 0 .2em}
+.betyg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:10px 0 28px}
+.betyg div{background:var(--n2);padding:16px 18px}
+.betyg b{display:block;font-family:"BSD";font-size:clamp(40px,4vw,72px);line-height:1}
+.betyg small{color:var(--t3);font-size:.62em;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+.tva{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:start}
+.regler{counter-reset:r;list-style:none;margin:0;padding:0}
+.regler li{counter-increment:r;position:relative;padding:12px 0 12px 54px;border-top:1px solid rgba(255,255,255,.1);color:var(--t2)}
+.regler li::before{content:counter(r,decimal-leading-zero);position:absolute;left:0;top:8px;font-family:"BSD";font-size:1.7em;color:var(--red)}
+.kod{font-family:"BSD";font-size:clamp(46px,7vw,96px);letter-spacing:.06em;background:var(--n2);padding:.25em .4em;display:inline-block;margin:.2em 0;border-left:6px solid var(--red)}
+.dagbok{width:100%;border-collapse:collapse;font-size:.82em}
+.dagbok td{padding:8px 6px;border-top:1px solid rgba(255,255,255,.08);vertical-align:top}
+.dagbok td:first-child{font-family:"BSD";font-size:1.3em;color:var(--t3);width:3.2em}
+.prick{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:-1px}
+textarea{width:100%;min-height:110px;background:var(--n2);color:var(--w);border:1px solid rgba(255,255,255,.2);padding:12px;font:inherit;font-size:.85em}
+.stat td:last-child{width:45%}
+.stat .r{height:10px;background:rgba(255,255,255,.1);position:relative}
+.stat .r b{position:absolute;left:0;top:0;bottom:0;background:var(--ok2)}
+h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46px);margin:0 0 10px;line-height:1}
+
+/* ---------- Telefon ---------- */
+.tel .topp{padding:10px 14px;gap:12px}
+.tel .topp .logo{display:none}
+.tel .rutt{height:30px}
+.tel .stopp{display:none}
+.tel .styr{transform:translateY(110%);transition:transform .35s ease}.tel .visat~.styr,.tel #spel.svarat .styr{transform:none}
+.tel .alt{gap:12px;padding:14px 14px}.tel .alt .bok{width:1em}
+.tel .rutt .bana{top:18px}.tel .rutt .kord{top:17px}
+.tel .bil{width:22px;height:20px;margin-left:-11px;top:4px}
+.tel .matare{gap:10px}.tel .mat{min-width:58px}.tel .mat .tal{font-size:17px}.tel .mat small{font-size:8.5px;letter-spacing:.1em}
+.tel .scen{display:block;overflow-y:auto}
+.tel .foto{height:38vh;min-height:220px}
+.tel .klocka{font-size:68px}
+.tel .text{overflow:visible;padding:20px 16px 110px}
+.tel .rubrik{font-size:44px}
+.tel .roster{display:none}
+.tel .alt{grid-template-columns:auto 1fr}
+.tel .alt .kons{grid-column:2}
+.tel .svar{grid-template-columns:1fr}
+.tel .styr{left:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.tel .hint{display:none}
+.tel .betyg{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tel .tva{grid-template-columns:1fr}
+.tel .styr .knapp{width:100%;justify-content:center}
+@media (max-width:760px){
+  .start-skugga{background:linear-gradient(180deg,rgba(6,17,27,.35) 0%,rgba(6,17,27,.85) 45%,rgba(6,17,27,.98) 70%)}
+  .start-inner{justify-content:flex-end;gap:18px}
+  .start-inner>header{position:absolute;top:20px;left:20px}
+  .start-titel{font-size:76px}
+  .val .knapp{width:100%;justify-content:center}
+  .fot{display:none}
+  .wipe .lbl{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media print{#start,#spel,.ikonknapp,.styr,#kodruta{display:none!important}#slut{position:static;opacity:1}body{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- START -->
+<section id="start" class="screen on" aria-label="Start">
+  <div class="wipe" id="wipe">
+    <img class="fore" alt="" src="__IMG_uppfart-fore__">
+    <img class="efter" alt="" src="__IMG_uppfart-efter__">
+    <div class="linje"></div>
+    <span class="lbl f">Före</span><span class="lbl e">Efter</span>
+  </div>
+  <div class="start-skugga"></div>
+  <div class="start-inner">
+    <header><img class="logo" src="__LOGO__" alt="Nanostone"></header>
+    <div>
+      <div class="kicker">Onboarding · Drift</div>
+      <h1 class="start-titel bsd">En dag<br>på <span>rutten</span></h1>
+      <p class="start-ingress">Från första samtalet klockan sju till sista bilden i Diroto. Under dagen dyker det upp lägen som alla operatörer råkar ut för. Välj vad du gör, och se vad som händer.</p>
+      <div class="lagen">
+        <div><b id="antal">13</b><small>lägen</small></div>
+        <div><b>3</b><small>val per läge</small></div>
+        <div><b>1</b><small>sätt vi gör det på</small></div>
+      </div>
+      <div class="val">
+        <button class="knapp" id="go-grupp" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="13" rx="1"/><path d="M8 21h8M12 17v4"/></svg>Spela i grupp på storskärm</button>
+        <button class="knapp sek" id="go-tel" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>Spela själv</button>
+      </div>
+      <button class="knapp sek hidden" id="fortsatt" type="button" style="margin-top:14px">Fortsätt där du var</button>
+    </div>
+    <div class="fot">Nanostone AB · Fungerar utan nät och utan inloggning · Tryck F för helskärm</div>
+  </div>
+</section>
+
+<!-- SPEL -->
+<section id="spel" class="screen" aria-label="Rutten">
+  <div class="topp">
+    <img class="logo" src="__LOGO__" alt="Nanostone">
+    <div class="rutt" id="rutt" aria-hidden="true"><div class="bana"></div><div class="kord" id="kord"></div>
+      <svg class="bil" id="bil" viewBox="0 0 32 28" fill="currentColor"><path d="M3 9h17v10H3z" opacity=".95"/><path d="M20 12h6l3 4v3h-9z"/><circle cx="8" cy="21" r="3" fill="#06111b" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="21" r="3" fill="#06111b" stroke="currentColor" stroke-width="2"/><rect x="3" y="7" width="17" height="2" fill="#e52f19"/></svg>
+    </div>
+    <div class="matare">
+      <div class="mat tid"><small>Tidsplan</small><div class="tal" id="m-tid">I tid</div></div>
+      <div class="mat"><small>Kvalitet</small><div class="rad"><b id="m-kv"></b></div><div class="tal" id="m-kvt">70</div></div>
+      <div class="mat"><small>Kund</small><div class="rad"><b id="m-ku"></b></div><div class="tal" id="m-kut">70</div></div>
+    </div>
+    <button class="ikonknapp" id="hem" type="button" aria-label="Till start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></button>
+  </div>
+  <div class="scen" id="scen">
+    <div class="foto" id="foto">
+      <span class="nr" id="nr"></span>
+      <div class="foto-info"><span class="klocka bsd" id="klocka"></span><span class="tjanst" id="tjanst"></span></div>
+    </div>
+    <div class="text" id="text">
+      <h2 class="rubrik bsd" id="rubrik"></h2>
+      <p class="lage" id="lage"></p>
+      <div class="alts" id="alts" role="group" aria-label="Vad gör du?"></div>
+      <div class="risk" id="risk">Stopp. Det här är ett säkerhetsfel. Du går aldrig upp på ett tak utan fallskydd.</div>
+      <div class="svar">
+        <div class="panel"><h3>Så gör vi</h3><ol id="gor"></ol></div>
+        <div class="panel v"><h3>Varför</h3><p id="varfor"></p></div>
+      </div>
+    </div>
+  </div>
+  <div class="styr">
+    <span class="hint" id="hint"></span>
+    <button class="knapp" id="huvud" type="button">Visa svaret</button>
+  </div>
+</section>
+
+<!-- SLUT -->
+<section id="slut" class="screen" aria-label="Dagens resultat">
+  <div class="grain"></div>
+  <div class="slut-in">
+    <header style="display:flex;justify-content:space-between;align-items:center"><img class="logo" src="__LOGO__" alt="Nanostone"><button class="ikonknapp" id="hem2" type="button" aria-label="Till start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></button></header>
+    <div class="kicker" style="margin-top:28px">16:15 · Dagen är slut</div>
+    <h1 class="slut-titel bsd" id="slut-titel">Bra jobbat</h1>
+    <div class="betyg">
+      <div><b id="s-ratt"></b><small>rätt val</small></div>
+      <div><b id="s-tid"></b><small>tidsplan</small></div>
+      <div><b id="s-kv"></b><small>kvalitet</small></div>
+      <div><b id="s-ku"></b><small>kund</small></div>
+    </div>
+    <div id="kodruta" class="hidden" style="margin-bottom:28px">
+      <h2 class="sek">Din kod</h2>
+      <p style="color:var(--t2);margin:0">Visa koden för den som håller i utbildningen.</p>
+      <div class="kod" id="kod"></div>
+    </div>
+    <div class="tva">
+      <div><h2 class="sek">Dagens regler</h2><ol class="regler" id="regler"></ol></div>
+      <div><h2 class="sek">Din dag</h2><table class="dagbok" id="dagbok"></table></div>
+    </div>
+    <div id="lasin" class="hidden" style="margin-top:36px">
+      <h2 class="sek">Läs in deltagarnas koder</h2>
+      <p style="color:var(--t2);margin:0 0 10px">Skriv in koderna från telefonerna, en per rad eller med mellanslag. Tabellen visar vilka lägen gruppen behöver gå igenom igen.</p>
+      <textarea id="koder" placeholder="T.ex. 4K2P-7"></textarea>
+      <table class="dagbok stat" id="stat" style="margin-top:16px"></table>
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:36px">
+      <button class="knapp" id="igen" type="button">Kör dagen igen</button>
+      <button class="knapp sek" id="skriv" type="button">Skriv ut reglerna</button>
+    </div>
+  </div>
+</section>
+</div>
+
+<script>
+"use strict";
+const DATA = __DATA__;
+const BILDER = __BILDER__;
+const S = DATA.situationer;
+const $ = id => document.getElementById(id);
+const L = ["A","B","C"];
+const lagra = {
+  get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},
+  del(k){try{localStorage.removeItem(k)}catch(e){}}
+};
+
+/* Illustrationer för lägen utan foto. */
+const ILL = {
+  klocka:`<svg viewBox="0 0 200 200" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><circle cx="100" cy="92" r="62" stroke-opacity=".9"/><path d="M100 52v40l26 16" stroke="#e52f19" stroke-width="7"/><path d="M78 22h44M100 22v8"/><path d="M30 178c30-14 60 6 90-6s40-20 60-8" stroke-dasharray="6 9" stroke-opacity=".5"/><circle cx="30" cy="178" r="6" fill="#fff"/><circle cx="178" cy="164" r="6" fill="#e52f19" stroke="#e52f19"/></svg>`,
+  stege:`<svg viewBox="0 0 200 200" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M28 104L100 40l72 64" stroke-opacity=".9"/><path d="M44 92v86h112V92" stroke-opacity=".9"/><path d="M36 100h128" stroke="#86aeb0" stroke-width="6"/><path d="M60 178l26-92M92 178l26-92" stroke="#e52f19"/><path d="M66 158h28M71 138h28M77 118h28M82 100h28" stroke="#e52f19"/><path d="M112 60l10-12 10 12" stroke-opacity=".35"/><path d="M14 182h172" stroke-opacity=".4"/></svg>`
+};
+
+let laget = "grupp";
+let st = null;
+function nytt(){ return {i:0, svar:Array(S.length).fill(null), visat:false, tid:0, kv:70, ku:70, valt:null, roster:[0,0,0]}; }
+
+/* ---------- Start, före/efter-svep ---------- */
+(function(){
+  const w = $("wipe"); let t0 = performance.now(), drar = false;
+  function sat(x){ w.style.setProperty("--x", (x*100).toFixed(2)+"%"); }
+  function loop(t){ if(!drar && $("start").classList.contains("on")){ const p=(Math.sin((t-t0)/2600)+1)/2; sat(.18+p*.7); } requestAnimationFrame(loop); }
+  requestAnimationFrame(loop);
+  w.addEventListener("pointermove", e => { if(e.pointerType==="mouse"){ drar=true; const r=w.getBoundingClientRect(); sat(Math.min(1,Math.max(0,(e.clientX-r.left)/r.width))); } });
+  w.addEventListener("pointerleave", () => { drar=false; t0=performance.now()-2600*Math.asin(0)-0; });
+  $("antal").textContent = S.length;
+  const sparat = lagra.get("rutten-tel");
+  if(sparat && sparat.i>0 && sparat.i<S.length) $("fortsatt").classList.remove("hidden");
+})();
+
+function visa(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on", s.id===id)); }
+
+function starta(l, fortsatt){
+  laget = l;
+  document.body.classList.toggle("tel", l==="tel");
+  const sv=document.querySelector('.svar'); (l==="tel" ? $("text") : $("foto")).appendChild(sv);
+  st = (fortsatt && lagra.get("rutten-tel")) || nytt();
+  byggRutt(); visa("spel"); rita(true);
+}
+$("go-grupp").onclick = () => starta("grupp");
+$("go-tel").onclick = () => starta("tel");
+$("fortsatt").onclick = () => starta("tel", true);
+$("hem").onclick = $("hem2").onclick = () => { visa("start"); const sp=lagra.get("rutten-tel"); $("fortsatt").classList.toggle("hidden", !(sp&&sp.i>0&&sp.i<S.length)); };
+$("igen").onclick = () => { if(laget==="tel") lagra.del("rutten-tel"); starta(laget); };
+$("skriv").onclick = () => window.print();
+if(window.matchMedia("(max-width:760px)").matches){ $("go-tel").classList.remove("sek"); $("go-grupp").classList.add("sek"); }
+
+/* ---------- Ruttlinjen ---------- */
+function minuter(t){ const [h,m]=t.split(":").map(Number); return h*60+m; }
+const T0 = minuter("06:45"), T1 = minuter("16:15");
+function pos(t){ return ((minuter(t)-T0)/(T1-T0)*100); }
+function byggRutt(){
+  const r = $("rutt"); r.querySelectorAll(".stopp").forEach(e=>e.remove());
+  S.forEach((s,i)=>{ const d=document.createElement("div"); d.className="stopp"; d.style.left=pos(s.tid)+"%"; d.innerHTML=`<i>${s.tid}</i>`; d.dataset.i=i; r.appendChild(d); });
+}
+function ritaRutt(){
+  document.querySelectorAll(".stopp").forEach(d=>{
+    const i=+d.dataset.i, sv=st.svar[i];
+    d.className = "stopp" + (i===st.i && st.i<S.length ? " nu" : "") + (sv!=null ? (sv===S[i].ratt ? " klar":" fel") : "");
+  });
+  const p = st.i<S.length ? pos(S[st.i].tid) : 100;
+  $("kord").style.width = p+"%"; $("bil").style.left = p+"%";
+}
+
+/* ---------- Mätare ---------- */
+function farg(v){ return v>=70 ? "var(--ok2)" : v>=45 ? "#d9a441" : "var(--red)"; }
+function ritaMat(){
+  const tid = st.tid; $("m-tid").textContent = tid>=0 ? "I tid" : "+"+(-tid)+" min";
+  $("m-tid").style.color = tid>=-15 ? "var(--w)" : tid>=-45 ? "#f0c060" : "var(--red2)";
+  [["kv",st.kv],["ku",st.ku]].forEach(([k,v])=>{ $("m-"+k).style.width=v+"%"; $("m-"+k).style.background=farg(v); $("m-"+k+"t").textContent=Math.round(v); });
+}
+const kl = v => Math.max(0, Math.min(100, v));
+
+/* ---------- Ett läge ---------- */
+function rita(ny){
+  ritaRutt(); ritaMat();
+  if(st.i >= S.length){ slut(); return; }
+  const s = S[st.i], scen=$("scen");
+  if(ny){ scen.classList.remove("in"); void scen.offsetWidth; requestAnimationFrame(()=>scen.classList.add("in")); $("text").scrollTop=0; scen.scrollTop=0; }
+  const f = $("foto");
+  f.querySelectorAll("img,.ill").forEach(e=>e.remove());
+  if(s.bild && BILDER[s.bild]){ const im=new Image(); im.alt=""; im.src=BILDER[s.bild]; f.prepend(im); }
+  else { const d=document.createElement("div"); d.className="ill"; d.innerHTML=ILL[s.ikon]||""; f.prepend(d); }
+  $("nr").textContent = `Läge ${st.i+1} av ${S.length}`;
+  $("klocka").textContent = s.tid; $("tjanst").textContent = s.tjanst;
+  $("rubrik").textContent = s.rubrik; $("lage").textContent = s.lage;
+  const box = $("alts"); box.innerHTML="";
+  const visat = st.visat, val = st.valt;
+  const summa = st.roster.reduce((a,b)=>a+b,0);
+  L.forEach((b,k)=>{
+    const el=document.createElement("div"); el.className="alt"+(val===b?" vald":"")+(visat&&s.ratt===b?" ratt":"");
+    el.setAttribute("role","button"); el.tabIndex=0; el.dataset.b=b;
+    let tagg = "";
+    if(visat && s.ratt===b) tagg = `<span class="tagg ok">Så gör vi</span>`;
+    else if(visat && val===b) tagg = `<span class="tagg no">${laget==="tel"?"Ditt val":"Gruppens val"}</span>`;
+    el.innerHTML = `<span class="bok">${b}</span><span class="txt">${s.alt[b]}${tagg}</span>`+
+      (laget==="grupp" ? `<span class="roster" aria-label="Röster"><button type="button" data-d="-1" aria-label="En röst mindre på ${b}">−</button><b>${st.roster[k]}</b><button type="button" data-d="1" aria-label="En röst till på ${b}">+</button></span>` : "")+
+      `<span class="kons">${s.kons[b].t}</span><span class="stapel" style="width:${summa? (st.roster[k]/summa*100):0}%"></span>`;
+    el.onclick = e => {
+      const btn = e.target.closest("button[data-d]");
+      if(btn){ e.stopPropagation(); if(st.visat) return; st.roster[k]=Math.max(0,st.roster[k]+(+btn.dataset.d)); const mx=Math.max(...st.roster); if(mx>0 && st.roster.filter(v=>v===mx).length===1) st.valt=L[st.roster.indexOf(mx)]; rita(false); return; }
+      valj(b);
+    };
+    el.onkeydown = e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); valj(b); } };
+    box.appendChild(el);
+  });
+  $("scen").classList.toggle("visat", visat); $("spel").classList.toggle("svarat", visat);
+  const gor=$("gor"); gor.innerHTML=""; s.gor.forEach(g=>{ const li=document.createElement("li"); li.textContent=g; gor.appendChild(li); });
+  $("varfor").textContent = s.varfor;
+  $("risk").classList.toggle("on", !!(visat && val && s.kons[val].risk));
+  const h=$("huvud");
+  if(!visat){
+    h.textContent = laget==="tel" ? "Välj ett alternativ" : (val ? "Visa svaret" : "Välj gruppens svar");
+    h.disabled = !val; h.style.opacity = val?1:.45;
+    $("hint").innerHTML = laget==="grupp" ? "Låt alla visa A, B eller C med handen. Räkna med <kbd>+</kbd>, eller tryck <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd>. <kbd>Mellanslag</kbd> visar svaret." : "";
+  } else {
+    h.disabled=false; h.style.opacity=1;
+    h.textContent = st.i===S.length-1 ? "Avsluta dagen" : "Nästa stopp: "+S[st.i+1].tid;
+    $("hint").innerHTML = laget==="grupp" ? "<kbd>→</kbd> eller <kbd>Mellanslag</kbd> för nästa stopp" : "";
+  }
+}
+
+function valj(b){
+  if(st.visat) return;
+  st.valt = b;
+  if(laget==="tel"){ visaSvar(); return; }
+  rita(false);
+}
+function visaSvar(){
+  if(st.visat || !st.valt) return;
+  const s=S[st.i], k=s.kons[st.valt];
+  st.svar[st.i]=st.valt; st.visat=true;
+  st.tid += k.tid||0; st.kv = kl(st.kv + (k.kv||0)*8); st.ku = kl(st.ku + (k.ku||0)*8);
+  spara(); rita(false);
+  if(laget==="tel") setTimeout(()=>{ document.querySelector(".alt.ratt")?.scrollIntoView({behavior:"smooth",block:"center"}); }, 120);
+}
+function nasta(){
+  if(!st.visat) return;
+  st.i++; st.visat=false; st.valt=null; st.roster=[0,0,0]; spara(); rita(true);
+}
+function spara(){ if(laget==="tel") lagra.set("rutten-tel", st); }
+$("huvud").onclick = () => st.visat ? nasta() : visaSvar();
+
+document.addEventListener("keydown", e=>{
+  if(e.target.tagName==="TEXTAREA") return;
+  if(e.key==="f"||e.key==="F"){ if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); return; }
+  if(!$("spel").classList.contains("on")) return;
+  const k=e.key.toUpperCase();
+  if(["A","B","C"].includes(k)){ valj(k); }
+  else if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"){ if(e.target.closest&&e.target.closest(".alt")&&!st.visat) return; e.preventDefault(); st.visat?nasta():visaSvar(); }
+});
+
+/* ---------- Kod: svaren packade i bas 3, tecken utan förväxling ---------- */
+const ALF = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+function kodFor(svar){
+  let n=0; for(let i=svar.length-1;i>=0;i--) n = n*3 + Math.max(0,L.indexOf(svar[i]));
+  let s=""; for(let j=0;j<5;j++){ s=ALF[n%32]+s; n=Math.floor(n/32); }
+  let c=0; for(const ch of s) c=(c*7+ALF.indexOf(ch))%32;
+  return s.slice(0,3)+"-"+s.slice(3)+ALF[c];
+}
+function avkoda(kod){
+  const r=kod.toUpperCase().replace(/[^0-9A-Z]/g,""); if(r.length!==6) return null;
+  const s=r.slice(0,5), c=r[5]; let ch=0; for(const x of s){ const v=ALF.indexOf(x); if(v<0) return null; ch=(ch*7+v)%32; }
+  if(ALF[ch]!==c) return null;
+  let n=0; for(const x of s) n=n*32+ALF.indexOf(x);
+  const ut=[]; for(let i=0;i<S.length;i++){ ut.push(L[n%3]); n=Math.floor(n/3); }
+  return ut;
+}
+
+/* ---------- Slut ---------- */
+function slut(){
+  const r = st.svar.filter((v,i)=>v===S[i].ratt).length;
+  $("s-ratt").textContent = r+"/"+S.length;
+  $("s-tid").textContent = st.tid>=0 ? "I tid" : "+"+(-st.tid)+" min";
+  $("s-kv").textContent = Math.round(st.kv); $("s-ku").textContent = Math.round(st.ku);
+  $("slut-titel").textContent = r===S.length ? "Perfekt dag" : r>=S.length-2 ? "Bra jobbat" : r>=S.length-5 ? "Godkänd dag" : "Kör dagen igen";
+  const reg=$("regler"); reg.innerHTML=""; DATA.regler.forEach(t=>{ const li=document.createElement("li"); li.textContent=t; reg.appendChild(li); });
+  const db=$("dagbok"); db.innerHTML="";
+  S.forEach((s,i)=>{ const ok=st.svar[i]===s.ratt; const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${s.tid}</td><td><span class="prick" style="background:${ok?"var(--ok)":"var(--red)"}"></span>${s.rubrik}${ok?"":` <span style="color:var(--t3)">· rätt: ${s.ratt}</span>`}</td>`; db.appendChild(tr); });
+  $("kodruta").classList.toggle("hidden", laget!=="tel");
+  $("lasin").classList.toggle("hidden", laget!=="grupp");
+  if(laget==="tel"){ $("kod").textContent = kodFor(st.svar); lagra.set("rutten-tel", st); }
+  ritaStat(); visa("slut");
+}
+function ritaStat(){
+  const koder = $("koder").value.split(/[\s,;]+/).filter(Boolean);
+  const ok = koder.map(avkoda).filter(Boolean);
+  const t=$("stat"); t.innerHTML="";
+  if(!koder.length) return;
+  const fel = koder.length-ok.length;
+  const h=document.createElement("tr"); h.innerHTML=`<td></td><td style="color:var(--t3)">${ok.length} koder lästa${fel?`, ${fel} gick inte att läsa`:""}</td><td></td>`; t.appendChild(h);
+  S.map((s,i)=>({s,i,p: ok.length ? ok.filter(a=>a[i]===s.ratt).length/ok.length : 0}))
+   .sort((a,b)=>a.p-b.p)
+   .forEach(({s,p})=>{ const tr=document.createElement("tr");
+     tr.innerHTML=`<td>${s.tid}</td><td>${s.rubrik}</td><td><div class="r"><b style="width:${p*100}%;background:${farg(p*100)}"></b></div><small style="color:var(--t3)">${Math.round(p*100)} % rätt</small></td>`; t.appendChild(tr); });
+}
+$("koder").addEventListener("input", ritaStat);
+</script>
+</body>
+</html>
