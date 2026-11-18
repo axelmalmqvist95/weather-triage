@@ -242,6 +242,30 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 #valk b{display:block;font-family:"BSD";font-weight:800;line-height:.95;font-size:clamp(34px,4.4vw,84px);text-transform:uppercase;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6);opacity:0;transform:translateX(40px);animation:valkin .7s cubic-bezier(.2,.8,.2,1) forwards}
 #valk b.liten{font-size:clamp(24px,2.8vw,54px)}
 @keyframes valkin{to{opacity:1;transform:none}}
+#snabb{position:absolute;inset:0;z-index:31;box-sizing:border-box;display:none;place-items:center;text-align:center;padding:clamp(18px,4vw,70px);background:radial-gradient(ellipse at 50% 40%,#3a0f09 0,#14080a 45%,#03080d 100%);overflow:auto}
+#snabb.on{display:grid;grid-template-columns:minmax(0,1fr);animation:spotin .25s ease-out}
+#snabb>div{display:none;max-width:1200px;width:100%;min-width:0;justify-self:center}#snabb.f-ring .sn-ring,#snabb.f-fraga .sn-fraga,#snabb.f-dom .sn-fraga,#snabb.f-slut .sn-slut{display:block}
+#snabb small{display:block;color:var(--t2);font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:clamp(11px,1vw,18px)}
+#snabb p{color:var(--t2);font-size:clamp(16px,1.5vw,28px);margin:.4em 0 1.2em}
+.sn-ring b,.sn-slut b{display:block;font-size:clamp(60px,10vw,200px);margin:.12em 0 .05em}
+.sn-tel{width:clamp(90px,10vw,170px);height:clamp(90px,10vw,170px);margin:0 auto 1.2em;border-radius:50%;background:var(--red);display:grid;place-items:center;color:#fff;animation:snskak 1s ease-in-out infinite;box-shadow:0 0 0 0 rgba(229,47,25,.7)}
+.sn-tel svg{width:52%}
+@keyframes snskak{0%,100%{transform:rotate(0);box-shadow:0 0 0 0 rgba(229,47,25,.6)}10%,30%{transform:rotate(-13deg)}20%,40%{transform:rotate(13deg)}50%{transform:rotate(0)}70%{box-shadow:0 0 0 46px rgba(229,47,25,0)}}
+.sn-topp{display:flex;justify-content:center;align-items:center;gap:14px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:clamp(12px,1.05vw,20px);color:var(--t2)}
+.sn-topp i{font-style:normal;background:var(--red);color:#fff;padding:.3em .8em;letter-spacing:.14em}.sn-topp i:empty{display:none}
+.sn-tid{height:8px;background:rgba(255,255,255,.12);margin:18px auto 0;max-width:900px;overflow:hidden}.sn-tid b{display:block;height:100%;width:100%;background:var(--red2);transform-origin:left}
+#sn-text{font-size:clamp(34px,5.2vw,104px);margin:.45em 0 .5em;line-height:1}
+.sn-knappar{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+.sn-knappar .knapp{min-width:min(38vw,300px);justify-content:center;font-size:clamp(20px,2vw,38px);min-height:clamp(64px,7vw,110px)}
+.sn-knappar kbd,#snabb kbd{font:700 .5em "OS",sans-serif;border:1px solid rgba(255,255,255,.5);padding:.15em .5em;margin-left:.4em;opacity:.8}
+.sn-r{background:#1f8a4c}.sn-f{background:var(--red)}
+.tel #snabb kbd{display:none}
+.sn-dom,#sn-nasta{display:none}
+#snabb.f-dom .sn-dom{display:block;margin:0 auto 1.2em;max-width:900px}#snabb.f-dom #sn-nasta{display:inline-flex}#snabb.f-dom .sn-knappar,#snabb.f-dom .sn-tid{display:none}
+#sn-utfall{display:block;font-size:clamp(40px,5vw,96px);animation:spotpop .45s cubic-bezier(.2,1.5,.4,1)}
+#snabb.ok #sn-utfall{color:var(--ok)}#snabb.nej #sn-utfall{color:var(--red2)}
+#sn-fakta{display:block;color:var(--t2);font-size:clamp(16px,1.6vw,30px);margin-top:.4em}
+@media (prefers-reduced-motion:reduce){.sn-tel,#sn-utfall{animation:none}}
 #spot{position:absolute;inset:0;z-index:30;display:none;place-items:center;text-align:center;background:radial-gradient(ellipse at 50% 46%,rgba(20,49,74,.92) 0,rgba(6,17,27,.97) 46%,#03080d 100%);cursor:pointer}
 #spot.on{display:grid;animation:spotin .25s ease-out}
 @keyframes spotin{from{opacity:0}}
@@ -413,6 +437,15 @@ __KAPITEL_CSS__
 <button class="ikonknapp ljudknapp" type="button" aria-label="Ljud av eller på"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="vag" d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/><path class="kryss" d="M16 9l5 6M21 9l-5 6"/></svg></button>
     <button class="ikonknapp" id="hem" type="button" aria-label="Till start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></button>
   </div>
+  <div id="snabb" aria-live="polite">
+    <div class="sn-ring" id="sn-ring"><div class="sn-tel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg></div>
+      <small>12:05 · Lunch · Inkommande samtal</small><b class="bsd">Kontoret ringer</b><p>Snabbrundan: fem påståenden, sju sekunder var. Stämmer det eller inte?</p><button class="knapp" id="sn-svara" type="button">Svara</button></div>
+    <div class="sn-fraga" id="sn-fraga"><div class="sn-topp"><span id="sn-nr"></span><i id="sn-vem"></i></div><div class="sn-tid"><b id="sn-stapel"></b></div>
+      <h2 class="bsd" id="sn-text"></h2><div class="sn-dom" id="sn-dom"><b class="bsd" id="sn-utfall"></b><span id="sn-fakta"></span></div>
+      <div class="sn-knappar" id="sn-knappar"><button class="knapp sn-r" id="sn-ratt" type="button">Stämmer <kbd>J</kbd></button><button class="knapp sn-f" id="sn-fel" type="button">Stämmer inte <kbd>N</kbd></button></div>
+      <button class="knapp" id="sn-nasta" type="button">Nästa</button></div>
+    <div class="sn-slut" id="sn-slut"><small>Snabbrundan</small><b class="bsd" id="sn-summa"></b><p id="sn-slutrad"></p><button class="knapp" id="sn-klar" type="button">Tillbaka till rutten</button></div>
+  </div>
   <div id="spot"><div class="kon"></div><div class="in"><small id="spot-lage"></small><b id="spot-namn"></b><em>Vad gör du?</em></div></div>
   <div class="scen" id="scen">
     <div class="foto" id="foto">
@@ -513,6 +546,7 @@ const ljud = (() => {
     fel(){ ton(196,0,.3,"sawtooth",.07); ton(147,.16,.45,"sawtooth",.07); },
     klick(){ brus(.07,3200,.5); setTimeout(()=>brus(.05,1800,.35), 70); },
     tick(){ ton(1100,0,.05,"square",.03); },
+    ring(){ [0,.09,.18,.27,.5,.59,.68,.77].forEach((t,i)=>ton(i%2?1175:1397,t,.09,"sine",.09)); },
     framme(){ ton(784,0,.16,"sine",.1); ton(1047,.12,.3,"sine",.1); },
     motor(ms, niva){ const a = ctx(); if(!a) return; const d = ms/1000, o = a.createOscillator(), o2 = a.createOscillator(), fl = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime;
       o.type = "sawtooth"; o2.type = "square"; fl.type = "lowpass"; fl.frequency.value = 260; const v = .05*(niva||1);
@@ -547,6 +581,37 @@ function valkommen(){ const v = $("valk"); if(!showLage()){ v.classList.remove("
   const ns = namnlista(), liten = ns.length > 6;
   v.innerHTML = "<small>Välkommen till Nanostone</small>" + ns.map((n,i)=>`<b class="${liten?"liten":""}" style="animation-delay:${(.9+i*(liten?.22:.38)).toFixed(2)}s"></b>`).join("");
   v.querySelectorAll("b").forEach((b,i)=>b.textContent = ns[i]); v.classList.add("on"); }
+const SNABB = [
+  ["Du får ge kunden rabatt själv om jobbet drog ut på tiden.", false, "Rabatt avgörs alltid av kontoret. Ring kundtjänst."],
+  ["Algbehandling går att göra i duggregn.", true, "Ja, men bedöm på plats om behandlingen regnar bort."],
+  ["Ytan är 25 m² större än ordern. Du ringer kundtjänst innan du fortsätter.", true, "Över 20 m² extra ska kundtjänst ge kunden besked om priset först."],
+  ["Du stämplar in i NUBA när du sätter dig i bilen på morgonen.", false, "Diroto startar du i bilen. NUBA stämplar du hos första kunden, eller efter en timmes körning."],
+  ["En operativ rödmarkering kan du göra själv, bara du ringer ansvarig efteråt.", false, "Ansvarig ska alltid godkänna först, och alla lösningar ska vara prövade."],
+];
+let snabb = null;
+function snabbrunda(klart){
+  const el = $("snabb"), ns = showLage() ? namnlista().slice().sort(()=>Math.random()-.5) : [];
+  snabb = { i:-1, ratt:0, fas:"ring", klart, ns, t:0, raf:0, ringT:0 };
+  const fas = f => { snabb.fas = f; el.className = "on f-"+f + (snabb.ok===true?" ok":snabb.ok===false?" nej":""); };
+  const stopp = () => { cancelAnimationFrame(snabb.raf); clearInterval(snabb.ringT); };
+  const fraga = () => { snabb.i++; snabb.ok = null; if(snabb.i >= SNABB.length){ slutet(); return; }
+    const q = SNABB[snabb.i], vem = snabb.ns.length ? snabb.ns[snabb.i % snabb.ns.length] : ""; snabb.vem = vem;
+    $("sn-nr").textContent = "Påstående "+(snabb.i+1)+" av "+SNABB.length; $("sn-vem").textContent = vem; $("sn-text").textContent = q[0]; fas("fraga");
+    const t0 = performance.now(), LANGD = 7000; let sek = 7; const st0 = $("sn-stapel");
+    const steg = t => { if(!snabb || snabb.fas!=="fraga") return; const k = Math.max(0, 1-(t-t0)/LANGD); st0.style.transform = "scaleX("+k+")";
+      const kvar = Math.ceil(k*7); if(kvar !== sek){ sek = kvar; if(kvar <= 3 && kvar > 0) ljud.tick(); } if(k <= 0){ svar(null); return; } snabb.raf = requestAnimationFrame(steg); };
+    st0.style.transform = "scaleX(1)"; snabb.raf = requestAnimationFrame(steg); };
+  const svar = v => { if(!snabb || snabb.fas!=="fraga") return; stopp(); const q = SNABB[snabb.i], ok = v === q[1]; snabb.ok = ok; if(ok){ snabb.ratt++; if(snabb.vem) st.po[snabb.vem] = (st.po[snabb.vem]||0)+1; }
+    ok ? ljud.ratt() : ljud.fel(); $("sn-utfall").textContent = v===null ? "Tiden är ute" : ok ? (snabb.vem ? "Rätt svarat, +1 poäng" : "Rätt svarat") : "Fel svarat"; $("sn-fakta").textContent = (q[1] ? "Påståendet stämmer. " : "Påståendet stämmer inte. ")+q[2];
+    $("sn-nasta").textContent = snabb.i === SNABB.length-1 ? "Se resultatet" : "Nästa påstående"; fas("dom"); };
+  const slutet = () => { snabb.ok = null; $("sn-summa").textContent = snabb.ratt+" av "+SNABB.length; $("sn-slutrad").textContent = snabb.ratt === SNABB.length ? "Alla rätt. Lunchen är räddad." : snabb.ratt >= 3 ? "Bra jobbat. Reglerna kommer igen i slutet av dagen." : "Gå igenom reglerna en gång till i slutet av dagen."; fas("slut"); ljud.framme(); };
+  const klar = () => { stopp(); el.className = ""; const k = snabb.klart; st.snabb = snabb.ratt; snabb = null; ritaVem(); spara(); k && k(); };
+  snabb.fram = () => { if(snabb.fas==="ring"){ stopp(); fraga(); } else if(snabb.fas==="dom") fraga(); else if(snabb.fas==="slut") klar(); };
+  snabb.svar = svar;
+  $("sn-svara").onclick = $("sn-nasta").onclick = $("sn-klar").onclick = () => snabb && snabb.fram();
+  $("sn-ratt").onclick = () => snabb && svar(true); $("sn-fel").onclick = () => snabb && svar(false);
+  fas("ring"); ljud.ring(); snabb.ringT = setInterval(()=>{ if(snabb && snabb.fas==="ring") ljud.ring(); }, 1700);
+}
 let spotT = [], spotKlar = null;
 function spot(){
   if(!showLage() || st.i >= S.length || st.visat){ ritaVem(); return; }
@@ -874,6 +939,7 @@ function nasta(){
   st.kap = st.kap || {};
   const efter = KAP_EFTER[S[st.i].id];
   if(efter && !st.kap[efter]){ st.kap[efter] = true; spara(); visaKapitel(efter, ()=>{ visa("spel"); nasta(); }); return; }
+  if(S[st.i].id==="s06" && !st.kap.snabb){ st.kap.snabb = true; spara(); snabbrunda(()=>nasta()); return; }
   st.i++; st.visat=false; st.valt=null; st.roster=[0,0,0]; $("vem").classList.remove("on"); spara();
   if(st.i >= S.length){ kor(S.length, ()=>{ if(!st.kap.bil){ st.kap.bil = true; spara(); visaKapitel("bil", ()=>rita(true)); } else rita(true); }); return; }
   rita(true); if(!SAMMA[st.i]) kor(st.i, spot); else spot();
@@ -883,6 +949,8 @@ $("huvud").onclick = () => st.visat ? nasta() : visaSvar();
 
 document.addEventListener("keydown", e=>{
   if(e.target.tagName==="TEXTAREA") return;
+  if(snabb){ const k = e.key.toUpperCase(); if(snabb.fas==="fraga"){ if(k==="J"){ e.preventDefault(); snabb.svar(true); } else if(k==="N"){ e.preventDefault(); snabb.svar(false); } }
+    else if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"){ e.preventDefault(); snabb.fram(); } return; }
   if(spotKlar){ if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"||e.key==="Escape"){ e.preventDefault(); spotKlar(); } return; }
   if(e.key==="f"||e.key==="F"){ if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); return; }
   if($("kapitel").classList.contains("on")){ if(e.key==="ArrowRight"||e.key===" "||e.key==="Enter"){ if(e.target.closest&&e.target.closest("button")&&e.key!=="ArrowRight") return; e.preventDefault(); kapFram(); } else if(e.key==="ArrowLeft"){ kapBak(); } else if(e.key==="Escape"){ $("kap-stang").click(); } return; }
