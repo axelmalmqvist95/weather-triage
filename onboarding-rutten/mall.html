@@ -104,12 +104,14 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 #korning.iris{pointer-events:none}
 #kor-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;opacity:0;transition:opacity .6s ease}
 #korning.film #kor-film{opacity:1}
+#korning.film #k-kor{visibility:hidden}
+#korning.film .kor-info{will-change:auto}
 #korning.film::before{background:linear-gradient(90deg,rgba(4,11,18,.85) 0%,rgba(4,11,18,.35) 40%,rgba(4,11,18,0) 65%),linear-gradient(0deg,rgba(4,11,18,.7),transparent 40%)}
 /* Körningen ses snett uppifrån, som i en navigator. */
 #k-kor{background:linear-gradient(180deg,#040b12 0%,#0a1b2a 30%,#07131f 100%)}
 #k-kor svg{transform:perspective(1300px) rotateX(50deg) scale(1.9);transform-origin:58% 60%;will-change:transform}
 #korning::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,#040b12 0%,rgba(4,11,18,.85) 16%,rgba(4,11,18,0) 44%),linear-gradient(90deg,rgba(4,11,18,.8) 0%,rgba(4,11,18,0) 42%)}
-#k-kor .ritas,#k-kor path.klar{filter:drop-shadow(0 0 6px rgba(229,47,25,.9))}
+#k-kor .ritas{stroke-width:5}
 .tel #k-kor svg{transform:perspective(900px) rotateX(42deg) scale(1.7);transform-origin:50% 40%}
 .mat{position:relative}
 .dchip{position:absolute;right:0;top:-6px;font-family:"BSD","OS",sans-serif;font-weight:800;font-size:22px;line-height:1;padding:3px 7px;color:#06111b;background:var(--ok);pointer-events:none;animation:dchip 1.7s ease-out both}
@@ -428,6 +430,10 @@ __KAPITEL_CSS__
 const DATA = __DATA__;
 const BILDER = __BILDER__;
 const KORFILM = "__KORFILM__", VILLAFILM = "__VILLAFILM__"; const filmUrl2 = {}; let korUrl = null;
+/* Videorna packas upp en gång, asynkront, direkt när sidan laddats. Aldrig under uppspelning. */
+const VIDEO = {};
+function forbered(nyck, b64){ if(!VIDEO[nyck]) VIDEO[nyck] = fetch("data:video/mp4;base64," + b64).then(r => r.blob()).then(b => URL.createObjectURL(b)); return VIDEO[nyck]; }
+function koppla(el, nyck, b64, sen){ if(el.dataset.k === nyck){ sen && sen(); return; } el.dataset.k = nyck; forbered(nyck, b64).then(u => { if(el.dataset.k !== nyck) return; el.src = u; el.load(); sen && sen(); }); }
 const K = __KARTA__;
 const FE = __FE__;
 const S = DATA.situationer;
@@ -609,9 +615,8 @@ function kor(i, klart){ // kör till läge i (i = S.length betyder hemfärd)
   const m0 = minuter(tidFran), m1 = minuter(tidTill);
   const T = RM ? 200 : ((i===0 || i>=S.length || (S[i] && S[i].id==="s07")) ? 7200 : (tel ? 2200 : 3200)), t0 = performance.now();
   const villa = S[i] && S[i].id === "s07", film = (i===0 || hem || villa) && !RM, fv = $("kor-film"); ov.classList.toggle("film", film);
-  if(film){ const nyck = villa ? "villa" : "kor"; if(!filmUrl2[nyck]){ const bin = atob(villa ? VILLAFILM : KORFILM); const u = new Uint8Array(bin.length); for(let j=0;j<bin.length;j++) u[j]=bin.charCodeAt(j); filmUrl2[nyck] = URL.createObjectURL(new Blob([u], {type:"video/mp4"})); }
-    if(fv.dataset.k !== nyck){ fv.src = filmUrl2[nyck]; fv.dataset.k = nyck; }
-    fv.classList.remove("hidden"); try{ fv.currentTime = 0; }catch(e){} const pp = fv.play(); pp && pp.catch(()=>{}); } else { fv.pause(); fv.classList.add("hidden"); }
+  if(film){ const nyck = villa ? "villa" : "kor"; fv.classList.remove("hidden");
+    koppla(fv, nyck, villa ? VILLAFILM : KORFILM, () => { try{ fv.currentTime = 0; }catch(e){} const pp = fv.play(); pp && pp.catch(()=>{}); }); } else { fv.pause(); fv.classList.add("hidden"); }
   const tyst = (kor || film) ? ljud.motor((film ? 7400 : T)+500) : null;
   const mid = [(fran[0]+till[0])/2, (fran[1]+till[1])/2];
   let klar = false;
@@ -629,9 +634,10 @@ function kor(i, klart){ // kör till läge i (i = S.length betyder hemfärd)
   korKlar = fardig;
   const steg = t => { const f = Math.min(1,(t-t0)/T), e = ease(f);
     const v = lerp(A,B,e);
-    if(kor){ const p = delbana(kKor, e); v[0] += (p[0]-mid[0])*.35*Math.sin(Math.PI*f); v[1] += (p[1]-mid[1])*.35*Math.sin(Math.PI*f); satVy(kKor, v); bil(kKor, p); }
+    if(film){ /* filmen syns, kartan ritas inte om */ }
+    else if(kor){ const p = delbana(kKor, e); v[0] += (p[0]-mid[0])*.35*Math.sin(Math.PI*f); v[1] += (p[1]-mid[1])*.35*Math.sin(Math.PI*f); satVy(kKor, v); bil(kKor, p); }
     else { satVy(kKor, v); bil(kKor, [till[0]+kKor.z*34, till[1]+kKor.z*14], -20); }
-    if(kor) $("kor-km").textContent = (f<1 ? Math.round(kmTot*e) : "ca "+kmTot) + " km";
+    if(kor && !film) $("kor-km").textContent = (f<1 ? Math.round(kmTot*e) : "ca "+kmTot) + " km";
     const m = Math.round(m0 + (m1-m0)*e); $("kor-tid").textContent = String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
     if(f<1) korAnim = requestAnimationFrame(steg); else { if(hem) bil(kKor, [till[0]+kKor.z*34, till[1]+kKor.z*14], -20); setTimeout(fardig, RM?0:900); } };
   korAnim = requestAnimationFrame(steg);
@@ -654,6 +660,7 @@ function starta(l, fortsatt){
   if(!fortsatt || st.i===0) kor(st.i);
 }
 document.querySelectorAll(".ljudknapp").forEach(b=>{ b.classList.toggle("av", !ljud.pa); b.onclick = () => { const p = ljud.vaxla(); document.querySelectorAll(".ljudknapp").forEach(x=>x.classList.toggle("av", !p)); if(p) ljud.tick(); }; });
+koppla($("kor-film"), "kor", KORFILM); forbered("villa", VILLAFILM);
 $("go-grupp").onclick = () => starta("grupp");
 $("go-tel").onclick = () => starta("tel");
 $("fortsatt").onclick = () => starta("tel", true);

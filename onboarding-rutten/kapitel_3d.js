@@ -142,7 +142,7 @@ function trea(){
   r.outputEncoding = T3.sRGBEncoding; r.toneMapping = T3.ACESFilmicToneMapping; r.toneMappingExposure = 1.05;
   const cam = new T3.PerspectiveCamera(32, 1, 5, 9000);
   R3 = { r, cam, mal:null, nu:null, t0:0 };
-  const loop = ms => { requestAnimationFrame(loop); if(!kap || kap.k.film || !$("kapitel").classList.contains("on") || !R3.mal) return; rendera(ms); };
+  const loop = ms => { requestAnimationFrame(loop); const kp = $("kapitel"); if(!kap || kap.k.film || !kp.classList.contains("on") || kp.classList.contains("intro") || !R3.mal) return; rendera(ms); };
   requestAnimationFrame(loop);
   return R3;
 }
@@ -209,7 +209,7 @@ function visaKapitel(id, klart){
 let filmUrl = null, filmStopp = 0;
 function filmKlar(){
   const v = $("kap-film");
-  if(!filmUrl){ const bin = atob(HUSFILM); const u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); filmUrl = URL.createObjectURL(new Blob([u], {type:"video/mp4"})); v.src = filmUrl; }
+  koppla(v, "hus", HUSFILM);
 }
 function filmSeg(a, b){
   const v = $("kap-film"); filmStopp = b;
@@ -260,11 +260,11 @@ function kapSteg(i, forsta){
 }
 /* Tar en riktig bild av 3D-scenen från där kameran står. */
 let introUrl = null;
+koppla($("kap-intro"), "intro", BILINFILM); koppla($("kap-film"), "hus", HUSFILM);
 function spelaIntro(){
   const v = $("kap-intro"); if(RM){ v.classList.add("hidden"); return; }
-  if(!introUrl){ const bin = atob(BILINFILM); const u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); introUrl = URL.createObjectURL(new Blob([u], {type:"video/mp4"})); v.src = introUrl; }
-  $("kapitel").classList.add("intro"); v.classList.remove("hidden","ut"); try{ v.currentTime = 0; }catch(e){}
-  const p = v.play(); p && p.catch(()=>slutIntro()); ljud.motor(7600, .7);
+  $("kapitel").classList.add("intro"); v.classList.remove("hidden","ut");
+  koppla(v, "intro", BILINFILM, () => { try{ v.currentTime = 0; }catch(e){} const p = v.play(); p && p.catch(()=>slutIntro()); }); ljud.motor(7600, .7);
 }
 function slutIntro(){ const v = $("kap-intro"); if(v.classList.contains("hidden")) return; v.classList.add("ut"); $("kapitel").classList.remove("intro"); setTimeout(()=>{ v.pause(); v.classList.add("hidden"); }, 900); }
 $("kap-intro").addEventListener("ended", slutIntro);
