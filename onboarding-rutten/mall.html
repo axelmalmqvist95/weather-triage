@@ -854,12 +854,13 @@ function visaSvar(){
   if(st.visat || !st.valt) return;
   const s=S[st.i], k=s.kons[st.valt];
   st.svar[st.i]=st.valt; st.visat=true; if(showLage() && st.vem){ st.po[st.vem] = (st.po[st.vem]||0) + (st.valt===s.ratt ? 1 : 0); }
-  st.tid += k.tid||0; st.kv = kl(st.kv + (k.kv||0)*8); st.ku = kl(st.ku + (k.ku||0)*8);
+  const kt = (st.valt===s.ratt && (k.tid||0) < 0) ? 0 : (k.tid||0); // rätt val ger ingen försening
+  st.tid += kt; st.kv = kl(st.kv + (k.kv||0)*8); st.ku = kl(st.ku + (k.ku||0)*8);
   const chip = (id, txt, neg) => { const m = $(id).closest(".mat"); m.querySelectorAll(".dchip").forEach(e=>e.remove()); const c = document.createElement("span"); c.className = "dchip"+(neg?" neg":""); c.textContent = txt; m.appendChild(c); setTimeout(()=>c.remove(), 1800); };
   st.valt===s.ratt ? ljud.ratt() : ljud.fel();
   if(k.kv) chip("m-kv", (k.kv>0?"+":"−")+Math.abs(k.kv*8), k.kv<0);
   if(k.ku) chip("m-ku", (k.ku>0?"+":"−")+Math.abs(k.ku*8), k.ku<0);
-  if(k.tid) chip("m-tid", (k.tid<0?"+":"−")+Math.abs(k.tid)+" min", k.tid<0);
+  if(kt) chip("m-tid", (kt<0?"+":"−")+Math.abs(kt)+" min", kt<0);
   spara(); rita(false); ritaVem();
   if(laget==="tel") setTimeout(()=>{ document.querySelector(".alt.ratt")?.scrollIntoView({behavior:"smooth",block:"center"}); }, 120);
 }
