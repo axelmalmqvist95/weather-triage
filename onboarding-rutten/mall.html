@@ -43,25 +43,71 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .wipe .linje{position:absolute;top:0;bottom:0;left:var(--x,50%);width:3px;background:var(--w);box-shadow:0 0 24px rgba(255,255,255,.6)}
 .wipe .lbl{position:absolute;top:22px;font-size:.62em;letter-spacing:.2em;text-transform:uppercase;font-weight:700;padding:6px 10px;background:rgba(6,17,27,.6)}
 .wipe .lbl.f{left:calc(var(--x,50%) - 90px)}.wipe .lbl.e{right:22px}
-.start-skugga{position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,17,27,.96) 0%,rgba(6,17,27,.86) 38%,rgba(6,17,27,.25) 70%,rgba(6,17,27,.05) 100%)}
-.start-inner{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:clamp(20px,4vw,64px);max-width:min(1100px,100%)}
+.start-skugga{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(6,17,27,.97) 0%,rgba(6,17,27,.9) 30%,rgba(6,17,27,.35) 48%,rgba(6,17,27,0) 62%)}
+.start-inner{position:relative;z-index:2;pointer-events:none;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:clamp(20px,4vw,64px);max-width:min(1100px,100%)}
 .logo{height:clamp(26px,2.6vw,44px);width:auto;display:block}
 .kicker{font-size:.7em;letter-spacing:.24em;text-transform:uppercase;color:var(--t3);font-weight:700;display:flex;align-items:center;gap:12px}
 .kicker::before{content:"";width:34px;height:3px;background:var(--red)}
 .start-titel{font-size:clamp(64px,11vw,190px);margin:.18em 0 .12em;line-height:1.12}
 .start-titel span{color:var(--red)}
-.start-ingress{max-width:34em;color:var(--t2);font-size:1.05em;margin:0}
+.start-ingress{max-width:27em;color:var(--t2);font-size:1.05em;margin:0}
 .lagen{display:flex;gap:clamp(14px,2vw,30px);margin:1.4em 0 1.6em;flex-wrap:wrap}
 .lagen div{display:flex;flex-direction:column}
 .lagen b{font-family:"BSD";font-size:2.4em;line-height:1}
 .lagen small{color:var(--t3);font-size:.62em;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
-.val{display:flex;gap:16px;flex-wrap:wrap}
+.val{display:flex;gap:16px;flex-wrap:wrap;pointer-events:auto;margin-top:1.6em}
+#fortsatt{pointer-events:auto}
 .knapp{white-space:nowrap;display:inline-flex;align-items:center;gap:14px;padding:.85em 1.3em;min-height:56px;font-weight:700;background:var(--red);color:var(--w);clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%);transition:transform .15s ease,background .15s}
 .knapp:hover{background:var(--red2)}.knapp:active{transform:translateY(1px)}
 .knapp.sek{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 2px rgba(255,255,255,.28)}
 .knapp.sek:hover{background:rgba(255,255,255,.15)}
 .knapp svg{width:1.2em;height:1.2em}
 .fot{color:var(--t3);font-size:.6em;letter-spacing:.06em}
+
+/* ---------- Karta ---------- */
+.kartbox{position:absolute;inset:0;overflow:hidden;background:#07131f}
+.kartbox svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.kartbox .kom{fill:none;stroke:rgba(134,174,176,.16);stroke-width:1;vector-effect:non-scaling-stroke}
+.kartbox .kust{fill:none;stroke:rgba(134,174,176,.42);stroke-width:1.2;vector-effect:non-scaling-stroke}
+.kartbox .vag{fill:none;stroke:rgba(210,222,227,.22);stroke-width:1.4;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.kartbox .vag.stor{stroke:rgba(210,222,227,.34);stroke-width:2.2}
+.kartbox .ort{fill:#c8d6dc;font-family:"OS",sans-serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;paint-order:stroke;stroke:#07131f;stroke-width:3px;stroke-linejoin:round}
+.kartbox .ort.s0{fill:#6f8d99;font-weight:400}
+.kartbox .vatten text{fill:#3e6278;font-family:"OS",sans-serif;font-style:italic;letter-spacing:.3em}
+.kartbox .bas{fill:none;stroke:rgba(255,255,255,.55);stroke-width:2;stroke-dasharray:2 7;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.kartbox .klar{fill:none;stroke:var(--red);stroke-width:4;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.kartbox .ritas{fill:none;stroke:var(--red);stroke-width:4;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.kartbox .st circle{fill:var(--n1);stroke:#fff;stroke-width:2;vector-effect:non-scaling-stroke}
+.kartbox .st text{fill:#fff;font-family:"BSD","OS",sans-serif;font-weight:800;text-anchor:middle;dominant-baseline:central}
+.kartbox .st.klar circle{fill:var(--ok2);stroke:var(--ok2)}.kartbox .st.klar text{fill:var(--n0)}
+.kartbox .st.fel circle{fill:var(--red);stroke:var(--red)}
+.kartbox .st.nu circle{fill:#fff}.kartbox .st.nu text{fill:var(--n0)}
+.kartbox .st{opacity:0;transition:opacity .4s}.kartbox .st.syns{opacity:1}
+.puls{fill:none;stroke:#fff;stroke-width:2;vector-effect:non-scaling-stroke;animation:puls 1.8s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes puls{from{opacity:.9;transform:scale(1)}to{opacity:0;transform:scale(3.2)}}
+.vinjett{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 60% 50%,transparent 55%,rgba(7,19,31,.9) 100%)}
+.kalla{position:absolute;right:14px;bottom:10px;font-size:10px;color:rgba(159,184,192,.6);letter-spacing:.04em;z-index:3}
+.ruttkort{position:absolute;right:clamp(16px,2.4vw,40px);top:50%;transform:translateY(-50%);z-index:3;background:rgba(6,17,27,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:14px 18px 12px;border-left:4px solid var(--red);min-width:260px}
+.ruttkort small{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);font-weight:700}
+.ruttkort b{display:block;font-family:"BSD";font-size:30px;line-height:1.05;margin:4px 0 2px}
+.ruttkort span{font-size:.62em;color:var(--t2)}
+.korlista{list-style:none;margin:14px 0 0;padding:0;font-size:.64em}
+.korlista li{display:flex;gap:8px;padding:3px 0;break-inside:avoid;color:var(--t2);white-space:nowrap}
+.korlista li b{font-family:"BSD";font-size:1.25em;margin:0;color:#fff;min-width:1.6em;line-height:1.2}
+#korning{position:fixed;inset:0;z-index:30;opacity:0;pointer-events:none;transition:opacity .45s ease}
+#korning.on{opacity:1;pointer-events:auto;cursor:pointer}
+.kor-info{position:absolute;left:clamp(18px,3vw,56px);bottom:clamp(18px,3.4vw,60px);z-index:3}
+.kor-info .kicker{margin-bottom:10px}
+.kor-tid{font-size:clamp(84px,10vw,200px);display:block}
+.kor-ort{display:block;font-family:"BSD";font-weight:800;text-transform:uppercase;font-size:clamp(28px,2.8vw,54px);color:var(--t2);margin-top:.1em;line-height:1}
+.hoppa{position:absolute;right:clamp(16px,2.4vw,40px);bottom:clamp(16px,2.4vw,40px);z-index:3;color:var(--t3);font-size:.66em;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:10px 12px}
+.hoppa:hover{color:#fff}
+.minikarta{position:absolute;top:clamp(14px,1.8vw,28px);right:clamp(14px,1.8vw,28px);width:clamp(150px,13vw,240px);aspect-ratio:4/3;z-index:2;box-shadow:0 0 0 1px rgba(255,255,255,.18),0 10px 30px rgba(0,0,0,.4)}
+.minikarta .kartbox{position:absolute;inset:0}
+.minikarta .vinjett{display:none}
+.slutkarta{position:relative;height:clamp(260px,28vw,420px);margin:0 0 18px;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+.tel .minikarta{display:none}
+.tel .ruttkort{display:none}
 
 /* ---------- Spel ---------- */
 #spel{background:var(--n1)}
@@ -190,7 +236,9 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
 .tel .tva{grid-template-columns:1fr}
 .tel .styr .knapp{width:100%;justify-content:center}
 @media (max-width:760px){
-  .start-skugga{background:linear-gradient(180deg,rgba(6,17,27,.35) 0%,rgba(6,17,27,.85) 45%,rgba(6,17,27,.98) 70%)}
+  .ruttkort{display:none}
+  #k-start .ort,.kartbox .ort.s1,.kartbox .ort.s0,.kartbox .vatten{display:none}
+  .start-skugga{background:linear-gradient(180deg,rgba(6,17,27,0) 0%,rgba(6,17,27,.05) 26%,rgba(6,17,27,.95) 37%,rgba(6,17,27,1) 50%)}
   .start-inner{justify-content:flex-end;gap:18px}
   .start-inner>header{position:absolute;top:20px;left:20px}
   .start-titel{font-size:76px}
@@ -207,12 +255,7 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
 
 <!-- START -->
 <section id="start" class="screen on" aria-label="Start">
-  <div class="wipe" id="wipe">
-    <img class="fore" alt="" src="__IMG_uppfart-fore__">
-    <img class="efter" alt="" src="__IMG_uppfart-efter__">
-    <div class="linje"></div>
-    <span class="lbl f">Före</span><span class="lbl e">Efter</span>
-  </div>
+  <div class="kartbox" id="k-start"></div>
   <div class="start-skugga"></div>
   <div class="start-inner">
     <header><img class="logo" src="__LOGO__" alt="Nanostone"></header>
@@ -220,20 +263,23 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
       <div class="kicker">Onboarding · Drift</div>
       <h1 class="start-titel bsd">En dag<br>på <span>rutten</span></h1>
       <p class="start-ingress">Från första samtalet klockan sju till sista bilden i Diroto. Under dagen dyker det upp lägen som alla operatörer råkar ut för. Välj vad du gör, och se vad som händer.</p>
-      <div class="lagen">
-        <div><b id="antal">13</b><small>lägen</small></div>
-        <div><b>3</b><small>val per läge</small></div>
-        <div><b>1</b><small>sätt vi gör det på</small></div>
-      </div>
       <div class="val">
         <button class="knapp" id="go-grupp" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="13" rx="1"/><path d="M8 21h8M12 17v4"/></svg>Spela i grupp på storskärm</button>
         <button class="knapp sek" id="go-tel" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>Spela själv</button>
       </div>
       <button class="knapp sek hidden" id="fortsatt" type="button" style="margin-top:14px">Fortsätt där du var</button>
     </div>
-    <div class="fot">Nanostone AB · Fungerar utan nät och utan inloggning · Tryck F för helskärm</div>
+    <div class="fot">Nanostone AB · Fungerar utan nät och utan inloggning · Tryck F för helskärm<br>Karta: Lantmäteriet, OpenStreetMaps bidragsgivare, Natural Earth</div>
   </div>
+  <div class="ruttkort" id="ruttkort"><small>Dagens rutt · Södra Skåne</small><b id="rk-rubrik"></b><span id="rk-sub"></span><ol class="korlista" id="korlista"></ol></div>
 </section>
+
+<!-- KÖRNING MELLAN STOPP -->
+<div id="korning" aria-hidden="true">
+  <div class="kartbox" id="k-kor"></div>
+  <div class="kor-info"><div class="kicker" id="kor-fran"></div><span class="kor-tid bsd" id="kor-tid"></span><span class="kor-ort" id="kor-ort"></span></div>
+  <button class="hoppa" id="hoppa" type="button">Hoppa fram</button>
+</div>
 
 <!-- SPEL -->
 <section id="spel" class="screen" aria-label="Rutten">
@@ -252,6 +298,7 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
   <div class="scen" id="scen">
     <div class="foto" id="foto">
       <span class="nr" id="nr"></span>
+      <div class="minikarta"><div class="kartbox" id="k-mini"></div></div>
       <div class="foto-info"><span class="klocka bsd" id="klocka"></span><span class="tjanst" id="tjanst"></span></div>
     </div>
     <div class="text" id="text">
@@ -291,7 +338,7 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
     </div>
     <div class="tva">
       <div><h2 class="sek">Dagens regler</h2><ol class="regler" id="regler"></ol></div>
-      <div><h2 class="sek">Din dag</h2><table class="dagbok" id="dagbok"></table></div>
+      <div><h2 class="sek">Din dag</h2><div class="slutkarta"><div class="kartbox" id="k-slut"></div></div><table class="dagbok" id="dagbok"></table></div>
     </div>
     <div id="lasin" class="hidden" style="margin-top:36px">
       <h2 class="sek">Läs in deltagarnas koder</h2>
@@ -311,6 +358,7 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
 "use strict";
 const DATA = __DATA__;
 const BILDER = __BILDER__;
+const K = __KARTA__;
 const S = DATA.situationer;
 const $ = id => document.getElementById(id);
 const L = ["A","B","C"];
@@ -330,18 +378,133 @@ let laget = "grupp";
 let st = null;
 function nytt(){ return {i:0, svar:Array(S.length).fill(null), visat:false, tid:0, kv:70, ku:70, valt:null, roster:[0,0,0]}; }
 
-/* ---------- Start, före/efter-svep ---------- */
-(function(){
-  const w = $("wipe"); let t0 = performance.now(), drar = false;
-  function sat(x){ w.style.setProperty("--x", (x*100).toFixed(2)+"%"); }
-  function loop(t){ if(!drar && $("start").classList.contains("on")){ const p=(Math.sin((t-t0)/2600)+1)/2; sat(.18+p*.7); } requestAnimationFrame(loop); }
-  requestAnimationFrame(loop);
-  w.addEventListener("pointermove", e => { if(e.pointerType==="mouse"){ drar=true; const r=w.getBoundingClientRect(); sat(Math.min(1,Math.max(0,(e.clientX-r.left)/r.width))); } });
-  w.addEventListener("pointerleave", () => { drar=false; t0=performance.now()-2600*Math.asin(0)-0; });
-  $("antal").textContent = S.length;
-  const sparat = lagra.get("rutten-tel");
-  if(sparat && sparat.i>0 && sparat.i<S.length) $("fortsatt").classList.remove("hidden");
-})();
+/* ---------- Karta ---------- */
+const NS = "http://www.w3.org/2000/svg";
+const PTS = S.map(x => K.stopp[x.id]);
+function seg(i){ // Catmull-Rom mellan stopp i och i+1, som kubisk bezier
+  const p0=PTS[Math.max(0,i-1)], p1=PTS[i], p2=PTS[i+1], p3=PTS[Math.min(PTS.length-1,i+2)];
+  const c1=[p1[0]+(p2[0]-p0[0])/6, p1[1]+(p2[1]-p0[1])/6], c2=[p2[0]-(p3[0]-p1[0])/6, p2[1]-(p3[1]-p1[1])/6];
+  return `M${p1[0]},${p1[1]}C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0]},${p2[1]}`;
+}
+const SEG = K.seg; // byggs i kartbygg.py, följer land
+let kartNr = 0;
+function nyKarta(box, opt={}){
+  const id = "k"+(++kartNr);
+  const svg = document.createElementNS(NS,"svg");
+  svg.setAttribute("preserveAspectRatio","xMidYMid meet");
+  const orter = K.orter.map(o=>`<text class="ort s${o.s}" data-fs="${[11,13,15,22][o.s]}" data-x="${o.x}" data-y="${o.y}" data-dx="${o.dx}" data-dy="${o.dy}" x="${o.x}" y="${o.y}" text-anchor="${o.a}" dominant-baseline="middle">${o.n}</text>`).join("");
+  const vatten = K.vatten.map(o=>`<text data-fs="15" x="${o.x}" y="${o.y}" text-anchor="middle">${o.n.toUpperCase()}</text>`).join("");
+  const vagar = K.vag.map(v=>`<path class="vag ${v.typ==="Major Highway"?"stor":""}" d="${v.d}"/>`).join("");
+  svg.innerHTML = `<defs><clipPath id="${id}c"><path d="${K.land}"/></clipPath>
+    <radialGradient id="${id}g" cx="62%" cy="42%" r="75%"><stop offset="0" stop-color="#18405f"/><stop offset="1" stop-color="#0f2a40"/></radialGradient>
+    <pattern id="${id}p" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 0v6" stroke="rgba(255,255,255,.03)" stroke-width="1.5"/></pattern></defs>
+    <path d="${K.land}" fill="url(#${id}g)"/><path d="${K.land}" fill="url(#${id}p)"/>
+    <g clip-path="url(#${id}c)"><path class="kom" d="${K.kom}"/>${vagar}</g>
+    <path class="kust" d="${K.land}"/>
+    <g class="vatten">${vatten}</g>${opt.orter===false?"":`<g>${orter}</g>`}
+    <g class="ruttg"><path class="bas" d="${SEG.join("")}"/>${SEG.map((d,i)=>`<path class="klar" data-i="${i}" d="${d}" style="opacity:0"/>`).join("")}<path class="ritas" d=""/><path class="matt" d="" style="fill:none;stroke:none"/></g>
+    <g class="stg">${PTS.map((p,i)=>`<g class="st" data-i="${i}" transform="translate(${p[0]} ${p[1]})"><circle data-r="11" r="11"/><text data-fs="13">${i+1}</text></g>`).join("")}</g>
+    <g class="puck" style="display:none"><circle class="puls" data-r="9" r="9"/><circle data-r="8" r="8" fill="#fff"/><circle data-r="4" r="4" fill="#e52f19"/></g>`;
+  box.innerHTML = ""; box.appendChild(svg);
+  const v = document.createElement("div"); v.className="vinjett"; box.appendChild(v);
+  const k = {sk: opt.skala, box, svg, vb:[0,0,K.vb[0],K.vb[1]], puck: svg.querySelector(".puck"), ritas: svg.querySelector(".ritas"), matt: svg.querySelector(".matt"),
+    klar:[...svg.querySelectorAll(".klar")], st:[...svg.querySelectorAll(".st")], skal:[...svg.querySelectorAll("[data-fs],[data-r]")]};
+  return k;
+}
+function satVy(k, b){
+  k.vb = b; k.svg.setAttribute("viewBox", b.map(v=>v.toFixed(2)).join(" "));
+  const r = k.box.getBoundingClientRect(); const z = b[2] / Math.max(1, r.width); // användarenheter per pixel
+  const f = z*(k.sk || (window.innerWidth<760 ? .66 : 1.25));
+  for(const e of k.skal){ const d=e.dataset; if(d.fs) e.setAttribute("font-size", (d.fs*f).toFixed(2)); if(d.r) e.setAttribute("r", (d.r*f).toFixed(2));
+    if(d.dx!=null){ e.setAttribute("x", (+d.x + d.dx*f).toFixed(1)); e.setAttribute("y", (+d.y + d.dy*f).toFixed(1)); } }
+  k.z = z;
+}
+// Vy som lägger rektangeln rb (kartenheter) i en del av rutan (andelar av bredd och höjd).
+function vyFor(k, rb, yta=[0,0,1,1]){
+  const r = k.box.getBoundingClientRect(), ew = r.width||1600, eh = r.height||900;
+  const ax=yta[0]*ew, ay=yta[1]*eh, aw=(yta[2]-yta[0])*ew, ah=(yta[3]-yta[1])*eh;
+  const s = Math.min(aw/rb[2], ah/rb[3]);
+  return [rb[0]-(ax+(aw-rb[2]*s)/2)/s, rb[1]-(ay+(ah-rb[3]*s)/2)/s, ew/s, eh/s];
+}
+function bbox(pts, pad){ const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]); const x0=Math.min(...xs)-pad, y0=Math.min(...ys)-pad; return [x0, y0, Math.max(...xs)+pad-x0, Math.max(...ys)+pad-y0]; }
+function puck(k, p){ k.puck.style.display=""; const s = (k.z||1)*1.25; k.puck.setAttribute("transform", `translate(${p[0]} ${p[1]})`); }
+function stoppStatus(k, nu){
+  k.st.forEach((g,i)=>{ const sv = st ? st.svar[i] : null;
+    g.classList.add("syns");
+    g.classList.toggle("nu", i===nu); g.classList.toggle("klar", sv!=null && sv===S[i].ratt); g.classList.toggle("fel", sv!=null && sv!==S[i].ratt); });
+  k.klar.forEach((p,i)=>{ p.style.opacity = (nu!=null && i < nu) ? 1 : 0; });
+}
+function delbana(k, f){ // ritar banan i k.matt fram till andel f, returnerar punkten
+  const m = k.matt, L = m.getTotalLength(), n = Math.max(2, Math.ceil(80*f)); let d = "";
+  for(let j=0;j<=n;j++){ const q = m.getPointAtLength(L*f*j/n); d += (j?"L":"M")+q.x.toFixed(1)+","+q.y.toFixed(1); }
+  k.ritas.setAttribute("d", f>0 ? d : ""); const q = m.getPointAtLength(L*f); return [q.x,q.y];
+}
+const ease = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+const lerp = (a,b,t) => a.map((v,i)=>v+(b[i]-v)*t);
+const RM = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+/* Startkartan: rutten ritas upp. */
+const kStart = nyKarta($("k-start"));
+const ruttLangd = (()=>{ const p=document.createElementNS(NS,"path"); p.setAttribute("d", SEG.join("")); kStart.svg.appendChild(p); const l=p.getTotalLength(); p.remove(); return l; })();
+$("rk-rubrik").textContent = `${S.length} stopp · ca ${Math.round(ruttLangd / K.kmper / 5)*5} km`;
+$("rk-sub").textContent = `${S[0].tid} till ${S[S.length-1].tid} · ${new Set(S.map(x=>K.ort[x.id])).size} orter`;
+S.forEach((x,i)=>{ const li=document.createElement("li"); li.innerHTML=`<b>${i+1}</b>${x.tid} ${K.ort[x.id]}`; $("korlista").appendChild(li); });
+function startVy(){
+  const tel = window.matchMedia("(max-width:760px)").matches;
+  satVy(kStart, vyFor(kStart, bbox(PTS, 70), tel ? [.08,.08,.92,.27] : [.5,.07,.8,.93]));
+}
+let startAnim = 0;
+function spelaStart(){
+  startVy(); cancelAnimationFrame(startAnim);
+  kStart.matt.setAttribute("d", SEG.join("")); kStart.ritas.setAttribute("d","");
+  kStart.st.forEach(g=>g.classList.remove("syns","nu","klar","fel")); kStart.klar.forEach(p=>p.style.opacity=0);
+  const t0 = performance.now(), T = RM ? 1 : 3400;
+  const steg = t => { const f = Math.min(1,(t-t0)/T), e = ease(f);
+    puck(kStart, delbana(kStart, e));
+    kStart.st.forEach((g,i)=>{ if(i===0 || e*(PTS.length-1) >= i-0.05) g.classList.add("syns"); });
+    if(f<1) startAnim = requestAnimationFrame(steg); else puck(kStart, PTS[0]); };
+  startAnim = requestAnimationFrame(steg);
+}
+window.addEventListener("resize", ()=>{ if($("start").classList.contains("on")) startVy(); });
+spelaStart();
+{ const sparat = lagra.get("rutten-tel"); if(sparat && sparat.i>0 && sparat.i<S.length) $("fortsatt").classList.remove("hidden"); }
+
+/* Körning mellan två stopp. */
+const kKor = nyKarta($("k-kor"));
+const kMini = nyKarta($("k-mini"), {skala:.72});
+let korKlar = null, korAnim = 0;
+function kor(i, klart){
+  const tel = laget==="tel", KY1 = tel?[.05,.05,.95,.6]:[.35,0,1,1], KY2 = tel?[.03,.03,.97,.6]:[.3,0,1,1], KY3 = tel?[.06,.06,.94,.6]:[.3,.05,1,.95]; // kör till stopp i (i = S.length betyder hem)
+  const ov = $("korning"); ov.classList.add("on"); ov.setAttribute("aria-hidden","false");
+  const fran = i>0 ? PTS[i-1] : null, till = i<S.length ? PTS[i] : PTS[S.length-1];
+  stoppStatus(kKor, i<S.length ? i : null);
+  kKor.klar.forEach((p,j)=>p.style.opacity = j < i-1 ? 1 : 0);
+  const r = kKor.ritas;
+  let A, B, L = 0;
+  if(i===0){ A = vyFor(kKor, bbox(PTS,90)); B = vyFor(kKor, bbox([till],150), KY1); r.setAttribute("d",""); }
+  else if(i>=S.length){ A = vyFor(kKor, bbox([fran],160), KY1); B = vyFor(kKor, bbox(PTS,90), KY2); r.setAttribute("d",""); kKor.klar.forEach(p=>p.style.opacity=1); }
+  else { A = vyFor(kKor, bbox([fran,till],130), KY3); B = vyFor(kKor, bbox([fran,till],100), KY3); kKor.matt.setAttribute("d", SEG[i-1]); L = 1; }
+  const tidFran = i>0 ? S[i-1].tid : "06:45", tidTill = i<S.length ? S[i].tid : "16:15";
+  $("kor-fran").textContent = i===0 ? "Dagen börjar" : i>=S.length ? "Dagen är slut" : `Stopp ${i+1} av ${S.length} · ${S[i].tjanst}`;
+  $("kor-ort").textContent = i<S.length ? K.ort[S[i].id] : "Tillbaka i Lund";
+  const m0 = minuter(tidFran), m1 = minuter(tidTill);
+  const T = RM ? 200 : (laget==="tel" ? 1700 : 2500), t0 = performance.now();
+  let klar = false;
+  const fardig = () => { if(klar) return; klar = true; cancelAnimationFrame(korAnim); ov.classList.remove("on"); ov.setAttribute("aria-hidden","true"); korKlar=null; klart && klart(); };
+  korKlar = fardig;
+  const steg = t => { const f = Math.min(1,(t-t0)/T), e = ease(f);
+    satVy(kKor, lerp(A,B,e));
+    if(L){ puck(kKor, delbana(kKor, e)); } else puck(kKor, i===0 ? till : (i>=S.length ? lerp(fran, PTS[S.length-1], e) : till));
+    const m = Math.round(m0 + (m1-m0)*e); $("kor-tid").textContent = String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+    if(f<1) korAnim = requestAnimationFrame(steg); else setTimeout(fardig, RM?0:650); };
+  korAnim = requestAnimationFrame(steg);
+}
+$("korning").addEventListener("click", ()=>korKlar && korKlar());
+function miniVy(){
+  if(laget==="tel" || st.i>=S.length) return;
+  const p = PTS[st.i]; stoppStatus(kMini, st.i); kMini.klar.forEach((e,j)=>e.style.opacity = j < st.i ? 1 : 0);
+  satVy(kMini, vyFor(kMini, [p[0]-150, p[1]-110, 300, 220])); puck(kMini, p);
+}
 
 function visa(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on", s.id===id)); }
 
@@ -351,11 +514,12 @@ function starta(l, fortsatt){
   const sv=document.querySelector('.svar'); (l==="tel" ? $("text") : $("foto")).appendChild(sv);
   st = (fortsatt && lagra.get("rutten-tel")) || nytt();
   byggRutt(); visa("spel"); rita(true);
+  if(!fortsatt || st.i===0) kor(st.i);
 }
 $("go-grupp").onclick = () => starta("grupp");
 $("go-tel").onclick = () => starta("tel");
 $("fortsatt").onclick = () => starta("tel", true);
-$("hem").onclick = $("hem2").onclick = () => { visa("start"); const sp=lagra.get("rutten-tel"); $("fortsatt").classList.toggle("hidden", !(sp&&sp.i>0&&sp.i<S.length)); };
+$("hem").onclick = $("hem2").onclick = () => { visa("start"); spelaStart(); const sp=lagra.get("rutten-tel"); $("fortsatt").classList.toggle("hidden", !(sp&&sp.i>0&&sp.i<S.length)); };
 $("igen").onclick = () => { if(laget==="tel") lagra.del("rutten-tel"); starta(laget); };
 $("skriv").onclick = () => window.print();
 if(window.matchMedia("(max-width:760px)").matches){ $("go-tel").classList.remove("sek"); $("go-grupp").classList.add("sek"); }
@@ -397,7 +561,8 @@ function rita(ny){
   if(s.bild && BILDER[s.bild]){ const im=new Image(); im.alt=""; im.src=BILDER[s.bild]; f.prepend(im); }
   else { const d=document.createElement("div"); d.className="ill"; d.innerHTML=ILL[s.ikon]||""; f.prepend(d); }
   $("nr").textContent = `Läge ${st.i+1} av ${S.length}`;
-  $("klocka").textContent = s.tid; $("tjanst").textContent = s.tjanst;
+  $("klocka").textContent = s.tid; $("tjanst").textContent = s.tjanst + " · " + K.ort[s.id];
+  if(ny) requestAnimationFrame(miniVy);
   $("rubrik").textContent = s.rubrik; $("lage").textContent = s.lage;
   const box = $("alts"); box.innerHTML="";
   const visat = st.visat, val = st.valt;
@@ -451,7 +616,9 @@ function visaSvar(){
 }
 function nasta(){
   if(!st.visat) return;
-  st.i++; st.visat=false; st.valt=null; st.roster=[0,0,0]; spara(); rita(true);
+  st.i++; st.visat=false; st.valt=null; st.roster=[0,0,0]; spara();
+  if(st.i >= S.length){ kor(S.length, ()=>rita(true)); return; }
+  rita(true); kor(st.i);
 }
 function spara(){ if(laget==="tel") lagra.set("rutten-tel", st); }
 $("huvud").onclick = () => st.visat ? nasta() : visaSvar();
@@ -459,6 +626,7 @@ $("huvud").onclick = () => st.visat ? nasta() : visaSvar();
 document.addEventListener("keydown", e=>{
   if(e.target.tagName==="TEXTAREA") return;
   if(e.key==="f"||e.key==="F"){ if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); return; }
+  if(korKlar){ if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"||e.key==="Escape"){ e.preventDefault(); korKlar(); } return; }
   if(!$("spel").classList.contains("on")) return;
   const k=e.key.toUpperCase();
   if(["A","B","C"].includes(k)){ valj(k); }
@@ -483,6 +651,7 @@ function avkoda(kod){
 }
 
 /* ---------- Slut ---------- */
+let kSlut = null;
 function slut(){
   const r = st.svar.filter((v,i)=>v===S[i].ratt).length;
   $("s-ratt").textContent = r+"/"+S.length;
@@ -497,6 +666,7 @@ function slut(){
   $("lasin").classList.toggle("hidden", laget!=="grupp");
   if(laget==="tel"){ $("kod").textContent = kodFor(st.svar); lagra.set("rutten-tel", st); }
   ritaStat(); visa("slut");
+  requestAnimationFrame(()=>{ if(!kSlut) kSlut = nyKarta($("k-slut")); stoppStatus(kSlut, null); kSlut.klar.forEach(p=>p.style.opacity=1); satVy(kSlut, vyFor(kSlut, bbox(PTS,90))); puck(kSlut, PTS[S.length-1]); });
 }
 function ritaStat(){
   const koder = $("koder").value.split(/[\s,;]+/).filter(Boolean);

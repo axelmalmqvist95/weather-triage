@@ -13,3 +13,12 @@ Interaktiv onboardingövning för nya operatörer. En fristående HTML-fil som f
 Texterna står i `situationer.py`. Regler från Axel (18 nov 2026): närmast ansvarig för allt tekniskt, kundtjänst vid yta mer än 20 m² över ordern och för allt som rör pengar, ingen egen rödmarkering, ingen egen rabatt, provtvätt 1 m² vid sten och altan (aldrig Softwash), bomkörningsavgift när kunden hindrar jobbet. Inga trycksiffror och inga interna siffror visas.
 
 `bygg_html.py` sprider rätt svar jämnt över A, B och C.
+
+## Kartan
+
+`karta.json` byggs av `kartbygg.py` från tre öppna källor och checkas in (cirka 85 kB):
+- kustlinje: OpenStreetMap via geo-maps `countries-land-100m` (ODbL),
+- kommungränser: Lantmäteriet, Kommun, län och rike 2026 (CC0), via GioPalusa/SwedenGeoJSON,
+- större vägar: Natural Earth `ne_10m_roads` (public domain).
+
+Stoppen är påhittade punkter i rätt ort, inga adresser. `VIA` i `kartbygg.py` håller rutten på land. Källorna anges på startsidan.
