@@ -267,7 +267,7 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
     <div>
       <div class="kicker">Onboarding · Drift</div>
       <h1 class="start-titel bsd">En dag<br>på <span>rutten</span></h1>
-      <p class="start-ingress">Från första samtalet klockan sju till sista bilden i Diroto. Under dagen dyker det upp lägen som alla operatörer råkar ut för. Välj vad du gör, och se vad som händer.</p>
+      <p class="start-ingress">Från morgonen hemma till sista bilden i Diroto. Första kunden klockan sju. Under dagen dyker det upp lägen som alla operatörer råkar ut för. Välj vad du gör, och se vad som händer.</p>
       <div class="val">
         <button class="knapp" id="go-grupp" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="13" rx="1"/><path d="M8 21h8M12 17v4"/></svg>Spela i grupp på storskärm</button>
         <button class="knapp sek" id="go-tel" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>Spela själv</button>
@@ -511,7 +511,7 @@ function kor(i, klart){ // kör till läge i (i = S.length betyder hemfärd)
   let A, B, kor = true, d = "";
   if(i===0){ A = vyFor(kKor, bbox(PTS,90), KY1); B = vyFor(kKor, bbox([till],140), KY1); kor = false; kKor.ritas.setAttribute("d",""); }
   else { d = hem ? K.hem : SEG[i-1]; A = vyFor(kKor, bbox([fran,till],140), KY3); B = vyFor(kKor, bbox([fran,till],105), KY3); kKor.matt.setAttribute("d", d); }
-  const tidFran = i>0 ? S[i-1].tid : "06:50", tidTill = hem ? HEMMA : S[i].tid;
+  const tidFran = i>0 ? S[i-1].tid : "06:05", tidTill = hem ? HEMMA : S[i].tid;
   $("kor-fran").textContent = i===0 ? "Du utgår hemifrån" : hem ? "Rutten avslutad hos sista kunden · Hemfärd" : (i===1 ? "Rutten startar när du börjar köra · " : "") + `Läge ${i+1} av ${S.length} · ${S[i].tjanst}`;
   $("kor-ort").textContent = hem ? "Hemma" : K.ort[S[i].id];
   $("kor-km").textContent = kor ? `ca ${km(d)} km` : "Dagens rutt i Diroto";
@@ -556,7 +556,7 @@ if(window.matchMedia("(max-width:760px)").matches){ $("go-tel").classList.remove
 
 /* ---------- Ruttlinjen ---------- */
 function minuter(t){ const [h,m]=t.split(":").map(Number); return h*60+m; }
-const T0 = minuter("06:45"), T1 = minuter("16:30");
+const T0 = minuter("06:00"), T1 = minuter("16:30");
 function pos(t){ return ((minuter(t)-T0)/(T1-T0)*100); }
 function byggRutt(){
   const r = $("rutt"); r.querySelectorAll(".stopp").forEach(e=>e.remove());

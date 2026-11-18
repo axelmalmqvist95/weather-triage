@@ -4,8 +4,8 @@ import json, pathlib
 BAS = pathlib.Path(__file__).resolve().parent
 
 S = [
- dict(id="s01", tid="07:00", tjanst="Hemma, före första kunden", bild="vatten", rubrik="Regn i prognosen",
-  lage="Du är hemma och går igenom dagens rutt i Diroto innan du börjar köra. Prognosen visar duggregn efter lunch, ibland kraftigare skurar. Efter lunch ligger en algbehandling av fasad och en impregnering av sten.",
+ dict(id="s01", tid="06:15", tjanst="Hemma, före första kunden", bild="vatten", rubrik="Regn i prognosen",
+  lage="Du är hemma och går igenom dagens rutt i Diroto innan du kör till första kunden klockan sju. Prognosen visar duggregn efter lunch, ibland kraftigare skurar. Efter lunch ligger en algbehandling av fasad och en impregnering av sten.",
   alt=dict(A="Rödmarkera eftermiddagens två jobb direkt, så att kunderna får besked i god tid.",
            B="Planera för att köra. Följ vädret under dagen, och ring närmast ansvarig innan något rödmarkeras.",
            C="Kör allt som vanligt. Regnet spelar ingen roll för resultatet."),
@@ -19,7 +19,7 @@ S = [
             B=dict(t="Jobben blir gjorda med anpassad plan, och om något måste flyttas har en ansvarig sett beslutet.", tid=-5, kv=1, ku=1),
             C=dict(t="En behandling i kraftigt regn kan regnas bort. Då är jobbet gjort men resultatet uteblir.", tid=0, kv=-2, ku=-1))),
 
- dict(id="s02", tid="08:00", tjanst="Stentvätt", bild="uppfart-fore", rubrik="Ytan är större än ordern",
+ dict(id="s02", tid="07:00", tjanst="Stentvätt", bild="uppfart-fore", rubrik="Ytan är större än ordern",
   lage="Kunden visar runt och vill att gången längs huset också ska med. Du mäter med mäthjulet: ytan blir drygt 30 m² större än i ordern. Kunden säger att det är lugnt och att du kan köra.",
   alt=dict(A="Tvätta allt nu eftersom kunden sagt ja, och skriv det nya måttet i Diroto efteråt.",
            B="Ring kundtjänst med uppmätt yta innan du börjar på det extra, så att kunden får besked om priset.",
