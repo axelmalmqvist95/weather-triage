@@ -99,12 +99,15 @@ function byggBil(c){
   // Fotopunkter och QR-markör
   const M = {}; [["fv",420,-300],["fh",420,300],["bh",-380,300],["bv",-380,-300]].forEach(([id,x,z])=>{ M[id]=c.nal(x,0,z, KAMIKON, id); });
   M.qr = c.nal(156,128,-82, "QR", "qr");
-  const mal = { dorr:0, bak:0 }, nu = { dorr:0, bak:0 };
+  const mal = { dorr:0, bak:0 }, nu = { dorr:0, bak:0 }; const in0 = performance.now();
   return {
     satt(t){ mal.dorr = t.dorr ? 1 : 0; mal.bak = t.bak ? 1 : 0;
       hjulG.children.forEach(g=>{ const r=g.userData.ring; const on = t.dack==="alla" || t.dack===r.userData.id || t.varn===r.userData.id; r.visible=!!on; r.material.color.set(t.varn===r.userData.id ? 0xf0b43c : 0xe52f19); });
       Object.entries(M).forEach(([id,m])=>{ m.classList.toggle("on", t.mark===id); m.style.display = (id==="qr" && !t.qr) ? "none" : ""; }); },
     uppdatera(ms){
+      // Bilen rullar in på parkeringen när kapitlet öppnas.
+      const q = RM ? 1 : Math.min(1, (performance.now()-in0)/2600), ut = 1500*Math.pow(1-q,3);
+      bil.position.x = -ut; sk.position.x = 40 - ut; hjulG.children.forEach(g=>{ g.rotation.z = ut/32; });
       const k = RM ? 1 : .07; nu.dorr += (mal.dorr-nu.dorr)*k; nu.bak += (mal.bak-nu.bak)*k;
       dorrPivot.rotation.y = -nu.dorr * 1.15; hytt.visible = nu.dorr > .02;
       bak.forEach(pv=>{ pv.rotation.y = pv.userData.s * nu.bak * 1.9; }); bakInne.visible = nu.bak > .02; bil.children.forEach(o=>{ if(o.userData.inne) o.visible = nu.bak > .02; });
@@ -180,7 +183,7 @@ function visaKapitel(id, klart){
   $("kap-kicker").textContent = k.kicker; $("kap-titel").textContent = k.titel;
   $("kap-prog").innerHTML = k.steg.map(()=>"<i></i>").join("");
   $("kapitel").classList.toggle("smal", kapitelSmal()); $("kapitel").classList.toggle("filmlage", film);
-  $("mobil").classList.toggle("hidden", id!=="bil");
+  $("mobil").classList.toggle("hidden", id!=="bil"); $("kap-remsa").innerHTML = ""; $("kap-sokare").classList.remove("on","tagen"); $("kap-skick").classList.toggle("hidden", !film);
   visa("kapitel");
   if(!film){ storlek(); R3.nu = null; const m0 = kamMal(k.steg[0]); const start = { p:m0.p.clone().sub(m0.t).multiplyScalar(1.6).add(m0.t), t:m0.t.clone() }; R3.nu = { p:start.p.clone(), t:start.t.clone() }; kamTill(m0); }
   kapSteg(0, true);
@@ -197,6 +200,11 @@ function filmSeg(a, b){
   if(v.readyState >= 1) kor(); else v.addEventListener("loadedmetadata", kor, { once:true });
 }
 $("kap-film").addEventListener("timeupdate", () => { const v = $("kap-film"); if(v.currentTime >= filmStopp - .04){ v.pause(); } });
+/* Husets skick räknas upp medan filmen går, som i Fältet. */
+const SKICK = [[0,0],[2.77,0],[19.7,30],[33.15,60],[50.1,90],[53.5,100],[60,100]];
+(function skickLoop(){ requestAnimationFrame(skickLoop); if(!kap || !kap.k.film || !$("kapitel").classList.contains("on")) return;
+  const t = $("kap-film").currentTime; let v = 100; for(let j=1;j<SKICK.length;j++){ if(t <= SKICK[j][0]){ const [a,va] = SKICK[j-1], [b,vb] = SKICK[j]; v = va + (vb-va)*(t-a)/(b-a); break; } }
+  $("kap-skicktal").textContent = Math.round(v); $("kap-skickrad").style.width = v.toFixed(1)+"%"; })();
 function kapSteg(i, forsta){
   const k = kap.k; i = Math.max(0, Math.min(k.steg.length-1, i)); kap.i = i; const s = k.steg[i];
   if(kap.k.film) filmSeg(s.seg[0], s.seg[1]);
@@ -216,10 +224,26 @@ function kapSteg(i, forsta){
   $("inst-monster").classList.toggle("on", !!s.monster);
   if(s.monster){ $("mm-varde").textContent = s.monster; $("mm-grans").textContent = s.varn ? "Gräns vintertid: 3,0 mm" : "Gräns: 1,6 mm sommar, 3,0 mm vinter"; $("mm-varde").style.color = s.varn ? "var(--red2)" : "#fff"; }
   if(s.tel) ritaMobil(s.tel, i);
-  if(s.blixt && !forsta && !RM){ const b=$("kap-blixt"); setTimeout(()=>{ b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); }, 1600); }
+  const sok = $("kap-sokare"); sok.classList.remove("on","tagen"); sok.querySelector("b").textContent = "Ta bild";
+  if(s.blixt && !kap.k.film){ const jag = kap; clearTimeout(kap.fotoT);
+    setTimeout(()=>{ if(kap===jag && kap.i===i) sok.classList.add("on"); }, 700);
+    kap.fotoT = setTimeout(()=>{ if(kap!==jag || kap.i!==i) return;
+      const bild = fota(); const b=$("kap-blixt"); if(!RM){ b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); }
+      sok.classList.add("tagen"); sok.querySelector("b").textContent = "Bild tagen";
+      const vy = $("skarm").querySelector(".vy"); if(vy && bild){ vy.classList.add("tagen"); vy.innerHTML = `<img alt="" src="${bild}">`; }
+      if(bild){ const rm = $("kap-remsa"); let fg = rm.querySelector(`[data-i="${i}"]`); if(!fg){ fg = document.createElement("figure"); fg.dataset.i = i; rm.appendChild(fg); }
+        fg.innerHTML = `<img alt="" src="${bild}"><figcaption>${s.tel && s.tel.n ? s.tel.n : "✓"}</figcaption>`; }
+      setTimeout(()=>{ if(kap===jag && kap.i===i) sok.classList.remove("on"); }, 900);
+    }, forsta ? 3200 : 1900); }
   $("kap-bak").disabled = i===0; $("kap-bak").style.opacity = i===0 ? .4 : 1;
   $("kap-fram").textContent = i===k.steg.length-1 ? k.slut : "Nästa";
   $("kap-in").scrollTop = 0;
+}
+/* Tar en riktig bild av 3D-scenen från där kameran står. */
+function fota(){
+  try{ rendera(performance.now()); const src = R3.r.domElement, c = document.createElement("canvas"); c.width = 320; c.height = 240;
+    const w = src.width, h = src.height, sw = w*.52, sh = sw*.75, sx = w*.09, sy = Math.max(0, h*.17 + (h*.62 - sh)/2);
+    c.getContext("2d").drawImage(src, sx, sy, sw, Math.min(sh, h-sy), 0, 0, 320, 240); return c.toDataURL("image/jpeg", .8); }catch(e){ return null; }
 }
 function ritaMobil(t, i){
   const n = KAPITEL.bil.steg.length; const pr = Math.round(i/(n-1)*100);

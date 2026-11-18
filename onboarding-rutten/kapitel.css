@@ -139,3 +139,23 @@
 #kapitel.filmlage .kap-filmskugga{display:block}
 .kap-filmtag{position:absolute;left:clamp(16px,2.4vw,40px);bottom:clamp(16px,2.4vw,40px);z-index:4;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:6px 10px;background:rgba(6,17,27,.7);color:var(--t2)}
 #kapitel.filmlage.smal #kap-film{height:50%;top:0;bottom:auto}
+
+.sokare{position:absolute;left:9%;top:17%;width:52%;height:62%;z-index:3;pointer-events:none;opacity:0;transform:scale(1.12);transition:opacity .35s ease,transform .5s cubic-bezier(.2,.7,.2,1)}
+.sokare.on{opacity:1;transform:none}
+.sokare i{position:absolute;width:46px;height:46px;border:4px solid #fff;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
+.sokare i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0}.sokare i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0}
+.sokare i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0}.sokare i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0}
+.sokare b{position:absolute;left:50%;bottom:-14px;transform:translate(-50%,100%);font-size:12px;letter-spacing:.2em;text-transform:uppercase;background:var(--red);padding:5px 10px;white-space:nowrap}
+.sokare.tagen b{background:var(--ok);color:#06111b}
+.remsa{position:absolute;left:calc(clamp(16px,2.4vw,40px) + clamp(190px,14vw,250px) + 18px);bottom:clamp(16px,2.4vw,40px);z-index:5;display:flex;gap:8px;pointer-events:none}
+.remsa figure{margin:0;position:relative;width:clamp(64px,5.4vw,104px);aspect-ratio:4/3;background:#0b141c;box-shadow:0 0 0 2px #fff,0 8px 22px rgba(0,0,0,.5);animation:remsa .55s cubic-bezier(.2,1.4,.4,1) both}
+.remsa img{width:100%;height:100%;object-fit:cover;display:block}
+.remsa figcaption{position:absolute;left:4px;top:3px;font-family:"BSD","OS",sans-serif;font-weight:800;font-size:15px;line-height:1;background:var(--ok);color:#06111b;padding:2px 5px}
+@keyframes remsa{from{opacity:0;transform:translateY(-120px) scale(2.2) rotate(-6deg)}to{opacity:1;transform:none}}
+.skarm .vy.tagen{padding:0}.skarm .vy.tagen img{width:100%;height:100%;object-fit:cover;image-rendering:auto}
+.skick{position:absolute;left:clamp(16px,2.4vw,40px);top:84px;z-index:4;background:rgba(6,17,27,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:12px 16px 14px;border-left:4px solid var(--ok);min-width:190px}
+.skick small{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);font-weight:700}
+.skick b{font-family:"BSD","OS",sans-serif;font-size:56px;line-height:1;font-variant-numeric:tabular-nums}.skick span{color:var(--t3);font-weight:700;margin-left:4px}
+.skickrad{height:5px;background:rgba(255,255,255,.14);margin-top:8px}.skickrad i{display:block;height:100%;width:0;background:var(--ok)}
+#kapitel.smal .remsa,#kapitel.smal .sokare{display:none}
+#kapitel.smal .skick{top:64px;padding:8px 12px;min-width:0}#kapitel.smal .skick b{font-size:34px}
