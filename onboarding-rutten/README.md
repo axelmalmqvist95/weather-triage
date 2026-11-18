@@ -22,3 +22,11 @@ Texterna står i `situationer.py`. Regler från Axel (18 nov 2026): närmast ans
 - större vägar: Natural Earth `ne_10m_roads` (public domain).
 
 Stoppen är påhittade punkter i rätt ort, inga adresser. `VIA` i `kartbygg.py` håller rutten på land. Källorna anges på startsidan.
+
+## Kapitel i 3D och före/efter
+
+`kapitel.js` och `kapitel.css` byggs in av `bygg_html.py`. Två kapitel i ren CSS 3D, utan bibliotek:
+- **Bilkontrollen** (efter hemfärden, och från startsidan): QR-koden, elva bilder, mätarställning, mönsterdjup med lagkrav 1,6 och 3,0 mm, en kontrollfråga. Bygger på Axels Bilkontroll-skript (Kod.gs).
+- **Se hela huset** (efter läge 14:05 om taket): merförsäljning runt kundens hus.
+
+Före- och efterpar (`FE` i `bygg_html.py`) visas i svaren och på slutsidan. Par med samma vinkel får ett dragreglage, övriga växlar.

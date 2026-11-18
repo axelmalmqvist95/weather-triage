@@ -19,7 +19,7 @@ S = [
             B=dict(t="Jobben blir gjorda med anpassad plan, och om något måste flyttas har en ansvarig sett beslutet.", tid=-5, kv=1, ku=1),
             C=dict(t="En behandling i kraftigt regn kan regnas bort. Då är jobbet gjort men resultatet uteblir.", tid=0, kv=-2, ku=-1))),
 
- dict(id="s02", tid="07:00", tjanst="Stentvätt", bild="uppfart-fore", rubrik="Ytan är större än ordern",
+ dict(id="s02", tid="07:00", tjanst="Stentvätt", bild="uppfart-fore", fe="uppfart", rubrik="Ytan är större än ordern",
   lage="Kunden visar runt och vill att gången längs huset också ska med. Du mäter med mäthjulet: ytan blir drygt 30 m² större än i ordern. Kunden säger att det är lugnt och att du kan köra.",
   alt=dict(A="Tvätta allt nu eftersom kunden sagt ja, och skriv det nya måttet i Diroto efteråt.",
            B="Ring kundtjänst med uppmätt yta innan du börjar på det extra, så att kunden får besked om priset.",
@@ -34,7 +34,7 @@ S = [
             B=dict(t="Kunden får besked på plats och säger ja till rätt pris. Inga överraskningar.", tid=-5, kv=1, ku=1),
             C=dict(t="Kunden får en halvfärdig tomt och en till sak att ordna själv. En merförsäljning går förlorad.", tid=0, kv=0, ku=-1))),
 
- dict(id="s03", tid="09:30", tjanst="Stentvätt", bild="zebra", rubrik="Ränder i stenen",
+ dict(id="s03", tid="09:30", tjanst="Stentvätt", bild="zebra", fe="vitlav", rubrik="Ränder i stenen",
   lage="Halvvägs in i tvätten börjar turtlen skaka och manometern visar lägre tryck än förut. Bakom dig syns ljusa och mörka ränder i plattorna. Rutten är redan tight.",
   alt=dict(A="Fortsätt i samma tempo. Ränderna jämnar ut sig när skummet har verkat.",
            B="Byt till lansen och gör resten av ytan med den, så blir du klar ändå.",
@@ -50,7 +50,7 @@ S = [
             C=dict(t="Tio minuters stopp, sedan en jämn yta. Felet är åtgärdat innan nästa kund.", tid=-10, kv=1, ku=1))),
 
  dict(id="s04", tid="10:20", tjanst="Mellan två stopp", bild="bil", rubrik="Du blir sen till nästa kund",
-  lage="Förra jobbet tog längre tid än planerat. Enligt navigeringen kommer du fram ungefär en timme efter den tid kunden har fått. Kunden har skrivit i ordern att hen vill vara hemma när ni kommer.",
+  lage="Förra jobbet tog längre tid än planerat. Enligt navigeringen kommer du fram ungefär en timme efter den tid kunden har fått. Kunden har skrivit i ordern att kunden vill vara hemma när ni kommer.",
   alt=dict(A="Kör på och förklara när du kommer fram. Förseningar händer alla.",
            B="Stanna säkert och ring kunden direkt. Ge en ny ungefärlig tid och hör av dig igen om den ändras.",
            C="Skicka ett meddelande till kontoret och be dem höra av sig till kunden."),
@@ -109,7 +109,7 @@ S = [
             B=dict(t="Tio minuter senare har du rätt metod, och kunden har sett att skadorna fanns före.", tid=-10, kv=1, ku=1),
             C=dict(t="Resultatet blir ojämnt och ingen vet om metoden var rätt.", tid=0, kv=-1, ku=-1))),
 
- dict(id="s07", tid="12:50", tjanst="Algbehandling fasad", bild="fasad-skum", rubrik="Grannen ser skum på bilen",
+ dict(id="s07", tid="12:50", tjanst="Algbehandling fasad", bild="fasad-skum", fe="fasad", rubrik="Grannen ser skum på bilen",
   lage="Du skumbehandlar en fasad. En vindby för skum över staketet, och grannen kommer ut och säger att det har hamnat på bilen och buskarna. Grannen är upprörd.",
   alt=dict(A="Pausa, skölj av bil och växter direkt, fota och prata lugnt med grannen. Ring närmast ansvarig och lova ingen ersättning.",
            B="Säg att försäkringen täcker det och att grannen kan skicka en räkning till kontoret.",
@@ -153,11 +153,26 @@ S = [
        "Notera intresset i Diroto och ring närmast ansvarig, så skickar kontoret offert. Det du säljer ger provision."],
   varfor="Kunden är som mest positiv när jobbet just är klart. Ett löfte utanför prislistan blir en kostnad eller en reklamation.",
   kons=dict(A=dict(t="Kunden får ett ärligt svar och ett pris på papper. Offerten kommer samma vecka.", tid=-3, kv=0, ku=2),
-            B=dict(t="Kunden tappar intresset innan hen hittat rätt sida.", tid=0, kv=0, ku=-1),
+            B=dict(t="Kunden tappar intresset innan kunden hittat rätt sida.", tid=0, kv=0, ku=-1),
             C=dict(t="Taket är fortfarande grönt om en vecka och priset stämmer inte. Nu är det en reklamation.", tid=0, kv=0, ku=-2))),
 
- dict(id="s10", tid="14:50", tjanst="Stentvätt med ogräsrensning", bild="gang-fore", rubrik="Kunden vill ha rabatt",
-  lage="Kunden går runt med dig efter jobbet och pekar på ogräs i fogarna och en kant du har missat. Hen säger att hen inte tänker betala fullt pris och vill att du lovar ett avdrag.",
+ dict(id="s15", tid="14:20", tjanst="Stentvätt", bild="uppfart-efter", fe="uppfart", rubrik="Ett jobb du är nöjd med",
+  lage="Kunden är nöjd och du också. Du har före- och efterbilder från samma vinkel och en kort film där skummet läggs på. Resultatet är riktigt snyggt.",
+  alt=dict(A="Lägg ut filmen på dina egna sociala medier med adressen, så att grannarna ser vem som gjort jobbet.",
+           B="Ladda upp i Diroto och skicka originalfilerna till Amanda på marknad, med vilken tjänst det är. Kolla att inga husnummer, skyltar eller ansikten syns.",
+           C="Spara bilderna i telefonen och visa dem på nästa möte."),
+  ratt="B",
+  gor=["Är du nöjd med ett jobb: dela det. Skicka bilder och film till Amanda på marknad.",
+       "Skicka originalfilerna. Bilder som skickats via chattappar blir suddiga.",
+       "Före och efter från samma vinkel. En film på 20 till 60 sekunder fungerar bra, gärna på höjden.",
+       "Inga husnummer, gatuskyltar, registreringsskyltar, namn eller ansikten i bild. Adressen skrivs aldrig ut."],
+  varfor="Riktiga jobb från våra operatörer är den bästa marknadsföringen vi har. Ett bra före och efter kan bli nästa inlägg eller annons.",
+  kons=dict(A=dict(t="Kundens adress ligger ute på nätet. Det får aldrig hända.", tid=0, kv=0, ku=-2),
+            B=dict(t="Amanda får material hon kan använda direkt, och jobbet syns för fler kunder.", tid=-3, kv=1, ku=1),
+            C=dict(t="Bilderna blir kvar i telefonen. Ingen annan får se jobbet.", tid=0, kv=0, ku=0))),
+
+ dict(id="s10", tid="14:50", tjanst="Stentvätt med ogräsrensning", bild="gang-fore", fe="gang", rubrik="Kunden vill ha rabatt",
+  lage="Kunden går runt med dig efter jobbet och pekar på ogräs i fogarna och en kant du har missat. Kunden säger att det inte blir fullt pris och vill att du lovar ett avdrag.",
   alt=dict(A="Lova ett avdrag så att kunden blir nöjd och du kan åka vidare.",
            B="Säg att ogräset inte ingår och åk vidare.",
            C="Åtgärda kanten direkt, förklara lugnt vad som ingår och lova ingen rabatt. Be kunden skicka in sitt krav via reklamationsformuläret på hemsidan."),
@@ -215,6 +230,8 @@ REGLER = [
  "Flyern visar priserna och rabatten vid merförsäljning.",
  "Kanter och hörn med lansen. Efterbilder från samma punkt som förebilderna.",
  "Allt i Diroto samma dag.",
+ "Nöjd med ett jobb? Skicka bilder och film till Amanda på marknad, utan adresser, skyltar eller ansikten.",
+ "Sista arbetsdagen i veckan gör du bilkontrollen. Skanna QR-koden i bilen, det tar ungefär tre minuter.",
 ]
 
 for s in S:

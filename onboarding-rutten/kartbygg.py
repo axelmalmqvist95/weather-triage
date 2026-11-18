@@ -83,12 +83,12 @@ vatten = [dict(n=n, x=round(P(a, b)[0], 1), y=round(P(a, b)[1], 1)) for n, a, b 
 # Dagens stopp: påhittade punkter i rätt ort, ingen adress.
 STOPP = {"s01": (13.212, 55.716), "s02": (13.082, 55.668), "s03": (12.935, 55.585), "s04": (13.015, 55.520),
          "s05": (13.035, 55.474), "s13": (12.968, 55.418), "s06": (12.862, 55.410), "s07": (13.140, 55.383),
-         "s08": (13.232, 55.503), "s09": (13.262, 55.545), "s10": (13.492, 55.478), "s11": (13.214, 55.637),
+         "s08": (13.232, 55.503), "s09": (13.262, 55.545), "s15": (13.262, 55.545), "s10": (13.492, 55.478), "s11": (13.214, 55.637),
          "s12": (13.214, 55.637)}  # samma kund som s11
 stopp = {k: [round(P(a, b)[0], 1), round(P(a, b)[1], 1)] for k, (a, b) in STOPP.items()}
 
 # Rutten som kurva i stoppens ordning. Mellanpunkter håller bilen på land (via Vellinge i stället för över viken).
-ORDNING = ["s01", "s02", "s03", "s04", "s05", "s13", "s06", "s07", "s08", "s09", "s10", "s11", "s12"]
+ORDNING = ["s01", "s02", "s03", "s04", "s05", "s13", "s06", "s07", "s08", "s09", "s15", "s10", "s11", "s12"]
 VIA = {"s06": [(12.93, 55.414), (12.985, 55.425), (13.05, 55.43), (13.10, 55.405)]}  # Skanör -> Trelleborg
 kedja, hor = [], []
 for i, k in enumerate(ORDNING):
@@ -113,7 +113,7 @@ for k, (a, b) in STOPP.items():
     assert any(inne((a, b), r) for r in swe), f"{k} ligger i vattnet"
 
 ORT = {"s01": "Hemma", "s02": "Lomma", "s03": "Malmö", "s04": "E6 mot Vellinge", "s05": "Vellinge", "s13": "Höllviken",
-       "s06": "Skanör", "s07": "Trelleborg", "s08": "Svedala", "s09": "Svedala", "s10": "Skurup", "s11": "Staffanstorp", "s12": "Staffanstorp"}
+       "s06": "Skanör", "s07": "Trelleborg", "s08": "Svedala", "s09": "Svedala", "s15": "Svedala", "s10": "Skurup", "s11": "Staffanstorp", "s12": "Staffanstorp"}
 # Hemfärd: från sista kunden hem igen.
 hk = [P(*STOPP["s11"]), P(*STOPP["s12"]), P(13.232, 55.672), P(*STOPP["s01"]), P(*STOPP["s01"])]
 hem = f"M{hk[1][0]:.1f},{hk[1][1]:.1f}"

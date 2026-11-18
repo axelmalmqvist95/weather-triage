@@ -253,6 +253,10 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media print{#start,#spel,.ikonknapp,.styr,#kodruta{display:none!important}#slut{position:static;opacity:1}body{background:#fff;color:#000}}
+__KAPITEL_CSS__
+.fe-box{grid-column:1/-1}
+.fe-box:empty{display:none}
+.foto .svar{overflow-y:auto}
 </style>
 </head>
 <body>
@@ -273,6 +277,11 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
         <button class="knapp sek" id="go-tel" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>Spela själv</button>
       </div>
       <button class="knapp sek hidden" id="fortsatt" type="button" style="margin-top:14px">Fortsätt där du var</button>
+      <div class="extra">
+        <button class="knapp sek" id="go-bil" type="button">Bilkontrollen i 3D</button>
+        <button class="knapp sek" id="go-hus" type="button">Se hela huset</button>
+        <button class="knapp sek" id="go-fe" type="button">Före och efter</button>
+      </div>
     </div>
     <div class="fot">Nanostone AB · Fungerar utan nät och utan inloggning · Tryck F för helskärm<br>Karta: Lantmäteriet, OpenStreetMaps bidragsgivare, Natural Earth</div>
   </div>
@@ -285,6 +294,33 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
   <div class="kor-info"><div class="kicker" id="kor-fran"></div><span class="kor-tid bsd" id="kor-tid"></span><span class="kor-ort" id="kor-ort"></span><span class="kor-km" id="kor-km"></span></div>
   <button class="hoppa" id="hoppa" type="button">Hoppa fram</button>
 </div>
+
+<!-- KAPITEL I 3D -->
+<section id="kapitel" class="screen" aria-label="Kapitel">
+  <div class="stage3d"><div class="ankare"><div class="kam" id="kap-kam"><div class="svaj"><div class="g3" id="kap-varld"></div></div></div></div></div>
+  <div class="blixt" id="kap-blixt"></div>
+  <div class="kap-topp"><img class="logo" src="__LOGO__" alt="Nanostone"><div class="kicker" id="kap-kicker"></div><div class="kap-prog" id="kap-prog"></div>
+    <button class="ikonknapp" id="kap-stang" type="button" aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="instrument" id="inst-matare"><div class="matare3"><div class="bage"></div><div class="nal"></div><div class="km">84 512</div></div></div>
+  <div class="instrument" id="inst-monster"><div class="monster3"><div class="dack"></div><div><small>Mönsterdjup</small><div class="mm"><span id="mm-varde">4,2</span> mm</div><div class="grans" id="mm-grans"></div></div></div></div>
+  <div class="mobil" id="mobil"><div class="skarm" id="skarm"></div></div>
+  <div class="kap-panel">
+    <div class="kap-in" id="kap-in"><div class="kap-steg" id="kap-steg"></div><h2 class="kap-rubrik" id="kap-rubrik"></h2><ul class="kap-text" id="kap-text"></ul><div class="kap-kort" id="kap-kort"></div><div class="kap-fraga" id="kap-fraga"></div></div>
+    <div class="kap-nav"><button class="knapp sek" id="kap-bak" type="button">Tillbaka</button><button class="knapp" id="kap-fram" type="button">Nästa</button></div>
+  </div>
+  <h1 class="hidden" id="kap-titel"></h1>
+</section>
+
+<!-- FÖRE OCH EFTER -->
+<section id="galleriskarm" class="screen" aria-label="Före och efter" style="overflow-y:auto">
+  <div class="grain"></div>
+  <div class="slut-in">
+    <header style="display:flex;justify-content:space-between;align-items:center"><img class="logo" src="__LOGO__" alt="Nanostone"><button class="ikonknapp" id="hem3" type="button" aria-label="Till start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></button></header>
+    <div class="kicker" style="margin-top:28px">Riktiga jobb från våra operatörer</div>
+    <h1 class="slut-titel bsd">Före och efter</h1>
+    <div class="galleri" id="galleri-a"><div id="gal-stor-a"></div><div class="gal-val" id="gal-val-a"></div></div>
+  </div>
+</section>
 
 <!-- SPEL -->
 <section id="spel" class="screen" aria-label="Rutten">
@@ -312,6 +348,7 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
       <div class="alts" id="alts" role="group" aria-label="Vad gör du?"></div>
       <div class="risk" id="risk">Stopp. Det här är ett säkerhetsfel. Du går aldrig upp på ett tak utan fallskydd.</div>
       <div class="svar">
+        <div class="fe-box" id="fe-svar"></div>
         <div class="panel"><h3>Så gör vi</h3><ol id="gor"></ol></div>
         <div class="panel v"><h3>Varför</h3><p id="varfor"></p></div>
       </div>
@@ -341,6 +378,10 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
       <p style="color:var(--t2);margin:0">Visa koden för den som håller i utbildningen.</p>
       <div class="kod" id="kod"></div>
     </div>
+    <div style="margin:0 0 30px">
+      <h2 class="sek">Så här blir det</h2>
+      <div class="galleri"><div id="gal-stor"></div><div class="gal-val" id="gal-val"></div></div>
+    </div>
     <div class="tva">
       <div><h2 class="sek">Dagens regler</h2><ol class="regler" id="regler"></ol></div>
       <div><h2 class="sek">Din dag</h2><div class="slutkarta"><div class="kartbox" id="k-slut"></div></div><table class="dagbok" id="dagbok"></table></div>
@@ -353,6 +394,8 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
     </div>
     <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:36px">
       <button class="knapp" id="igen" type="button">Kör dagen igen</button>
+      <button class="knapp sek" id="slut-bil" type="button">Bilkontrollen i 3D</button>
+      <button class="knapp sek" id="slut-hus" type="button">Se hela huset</button>
       <button class="knapp sek" id="skriv" type="button">Skriv ut reglerna</button>
     </div>
   </div>
@@ -364,6 +407,7 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
 const DATA = __DATA__;
 const BILDER = __BILDER__;
 const K = __KARTA__;
+const FE = __FE__;
 const S = DATA.situationer;
 const $ = id => document.getElementById(id);
 const L = ["A","B","C"];
@@ -381,7 +425,8 @@ const ILL = {
 
 let laget = "grupp";
 let st = null;
-function nytt(){ return {i:0, svar:Array(S.length).fill(null), visat:false, tid:0, kv:70, ku:70, valt:null, roster:[0,0,0]}; }
+function nytt(){ return {i:0, svar:Array(S.length).fill(null), visat:false, tid:0, kv:70, ku:70, valt:null, roster:[0,0,0], kap:{}}; }
+const KAP_EFTER = {s09:"hus"};
 
 /* ---------- Karta ---------- */
 const NS = "http://www.w3.org/2000/svg";
@@ -617,6 +662,8 @@ function rita(ny){
   $("scen").classList.toggle("visat", visat); $("spel").classList.toggle("svarat", visat);
   const gor=$("gor"); gor.innerHTML=""; s.gor.forEach(g=>{ const li=document.createElement("li"); li.textContent=g; gor.appendChild(li); });
   $("varfor").textContent = s.varfor;
+  const fb = $("fe-svar"); const nyckel = visat && s.fe ? s.id : "";
+  if(fb.dataset.n !== nyckel){ fb.dataset.n = nyckel; fb.innerHTML = ""; if(nyckel) foreEfter(fb, s.fe); }
   $("risk").classList.toggle("on", !!(visat && val && s.kons[val].risk));
   const h=$("huvud");
   if(!visat){
@@ -646,8 +693,11 @@ function visaSvar(){
 }
 function nasta(){
   if(!st.visat) return;
+  st.kap = st.kap || {};
+  const efter = KAP_EFTER[S[st.i].id];
+  if(efter && !st.kap[efter]){ st.kap[efter] = true; spara(); visaKapitel(efter, ()=>{ visa("spel"); nasta(); }); return; }
   st.i++; st.visat=false; st.valt=null; st.roster=[0,0,0]; spara();
-  if(st.i >= S.length){ kor(S.length, ()=>rita(true)); return; }
+  if(st.i >= S.length){ kor(S.length, ()=>{ if(!st.kap.bil){ st.kap.bil = true; spara(); visaKapitel("bil", ()=>rita(true)); } else rita(true); }); return; }
   rita(true); if(!SAMMA[st.i]) kor(st.i);
 }
 function spara(){ if(laget==="tel") lagra.set("rutten-tel", st); }
@@ -656,6 +706,7 @@ $("huvud").onclick = () => st.visat ? nasta() : visaSvar();
 document.addEventListener("keydown", e=>{
   if(e.target.tagName==="TEXTAREA") return;
   if(e.key==="f"||e.key==="F"){ if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); return; }
+  if($("kapitel").classList.contains("on")){ if(e.key==="ArrowRight"||e.key===" "||e.key==="Enter"){ if(e.target.closest&&e.target.closest("button")&&e.key!=="ArrowRight") return; e.preventDefault(); kapFram(); } else if(e.key==="ArrowLeft"){ kapBak(); } else if(e.key==="Escape"){ $("kap-stang").click(); } return; }
   if(korKlar){ if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"||e.key==="Escape"){ e.preventDefault(); korKlar(); } return; }
   if(!$("spel").classList.contains("on")) return;
   const k=e.key.toUpperCase();
@@ -695,7 +746,7 @@ function slut(){
   $("kodruta").classList.toggle("hidden", laget!=="tel");
   $("lasin").classList.toggle("hidden", laget!=="grupp");
   if(laget==="tel"){ $("kod").textContent = kodFor(st.svar); lagra.set("rutten-tel", st); }
-  ritaStat(); visa("slut");
+  ritaStat(); visa("slut"); galleri();
   requestAnimationFrame(()=>{ if(!kSlut) kSlut = nyKarta($("k-slut")); stoppStatus(kSlut, null); kSlut.klar.forEach(p=>p.style.opacity=1); satVy(kSlut, vyFor(kSlut, bbox(PTS,90))); bil(kSlut, [PTS[0][0]+kSlut.z*30, PTS[0][1]+kSlut.z*12], -20); });
 }
 function ritaStat(){
@@ -711,6 +762,13 @@ function ritaStat(){
      tr.innerHTML=`<td>${s.tid}</td><td>${s.rubrik}</td><td><div class="r"><b style="width:${p*100}%;background:${farg(p*100)}"></b></div><small style="color:var(--t3)">${Math.round(p*100)} % rätt</small></td>`; t.appendChild(tr); });
 }
 $("koder").addEventListener("input", ritaStat);
+__KAPITEL_JS__
+$("go-bil").onclick = () => visaKapitel("bil", () => { visa("start"); spelaStart(); });
+$("go-hus").onclick = () => visaKapitel("hus", () => { visa("start"); spelaStart(); });
+$("slut-bil").onclick = () => visaKapitel("bil", () => visa("slut"));
+$("slut-hus").onclick = () => visaKapitel("hus", () => visa("slut"));
+$("go-fe").onclick = () => { visa("galleriskarm"); galleriIn("gal-stor-a","gal-val-a"); };
+$("hem3").onclick = () => { visa("start"); spelaStart(); };
 </script>
 </body>
 </html>

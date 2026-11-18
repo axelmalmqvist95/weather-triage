@@ -33,7 +33,7 @@ data = json.loads((RUT / "situationer-v2.json").read_text())
 S = data["situationer"]
 
 # Sprid rätt svar jämnt över A, B och C. Texterna flyttas, inget innehåll ändras.
-MAL = "BCABCABCACBAB"
+MAL = "BCABCABCACBBAB"
 for s, mal in zip(S, MAL):
     ordning = [k for k in "ABC" if k != s["ratt"]]
     ordning.insert("ABC".index(mal), s["ratt"])
@@ -48,6 +48,16 @@ BILDER = {n: jpeg(n) for n in bild_namn}
 html = (HAR / "mall.html").read_text()
 html = html.replace("__DATA__", json.dumps(data, ensure_ascii=False))
 html = html.replace("__BILDER__", json.dumps(BILDER))
+FE = {
+    "uppfart": dict(f=jpeg("uppfart-fore", 900, 74), e=jpeg("uppfart-efter", 900, 74), svep=False, t="Stentvätt av uppfart"),
+    "gang": dict(f=jpeg("gang-fore", 900, 74), e=jpeg("gang-efter", 900, 74), svep=False, t="Stentvätt med ogräsrensning"),
+    "vitlav": dict(f=jpeg("vitlav-fore", 900, 74), e=jpeg("vitlav-efter", 900, 74), svep=True, t="Stentvätt, vitlav borta"),
+    "fasad": dict(f=jpeg("fasad-fore", 900, 74), e=jpeg("fasad-efter", 900, 74), svep=True, t="Fasad före och efter"),
+}
+html = html.replace("__FE__", json.dumps(FE))
+html = html.replace("__KAPITEL_CSS__", (HAR / "kapitel.css").read_text())
+html = html.replace("__KAPITEL_JS__", (HAR / "kapitel.js").read_text())
+html = html.replace("__LOGOF__", "data:image/png;base64," + b64(LOGO.with_name("logo_farg.png")))
 html = html.replace("__KARTA__", (RUT / "karta.json").read_text())
 html = html.replace("__LOGO__", "data:image/png;base64," + b64(LOGO))
 html = html.replace("__BSD800__", b64(FONT / "big-shoulders-display-latin-800-normal.woff2"))
