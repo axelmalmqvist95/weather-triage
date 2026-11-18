@@ -242,6 +242,25 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 #valk b{display:block;font-family:"BSD";font-weight:800;line-height:.95;font-size:clamp(34px,4.4vw,84px);text-transform:uppercase;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6);opacity:0;transform:translateX(40px);animation:valkin .7s cubic-bezier(.2,.8,.2,1) forwards}
 #valk b.liten{font-size:clamp(24px,2.8vw,54px)}
 @keyframes valkin{to{opacity:1;transform:none}}
+#morkt{position:fixed;inset:0;z-index:200;background:#000;display:none;place-items:center;cursor:none}
+#morkt.on{display:grid;animation:spotin .4s ease-out}#morkt .logo{height:clamp(22px,2.4vw,40px);opacity:.18}
+#hjalp{position:fixed;inset:0;z-index:150;display:none;place-items:center;background:rgba(3,8,13,.86);backdrop-filter:blur(6px)}
+#hjalp.on{display:grid}.hj-in{background:var(--n2);padding:clamp(22px,3vw,48px);max-width:980px;width:calc(100% - 32px);border-left:4px solid var(--red)}
+.hj-in h2{font-size:clamp(34px,3.4vw,60px);margin:0 0 .5em}.hj-in dl{display:grid;grid-template-columns:max-content 1fr;gap:12px 22px;margin:0;align-items:center}
+.hj-in dt{white-space:nowrap}.hj-in dd{margin:0;color:var(--t2)}.hj-in p{color:var(--t3);font-size:.85em;margin:1.4em 0 0}
+.hj-in kbd,.delt kbd{font:700 .78em "OS",sans-serif;border:1px solid rgba(255,255,255,.4);padding:.15em .5em;background:rgba(255,255,255,.06)}
+body.dold-mus,body.dold-mus *{cursor:none!important}
+#nedrakning{position:absolute;right:clamp(16px,1.6vw,30px);bottom:clamp(16px,2vw,34px);z-index:6;width:clamp(120px,10vw,190px);aspect-ratio:1;display:none;place-items:center;text-align:center;pointer-events:none}
+#nedrakning.on{display:grid}
+#nedrakning::before{content:"";position:absolute;inset:6%;border-radius:50%;background:rgba(6,17,27,.72)}
+#nedrakning i{position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--red) calc(var(--k,1)*360deg),rgba(255,255,255,.1) 0);-webkit-mask:radial-gradient(circle,transparent 62%,#000 63%);mask:radial-gradient(circle,transparent 62%,#000 63%)}
+#nedrakning b{position:relative;font-family:"BSD";font-weight:800;font-size:clamp(54px,5vw,96px);line-height:1;grid-area:1/1;margin-top:-.18em}
+#nedrakning small{position:relative;grid-area:1/1;align-self:end;margin-bottom:22%;font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:clamp(9px,.7vw,13px);color:var(--t2)}
+#nedrakning.sista b{color:var(--red2);animation:spotpop .3s}
+#nedrakning.slut b{font-size:clamp(28px,2.4vw,46px)}
+.tel #nedrakning{display:none!important}
+#huvud.spanning{animation:pulsknapp .85s ease-in-out}
+@keyframes pulsknapp{0%,100%{transform:none}50%{transform:scale(1.05)}}
 #snabb{position:absolute;inset:0;z-index:31;box-sizing:border-box;display:none;place-items:center;text-align:center;padding:clamp(18px,4vw,70px);background:radial-gradient(ellipse at 50% 40%,#3a0f09 0,#14080a 45%,#03080d 100%);overflow:auto}
 #snabb.on{display:grid;grid-template-columns:minmax(0,1fr);animation:spotin .25s ease-out}
 #snabb>div{display:none;max-width:1200px;width:100%;min-width:0;justify-self:center}#snabb.f-ring .sn-ring,#snabb.f-fraga .sn-fraga,#snabb.f-dom .sn-fraga,#snabb.f-slut .sn-slut{display:block}
@@ -374,7 +393,7 @@ __KAPITEL_CSS__
       <button class="knapp sek hidden" id="fortsatt" type="button" style="margin-top:14px">Fortsätt där du var</button>
       <details class="delt" id="delt"><summary id="delt-rubrik">Lägg in deltagarnas namn</summary>
         <textarea id="delt-namn" placeholder="Erik, Sara, Jonas, Amir" aria-label="Deltagarnas namn"></textarea>
-        <small>Skriv förnamn med komma emellan. Då hälsas alla välkomna i öppningen, en strålkastare lottar vem som svarar i varje läge och dagen slutar med en prispall.</small>
+        <small>Tryck <kbd>H</kbd> för kortkommandon och klicker. Skriv förnamn med komma emellan. Då hälsas alla välkomna i öppningen, en strålkastare lottar vem som svarar i varje läge och dagen slutar med en prispall.</small>
       </details>
       <div class="extra">
         <button class="knapp sek" id="go-bil" type="button">Bilkontrollen</button>
@@ -388,6 +407,18 @@ __KAPITEL_CSS__
 </section>
 
 <!-- KÖRNING MELLAN STOPP -->
+<div id="morkt" aria-hidden="true"><img class="logo" src="__LOGO__" alt=""></div>
+<div id="hjalp" role="dialog" aria-label="Kortkommandon"><div class="hj-in"><h2 class="bsd">Kortkommandon</h2><dl>
+  <dt><kbd>→</kbd> <kbd>Mellanslag</kbd> <kbd>PgDn</kbd></dt><dd>Visa svaret, nästa stopp, hoppa över film</dd>
+  <dt><kbd>←</kbd> <kbd>PgUp</kbd></dt><dd>Tillbaka i bilkontrollen och huset</dd>
+  <dt><kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd></dt><dd>Gruppens svar</dd>
+  <dt><kbd>T</kbd></dt><dd>Tio sekunder att rösta, igen för att stoppa</dd>
+  <dt><kbd>J</kbd> <kbd>N</kbd></dt><dd>Stämmer eller stämmer inte i snabbrundan</dd>
+  <dt><kbd>.</kbd></dt><dd>Svart skärm medan du pratar (svarta knappen på klickern)</dd>
+  <dt><kbd>M</kbd></dt><dd>Ljud av eller på</dd>
+  <dt><kbd>F</kbd></dt><dd>Helskärm</dd>
+  <dt><kbd>H</kbd></dt><dd>Visa eller dölj den här rutan</dd>
+</dl><p>Klickerns pilar fungerar som piltangenterna. Muspekaren göms efter tre sekunder.</p></div></div>
 <div id="korning" aria-hidden="true">
   <div class="kartbox" id="k-kor"></div><video id="kor-film" class="hidden" muted playsinline preload="auto"></video>
   <div class="kor-info"><div class="kicker" id="kor-fran"></div><span class="kor-tid bsd" id="kor-tid"></span><span class="kor-ort" id="kor-ort"></span><span class="kor-km" id="kor-km"></span></div>
@@ -437,6 +468,7 @@ __KAPITEL_CSS__
 <button class="ikonknapp ljudknapp" type="button" aria-label="Ljud av eller på"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="vag" d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/><path class="kryss" d="M16 9l5 6M21 9l-5 6"/></svg></button>
     <button class="ikonknapp" id="hem" type="button" aria-label="Till start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></button>
   </div>
+  <div id="nedrakning" aria-live="polite"><b id="ned-tal"></b><small>Rösta nu</small><i id="ned-bage"></i></div>
   <div id="snabb" aria-live="polite">
     <div class="sn-ring" id="sn-ring"><div class="sn-tel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg></div>
       <small>12:05 · Lunch · Inkommande samtal</small><b class="bsd">Kontoret ringer</b><p>Snabbrundan: fem påståenden, sju sekunder var. Stämmer det eller inte?</p><button class="knapp" id="sn-svara" type="button">Svara</button></div>
@@ -546,6 +578,13 @@ const ljud = (() => {
     fel(){ ton(196,0,.3,"sawtooth",.07); ton(147,.16,.45,"sawtooth",.07); },
     klick(){ brus(.07,3200,.5); setTimeout(()=>brus(.05,1800,.35), 70); },
     tick(){ ton(1100,0,.05,"square",.03); },
+    virvel(ms){ const a = ctx(); if(!a) return; const d = (ms||850)/1000, n = a.createBuffer(1, a.sampleRate*d, a.sampleRate), ch = n.getChannelData(0);
+      for(let i=0;i<ch.length;i++){ const t = i/a.sampleRate, slag = (t*26)%1; ch[i] = (Math.random()*2-1) * Math.exp(-slag*9) * (.35 + .65*t/d); }
+      const src = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(); src.buffer = n; fl.type = "bandpass"; fl.frequency.value = 1800; fl.Q.value = .7; g.gain.value = .55; src.connect(fl).connect(g).connect(a.destination); src.start(); },
+    svep(){ const a = ctx(); if(!a) return; const d = .55, n = a.createBuffer(1, a.sampleRate*d, a.sampleRate), ch = n.getChannelData(0); for(let i=0;i<ch.length;i++){ const x = i/ch.length; ch[i] = (Math.random()*2-1)*Math.sin(Math.PI*x); }
+      const src = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime; src.buffer = n; fl.type = "bandpass"; fl.Q.value = 1.4;
+      fl.frequency.setValueAtTime(380, t); fl.frequency.exponentialRampToValueAtTime(2600, t+d); g.gain.value = .16; src.connect(fl).connect(g).connect(a.destination); src.start(); },
+    gong(){ ton(392,0,1.1,"sine",.11); ton(523,0,1.1,"sine",.09); ton(784,.02,.8,"triangle",.04); },
     ring(){ [0,.09,.18,.27,.5,.59,.68,.77].forEach((t,i)=>ton(i%2?1175:1397,t,.09,"sine",.09)); },
     framme(){ ton(784,0,.16,"sine",.1); ton(1047,.12,.3,"sine",.1); },
     motor(ms, niva){ const a = ctx(); if(!a) return; const d = ms/1000, o = a.createOscillator(), o2 = a.createOscillator(), fl = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime;
@@ -589,6 +628,34 @@ const SNABB = [
   ["En operativ rödmarkering kan du göra själv, bara du ringer ansvarig efteråt.", false, "Ansvarig ska alltid godkänna först, och alla lösningar ska vara prövade."],
 ];
 let snabb = null;
+let nedT = 0;
+function stoppNed(){ cancelAnimationFrame(nedT); nedT = 0; $("nedrakning").className = ""; }
+function nedrakning(){
+  if(nedT){ stoppNed(); return; } const el = $("nedrakning"); $("foto").appendChild(el); const tal = $("ned-tal"), LANGD = 10000, t0 = performance.now(); let forra = 11; el.className = "on";
+  const steg = t => { const k = Math.max(0, 1-(t-t0)/LANGD), sek = Math.ceil(k*10); el.style.setProperty("--k", k);
+    if(sek !== forra){ forra = sek; tal.textContent = sek; el.classList.toggle("sista", sek<=3 && sek>0); if(sek>0) ljud.tick(); }
+    if(k <= 0){ tal.textContent = "Tiden!"; el.classList.add("slut"); el.classList.remove("sista"); ljud.gong(); nedT = 0; setTimeout(()=>{ if(!nedT) el.className = ""; }, 2200); return; }
+    nedT = requestAnimationFrame(steg); };
+  nedT = requestAnimationFrame(steg);
+}
+let musT = 0; const musRor = () => { document.body.classList.remove("dold-mus"); clearTimeout(musT); musT = setTimeout(()=>{ if(laget==="grupp" || $("start").classList.contains("on")) document.body.classList.add("dold-mus"); }, 3000); };
+document.addEventListener("mousemove", musRor, {passive:true}); document.addEventListener("pointerdown", musRor, {passive:true});
+let vakt = null; async function hallVaken(){ try{ if("wakeLock" in navigator && !vakt && document.visibilityState==="visible"){ vakt = await navigator.wakeLock.request("screen"); vakt.addEventListener("release", ()=>{ vakt = null; }); } }catch(e){} }
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible" && $("start").classList.contains("on")===false) hallVaken(); });
+$("hjalp").onclick = () => $("hjalp").classList.remove("on");
+document.addEventListener("keydown", e => {
+  if(e.target && (e.target.tagName==="TEXTAREA" || e.target.tagName==="INPUT")) return;
+  const m = {PageDown:"ArrowRight", PageUp:"ArrowLeft"}[e.key];
+  if(m){ e.preventDefault(); e.stopImmediatePropagation(); document.dispatchEvent(new KeyboardEvent("keydown", {key:m, bubbles:true})); return; }
+  if(e.key==="." || e.key==="b" && e.ctrlKey){ e.preventDefault(); e.stopImmediatePropagation(); $("morkt").classList.toggle("on"); return; }
+  if($("morkt").classList.contains("on")){ e.preventDefault(); e.stopImmediatePropagation(); $("morkt").classList.remove("on"); return; }
+  const k = e.key.toLowerCase();
+  if(k==="h" || e.key==="?"){ e.preventDefault(); e.stopImmediatePropagation(); $("hjalp").classList.toggle("on"); return; }
+  if($("hjalp").classList.contains("on") && e.key==="Escape"){ e.stopImmediatePropagation(); $("hjalp").classList.remove("on"); return; }
+  if(k==="m"){ e.stopImmediatePropagation(); document.querySelector(".ljudknapp")?.click(); return; }
+  if(k==="t" && laget==="grupp" && $("spel").classList.contains("on") && st && !st.visat && !snabb && !spotKlar){ e.stopImmediatePropagation(); nedrakning(); return; }
+}, true);
+$("morkt").onclick = () => $("morkt").classList.remove("on");
 function snabbrunda(klart){
   const el = $("snabb"), ns = showLage() ? namnlista().slice().sort(()=>Math.random()-.5) : [];
   snabb = { i:-1, ratt:0, fas:"ring", klart, ns, t:0, raf:0, ringT:0 };
@@ -821,7 +888,7 @@ function starta(l, fortsatt){
   document.body.classList.toggle("tel", l==="tel");
   const sv=document.querySelector('.svar'); (l==="tel" ? $("text") : $("foto")).appendChild(sv);
   st = (fortsatt && lagra.get("rutten-tel")) || nytt();
-  byggRutt(); visa("spel"); rita(true);
+  hallVaken(); musRor(); byggRutt(); visa("spel"); rita(true);
   if(!fortsatt || st.i===0){ if(st.i===0) valkommen(); kor(st.i, () => { $("valk").classList.remove("on"); spot(); }); } else ritaVem();
 }
 document.querySelectorAll(".ljudknapp").forEach(b=>{ b.classList.toggle("av", !ljud.pa); b.onclick = () => { const p = ljud.vaxla(); document.querySelectorAll(".ljudknapp").forEach(x=>x.classList.toggle("av", !p)); if(p) ljud.tick(); }; });
@@ -865,6 +932,7 @@ function rita(ny){
   ritaRutt(); ritaMat();
   if(st.i >= S.length){ slut(); return; }
   const s = S[st.i], scen=$("scen");
+  if(ny && laget==="grupp"){ try{ ljud.svep(); }catch(e){} }
   if(ny){ scen.classList.remove("in"); void scen.offsetWidth; requestAnimationFrame(()=>scen.classList.add("in")); $("text").scrollTop=0; scen.scrollTop=0; }
   const f = $("foto");
   f.querySelectorAll("img,.ill,video").forEach(e=>e.remove());
@@ -906,7 +974,7 @@ function rita(ny){
   if(!visat){
     h.textContent = laget==="tel" ? "Välj ett alternativ" : (val ? "Visa svaret" : "Välj gruppens svar");
     h.disabled = !val; h.style.opacity = val?1:.45;
-    $("hint").innerHTML = laget==="grupp" ? "Låt alla visa A, B eller C med handen. Räkna med <kbd>+</kbd>, eller tryck <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd>. <kbd>Mellanslag</kbd> visar svaret." : "";
+    $("hint").innerHTML = laget==="grupp" ? "Låt alla visa A, B eller C med handen. Räkna med <kbd>+</kbd>, eller tryck <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd>. <kbd>T</kbd> ger tio sekunder. <kbd>Mellanslag</kbd> visar svaret." : "";
   } else {
     h.disabled=false; h.style.opacity=1;
     h.textContent = st.i===S.length-1 ? "Avsluta dagen" : "Nästa stopp: "+S[st.i+1].tid;
@@ -915,12 +983,18 @@ function rita(ny){
 }
 
 function valj(b){
-  if(st.visat) return;
+  if(st.visat || visaSvar.igang) return;
   st.valt = b;
   if(laget==="tel"){ visaSvar(); return; }
   rita(false);
 }
 function visaSvar(){
+  if(st.visat || !st.valt || visaSvar.igang) return;
+  if(laget==="grupp" && !RM && ljud.pa){ visaSvar.igang = true; stoppNed(); ljud.virvel(850); const h = $("huvud"); h.textContent = "Rätt svar är …"; h.classList.add("spanning");
+    setTimeout(()=>{ visaSvar.igang = false; h.classList.remove("spanning"); visaSvarNu(); }, 850); return; }
+  visaSvarNu();
+}
+function visaSvarNu(){
   if(st.visat || !st.valt) return;
   const s=S[st.i], k=s.kons[st.valt];
   st.svar[st.i]=st.valt; st.visat=true; if(showLage() && st.vem){ st.po[st.vem] = (st.po[st.vem]||0) + (st.valt===s.ratt ? 1 : 0); }
@@ -940,7 +1014,7 @@ function nasta(){
   const efter = KAP_EFTER[S[st.i].id];
   if(efter && !st.kap[efter]){ st.kap[efter] = true; spara(); visaKapitel(efter, ()=>{ visa("spel"); nasta(); }); return; }
   if(S[st.i].id==="s06" && !st.kap.snabb){ st.kap.snabb = true; spara(); snabbrunda(()=>nasta()); return; }
-  st.i++; st.visat=false; st.valt=null; st.roster=[0,0,0]; $("vem").classList.remove("on"); spara();
+  stoppNed(); st.i++; st.visat=false; st.valt=null; st.roster=[0,0,0]; $("vem").classList.remove("on"); spara();
   if(st.i >= S.length){ kor(S.length, ()=>{ if(!st.kap.bil){ st.kap.bil = true; spara(); visaKapitel("bil", ()=>rita(true)); } else rita(true); }); return; }
   rita(true); if(!SAMMA[st.i]) kor(st.i, spot); else spot();
 }
