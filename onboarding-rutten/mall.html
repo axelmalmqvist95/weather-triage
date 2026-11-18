@@ -311,6 +311,7 @@ body.dold-mus,body.dold-mus *{cursor:none!important}
 #gag{position:absolute;inset:0;z-index:32;display:none;background:#03080d;overflow:hidden;cursor:pointer}
 #gag.on{display:block;animation:spotin .3s ease-out}
 .gag-bak{position:absolute;left:-6%;top:-6%;width:112%;height:112%;object-fit:cover;filter:blur(26px) brightness(.42) saturate(1.1)}.tel .gag-bak{display:none}
+#gag.stilla video{display:none}#gag.stilla .gag-bak{filter:none;left:0;top:0;width:100%;height:100%;object-fit:contain;display:block}
 #gag video{box-shadow:0 0 80px rgba(0,0,0,.7);position:absolute;left:50%;top:0;height:100%;transform:translateX(-50%);max-width:100%;object-fit:contain}
 .gag-skugga{position:absolute;inset:0;pointer-events:none;background:linear-gradient(0deg,rgba(3,8,13,.92) 0,rgba(3,8,13,0) 38%),linear-gradient(180deg,rgba(3,8,13,.7) 0,rgba(3,8,13,0) 18%)}
 .gag-kicker{position:absolute;left:0;right:0;top:clamp(18px,3.4vh,44px);text-align:center;color:var(--t2);font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:clamp(11px,1vw,18px);padding:0 16px}
@@ -629,12 +630,20 @@ function forbered(nyck, b64){ B64[nyck] = b64; if(!VIDEO[nyck]) VIDEO[nyck] = Pr
   .catch(() => { const bin = atob(b64), u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i); return new Blob([u], {type:"video/mp4"}); })
   .then(b => URL.createObjectURL(b.type ? b : new Blob([b], {type:"video/mp4"}))); return VIDEO[nyck]; }
 // Spelar en film tåligt: tyst och inbäddad (krav på mobil), nytt försök vid nästa tryck, och reservväg om blob-adressen inte går att spela.
+function filmfel(v, orsak){
+  const e = v.error, kod = "F:" + (v.dataset.k||"?") + " " + orsak + " E" + (e ? e.code : 0) + " N" + v.networkState + " R" + v.readyState + " " + String(v.currentSrc||v.src||"").slice(0,4) + (v.dataset.reserv ? "+d" : "") + (RM ? " RM" : "");
+  let d = document.getElementById("diag"); if(!d){ d = document.createElement("div"); d.id = "diag"; d.style.cssText = "position:fixed;left:6px;bottom:4px;z-index:300;font:700 9px/1.2 monospace;color:#fff;opacity:.55;pointer-events:none;max-width:96vw;white-space:nowrap;overflow:hidden"; document.body.appendChild(d); }
+  d.textContent = kod; try{ console.warn("film", kod); }catch(x){}
+}
 function spela(v, fel){
   v.muted = true; v.defaultMuted = true; v.setAttribute("muted",""); v.setAttribute("playsinline",""); v.setAttribute("webkit-playsinline","");
-  if(!v.dataset.vakt){ v.dataset.vakt = "1"; v.addEventListener("error", () => { const k = v.dataset.k; if(k && B64[k] && v.dataset.reserv !== k){ v.dataset.reserv = k; v.src = "data:video/mp4;base64," + B64[k]; v.load(); spela(v, fel); } }); }
+  const nr = (v._nr = (v._nr||0) + 1); let nekad = false;
+  if(!v.dataset.vakt){ v.dataset.vakt = "1"; v.addEventListener("error", () => { const k = v.dataset.k; if(k && B64[k] && v.dataset.reserv !== k){ v.dataset.reserv = k; v.src = "data:video/mp4;base64," + B64[k]; v.load(); spela(v, v._fel); } }); }
+  v._fel = fel;
   let p; try{ p = v.play(); }catch(e){}
-  if(p && p.catch) p.catch(e => { if(e && e.name === "NotAllowedError"){ const igen = () => { document.removeEventListener("pointerdown", igen, true); document.removeEventListener("keydown", igen, true); let q; try{ q = v.play(); }catch(x){} q && q.catch && q.catch(()=>{}); };
-      document.addEventListener("pointerdown", igen, true); document.addEventListener("keydown", igen, true); } else if(fel) fel(); });
+  if(p && p.catch) p.catch(e => { if(e && e.name === "NotAllowedError"){ nekad = true; const igen = () => { document.removeEventListener("pointerdown", igen, true); document.removeEventListener("keydown", igen, true); let q; try{ q = v.play(); }catch(x){} q && q.catch && q.catch(()=>{}); };
+      document.addEventListener("pointerdown", igen, true); document.addEventListener("keydown", igen, true); } });
+  setTimeout(() => { if(v._nr !== nr || !v.isConnected) return; if(v.currentTime > 0.05 && !v.error) return; filmfel(v, nekad ? "NEKAD" : v.error ? "FEL" : "STILLA"); if(v._fel){ const f = v._fel; v._fel = null; f(); } }, 2600);
 }
 function koppla(el, nyck, b64, sen){ if(el.dataset.k === nyck){ sen && sen(); return; } el.dataset.k = nyck; forbered(nyck, b64).then(u => { if(el.dataset.k !== nyck) return; el.src = u; el.load(); sen && sen(); }); }
 const K = __KARTA__;
@@ -720,7 +729,7 @@ function gag(klart){
   const stampla = () => { if(el.classList.contains("stamplad")) return; el.classList.add("stamplad"); ljud.stampel(); };
   gagKlar = () => { if(!el.classList.contains("stamplad")){ stampla(); return; } slut(); };
   el.onclick = () => gagKlar && gagKlar();
-  forbered("pool", POOLFILM).then(u => { if(!gagKlar) return; if(v.dataset.k !== "pool"){ v.dataset.k = "pool"; v.src = u; } try{ v.currentTime = 0; }catch(e){} spela(v);
+  forbered("pool", POOLFILM).then(u => { if(!gagKlar) return; if(v.dataset.k !== "pool"){ v.dataset.k = "pool"; v.src = u; } try{ v.currentTime = 0; }catch(e){} spela(v, () => el.classList.add("stilla"));
     tid.push(setTimeout(()=>{ if(gagKlar) ljud.plask(); }, 2450)); tid.push(setTimeout(()=>{ if(gagKlar) stampla(); }, 3300)); });
 }
 let snabb = null;
@@ -951,7 +960,7 @@ function kor(i, klart){ // kör till läge i (i = S.length betyder hemfärd)
   const arFilm = (i===0 || i>=S.length || (S[i] && S[i].id==="s07")), T = arFilm ? 7200 : (tel ? 2200 : 3200), t0 = performance.now();
   const villa = S[i] && S[i].id === "s07", film = (i===0 || hem || villa), fv = $("kor-film"); ov.classList.toggle("film", film);
   if(film){ const nyck = villa ? "villa" : i===0 ? "gry" : "sol"; fv.classList.remove("hidden");
-    koppla(fv, nyck, villa ? VILLAFILM : i===0 ? GRYFILM : SOLFILM, () => { try{ fv.currentTime = 0; }catch(e){} spela(fv); }); } else { fv.pause(); fv.classList.add("hidden"); }
+    koppla(fv, nyck, villa ? VILLAFILM : i===0 ? GRYFILM : SOLFILM, () => { try{ fv.currentTime = 0; }catch(e){} spela(fv, () => { if(irisNr === jag) ov.classList.remove("film"); }); }); } else { fv.pause(); fv.classList.add("hidden"); }
   const tyst = (kor || film) ? ljud.motor((film ? 7400 : T)+500) : null;
   const mid = [(fran[0]+till[0])/2, (fran[1]+till[1])/2];
   let klar = false;
