@@ -221,6 +221,18 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .betyg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:10px 0 28px}
 .betyg div{background:var(--n2);padding:16px 18px}
 .betyg b{display:block;font-family:"BSD";font-size:clamp(40px,4vw,72px);line-height:1}
+.diplom{margin:0 0 30px}
+.dip-las{background:var(--n2);border-left:4px solid var(--n5);padding:18px 20px;display:flex;flex-direction:column;gap:4px}
+.dip-las b{font-size:clamp(26px,2.4vw,40px);line-height:1;color:var(--t2)}.dip-las span{color:var(--t3)}
+.dip-rad{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.dip-rad input{flex:1;min-width:220px;min-height:56px;padding:0 16px;background:var(--n2);border:2px solid var(--n4);color:var(--w);font:700 1em "OS",sans-serif}
+.dip-rad input:focus{outline:none;border-color:var(--red)}
+#dip-bild{display:block;width:100%;max-width:960px;height:auto;box-shadow:0 30px 80px rgba(0,0,0,.55);animation:dipin .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes dipin{from{opacity:0;transform:translateY(26px) scale(.97)}to{opacity:1;transform:none}}
+.dip-tips{color:var(--t3);font-size:.8em;margin:10px 0 0;display:none}.tel .dip-tips{display:block}
+#konfetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40}
+@media (prefers-reduced-motion:reduce){#dip-bild{animation:none}}
+@media print{.dip-rad,#konfetti{display:none!important}}
 .betyg small{color:var(--t3);font-size:.62em;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
 .tva{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:start}
 .regler{counter-reset:r;list-style:none;margin:0;padding:0}
@@ -299,7 +311,7 @@ __KAPITEL_CSS__
       </div>
       <button class="knapp sek hidden" id="fortsatt" type="button" style="margin-top:14px">Fortsätt där du var</button>
       <div class="extra">
-        <button class="knapp sek" id="go-bil" type="button">Bilkontrollen i 3D</button>
+        <button class="knapp sek" id="go-bil" type="button">Bilkontrollen</button>
         <button class="knapp sek" id="go-hus" type="button">Se hela huset</button>
         <button class="knapp sek" id="go-fe" type="button">Före och efter</button>
       </div>
@@ -395,6 +407,16 @@ __KAPITEL_CSS__
       <div><b id="s-kv"></b><small>kvalitet</small></div>
       <div><b id="s-ku"></b><small>kund</small></div>
     </div>
+    <div id="diplom" class="diplom">
+      <div class="dip-las hidden" id="dip-las"><b class="bsd">Diplomet är låst</b><span id="dip-lastext"></span></div>
+      <div class="dip-oppen hidden" id="dip-oppen">
+        <h2 class="sek">Ditt diplom</h2>
+        <div class="dip-rad"><input id="dip-namn" type="text" maxlength="40" autocomplete="off" placeholder="Skriv ditt namn" aria-label="Namn på diplomet"><a class="knapp" id="dip-spara" download="Diplom-En-dag-pa-rutten.png">Spara diplomet</a></div>
+        <img id="dip-bild" alt="Diplom: Klar för rutten">
+        <p class="dip-tips">Håll fingret på bilden för att spara den i telefonen.</p>
+      </div>
+    </div>
+    <canvas id="konfetti" aria-hidden="true"></canvas>
     <div id="kodruta" class="hidden" style="margin-bottom:28px">
       <h2 class="sek">Din kod</h2>
       <p style="color:var(--t2);margin:0">Visa koden för den som håller i utbildningen.</p>
@@ -416,7 +438,7 @@ __KAPITEL_CSS__
     </div>
     <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:36px">
       <button class="knapp" id="igen" type="button">Kör dagen igen</button>
-      <button class="knapp sek" id="slut-bil" type="button">Bilkontrollen i 3D</button>
+      <button class="knapp sek" id="slut-bil" type="button">Bilkontrollen</button>
       <button class="knapp sek" id="slut-hus" type="button">Se hela huset</button>
       <button class="knapp sek" id="skriv" type="button">Skriv ut reglerna</button>
     </div>
@@ -821,8 +843,66 @@ function slut(){
   $("kodruta").classList.toggle("hidden", laget!=="tel");
   $("lasin").classList.toggle("hidden", laget!=="grupp");
   if(laget==="tel"){ $("kod").textContent = kodFor(st.svar); lagra.set("rutten-tel", st); }
-  ritaStat(); visa("slut"); galleri();
+  ritaStat(); visa("slut"); galleri(); diplom(r);
   requestAnimationFrame(()=>{ if(!kSlut) kSlut = nyKarta($("k-slut")); stoppStatus(kSlut, null); kSlut.klar.forEach(p=>p.style.opacity=1); satVy(kSlut, vyFor(kSlut, bbox(PTS,90))); bil(kSlut, [PTS[0][0]+kSlut.z*30, PTS[0][1]+kSlut.z*12], -20); });
+}
+/* ---------- Diplom och konfetti ---------- */
+const DIP_GRANS = () => S.length - 5;
+function ritaDiplom(r){
+  const W = 1600, H = 900, c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
+  const namn = ($("dip-namn").value || "").trim() || (laget==="grupp" ? "Gruppen" : "Ny operatör");
+  x.fillStyle = "#06111b"; x.fillRect(0,0,W,H);
+  const foto = ritaDiplom.foto; if(foto && foto.complete && foto.naturalWidth){ const fw = 760, sk = Math.max(fw/foto.naturalWidth, H/foto.naturalHeight), dw = foto.naturalWidth*sk, dh = foto.naturalHeight*sk;
+    x.save(); x.beginPath(); x.moveTo(W-fw+140,0); x.lineTo(W,0); x.lineTo(W,H); x.lineTo(W-fw,H); x.closePath(); x.clip(); x.drawImage(foto, W-fw+(fw-dw)/2, (H-dh)/2, dw, dh);
+    const g = x.createLinearGradient(W-fw,0,W,0); g.addColorStop(0,"rgba(6,17,27,.92)"); g.addColorStop(.45,"rgba(6,17,27,.25)"); g.addColorStop(1,"rgba(6,17,27,.05)"); x.fillStyle = g; x.fillRect(W-fw,0,fw,H);
+    const g2 = x.createLinearGradient(0,H*.55,0,H); g2.addColorStop(0,"rgba(6,17,27,0)"); g2.addColorStop(1,"rgba(6,17,27,.85)"); x.fillStyle = g2; x.fillRect(W-fw,0,fw,H); x.restore(); }
+  x.strokeStyle = "#e52f19"; x.lineWidth = 6; x.beginPath(); x.moveTo(W-760+140,0); x.lineTo(W-760,H); x.stroke();
+  x.fillStyle = "#e52f19"; x.beginPath(); x.moveTo(0,H); x.lineTo(0,H-120); x.lineTo(120,H); x.closePath(); x.fill();
+  const logo = document.querySelector("#slut .logo"); if(logo && logo.naturalWidth){ const lh = 44; x.drawImage(logo, 90, 80, logo.naturalWidth*lh/logo.naturalHeight, lh); }
+  x.fillStyle = "#e52f19"; x.fillRect(90, 196, 44, 4);
+  x.fillStyle = "#9fb8c0"; x.font = '700 20px "OS"'; x.textBaseline = "alphabetic"; try{ x.letterSpacing = "5px"; }catch(e){}
+  x.fillText("DIPLOM · ONBOARDING DRIFT", 150, 204);
+  try{ x.letterSpacing = "0px"; }catch(e){}
+  x.fillStyle = "#fff"; x.font = '800 150px "BSD"'; x.fillText("KLAR FÖR", 84, 350);
+  x.fillStyle = "#e52f19"; x.fillText("RUTTEN", 84, 480);
+  let fs = 62; x.font = `700 ${fs}px "OS"`; while(x.measureText(namn).width > 720 && fs > 30){ fs -= 2; x.font = `700 ${fs}px "OS"`; }
+  x.fillStyle = "#fff"; x.fillText(namn, 90, 590);
+  x.fillStyle = "#d2dee3"; x.font = '400 24px "OS"';
+  const d = new Date(), dat = d.getDate()+" "+["januari","februari","mars","april","maj","juni","juli","augusti","september","oktober","november","december"][d.getMonth()]+" "+d.getFullYear();
+  x.fillText("har kört En dag på rutten, från morgonen hemma", 90, 636); x.fillText("till sista bilden i Diroto.", 90, 668);
+  const rutor = [[r+"/"+S.length,"RÄTT VAL"],[st.tid>=0?"I tid":"+"+(-st.tid)+" min","TIDSPLAN"],[String(Math.round(st.kv)),"KVALITET"],[String(Math.round(st.ku)),"KUND"]];
+  rutor.forEach(([v,t],i)=>{ const bx = 90+i*178; x.fillStyle = "#0f263a"; x.fillRect(bx, 700, 164, 104); x.fillStyle = "#fff"; let vs = 52; x.font = `800 ${vs}px "BSD"`; while(x.measureText(v).width > 134 && vs > 24){ vs -= 2; x.font = `800 ${vs}px "BSD"`; } x.fillText(v, bx+16, 756);
+    x.fillStyle = "#9fb8c0"; x.font = '700 13px "OS"'; try{ x.letterSpacing = "2px"; }catch(e){} x.fillText(t, bx+16, 784); try{ x.letterSpacing = "0px"; }catch(e){} });
+  x.fillStyle = "#9fb8c0"; x.font = '400 18px "OS"'; x.fillText("Nanostone AB · "+dat, 150, 852);
+  x.textAlign = "right"; x.fillStyle = "#fff"; x.font = '800 40px "BSD"'; x.fillText(r===S.length ? "PERFEKT DAG" : r>=S.length-2 ? "BRA JOBBAT" : "GODKÄND DAG", W-70, H-70); x.textAlign = "left";
+  let url = ""; try{ url = c.toDataURL("image/jpeg", .9); }catch(e){}
+  if(url){ $("dip-bild").src = url; $("dip-spara").href = url; $("dip-spara").download = "Diplom-En-dag-pa-rutten.jpg"; }
+}
+function diplom(r){
+  const ok = r >= DIP_GRANS();
+  $("dip-oppen").classList.toggle("hidden", !ok); $("dip-las").classList.toggle("hidden", ok);
+  if(!ok){ $("dip-lastext").textContent = "Minst "+DIP_GRANS()+" rätt av "+S.length+" låser upp ditt diplom. Du hade "+r+". Läs reglerna här nedanför och kör dagen igen."; return; }
+  try{ const n = localStorage.getItem("rutten-namn"); if(n && !$("dip-namn").value) $("dip-namn").value = n; }catch(e){}
+  $("dip-namn").placeholder = laget==="grupp" ? "Gruppens namn, t.ex. Team Syd" : "Skriv ditt namn";
+  $("dip-namn").oninput = () => { try{ localStorage.setItem("rutten-namn", $("dip-namn").value); }catch(e){} ritaDiplom(r); };
+  const rita = () => ritaDiplom(r);
+  if(!ritaDiplom.foto && BILDER.kvall){ const im = new Image(); im.onload = rita; im.src = BILDER.kvall; ritaDiplom.foto = im; }
+  (document.fonts && document.fonts.load ? Promise.all([document.fonts.load('800 150px "BSD"'), document.fonts.load('700 62px "OS"'), document.fonts.load('400 24px "OS"')]) : Promise.resolve()).then(rita, rita);
+  if(!RM) konfetti(r===S.length ? 220 : 130);
+  try{ ljud.framme && ljud.framme(); }catch(e){}
+}
+function konfetti(antal){
+  const c = $("konfetti"), x = c.getContext("2d"), dpr = Math.min(2, window.devicePixelRatio||1); let W, H;
+  const mat = () => { W = c.width = innerWidth*dpr; H = c.height = innerHeight*dpr; }; mat();
+  const F = ["#e52f19","#ff5a40","#ffffff","#62c3a4","#24506f"];
+  const P = Array.from({length:antal}, (_,i)=>{ const v = i%2, a = (v ? Math.PI*1.25 : Math.PI*1.75) + (Math.random()-.5)*.9, k = (9+Math.random()*13)*dpr;
+    return { x: v ? W*1.02 : -W*.02, y: H*.72, vx: Math.cos(a)*k, vy: Math.sin(a)*k, s: (5+Math.random()*8)*dpr, r: Math.random()*6, vr: (Math.random()-.5)*.4, f: F[i%F.length], l: 1 }; });
+  const t0 = performance.now(); let forra = t0;
+  const steg = t => { const dt = Math.min(2, (t-forra)/16.7); forra = t; x.clearRect(0,0,W,H); let kvar = 0;
+    P.forEach(p=>{ p.vy += .32*dpr*dt; p.vx *= Math.pow(.992,dt); p.x += p.vx*dt; p.y += p.vy*dt; p.r += p.vr*dt; if(t-t0 > 2200) p.l -= .012*dt; if(p.l <= 0 || p.y > H+40) return; kvar++;
+      x.save(); x.globalAlpha = Math.max(0,p.l); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle = p.f; x.fillRect(-p.s/2, -p.s*.3, p.s, p.s*.6*Math.abs(Math.cos(p.r*1.7))+1); x.restore(); });
+    if(kvar && $("slut").classList.contains("on")) requestAnimationFrame(steg); else x.clearRect(0,0,W,H); };
+  requestAnimationFrame(steg);
 }
 function ritaStat(){
   const koder = $("koder").value.split(/[\s,;]+/).filter(Boolean);
