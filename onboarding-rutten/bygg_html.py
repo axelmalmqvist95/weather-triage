@@ -14,7 +14,7 @@ BESKAR = {
     "vatten": (0, 0, 1, 1), "fasad": (0, 0, 1, 1), "kant": (0, 0, 1, 1),
     "zebra": (0, .2, 1, 1), "provtvatt": (0, .2, 1, 1),
     "smagatsten": (0, .36, 1, 1), "altan-pool": (0, .3, 1, 1),
-    "villa": (0, 0, 1, .62), "gang-fore": (0, .2, 1, 1), "gang-efter": (0, .2, 1, 1),
+    "villa": (0, 0, 1, .62), "bil": (0, .28, 1, .95), "ranna": (.08, .18, .9, .9), "tak-pavaxt": (0, 0, 1, 1), "fasad-skum": (0, 0, 1, .8), "gang-fore": (0, .2, 1, 1), "gang-efter": (0, .2, 1, 1),
 }
 
 def jpeg(namn, maxb=900, q=74):

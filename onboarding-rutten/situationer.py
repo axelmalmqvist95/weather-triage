@@ -49,7 +49,7 @@ S = [
             B=dict(t="Resten av ytan blir ojämn och tar dubbelt så lång tid.", tid=-30, kv=-1, ku=0),
             C=dict(t="Tio minuters stopp, sedan en jämn yta. Felet är åtgärdat innan nästa kund.", tid=-10, kv=1, ku=1))),
 
- dict(id="s04", tid="10:20", tjanst="Mellan två stopp", bild=None, ikon="klocka", rubrik="Du blir sen till nästa kund",
+ dict(id="s04", tid="10:20", tjanst="Mellan två stopp", bild="bil", rubrik="Du blir sen till nästa kund",
   lage="Förra jobbet tog längre tid än planerat. Enligt navigeringen kommer du fram ungefär en timme efter den tid kunden har fått. Kunden har skrivit i ordern att hen vill vara hemma när ni kommer.",
   alt=dict(A="Kör på och förklara när du kommer fram. Förseningar händer alla.",
            B="Stanna säkert och ring kunden direkt. Ge en ny ungefärlig tid och hör av dig igen om den ändras.",
@@ -109,7 +109,7 @@ S = [
             B=dict(t="Tio minuter senare har du rätt metod, och kunden har sett att skadorna fanns före.", tid=-10, kv=1, ku=1),
             C=dict(t="Resultatet blir ojämnt och ingen vet om metoden var rätt.", tid=0, kv=-1, ku=-1))),
 
- dict(id="s07", tid="12:50", tjanst="Algbehandling fasad", bild="fasad", rubrik="Grannen ser skum på bilen",
+ dict(id="s07", tid="12:50", tjanst="Algbehandling fasad", bild="fasad-skum", rubrik="Grannen ser skum på bilen",
   lage="Du skumbehandlar en fasad. En vindby för skum över staketet, och grannen kommer ut och säger att det har hamnat på bilen och buskarna. Grannen är upprörd.",
   alt=dict(A="Pausa, skölj av bil och växter direkt, fota och prata lugnt med grannen. Ring närmast ansvarig och lova ingen ersättning.",
            B="Säg att försäkringen täcker det och att grannen kan skicka en räkning till kontoret.",
@@ -139,7 +139,7 @@ S = [
             B=dict(t="Fem minuter extra och en yta som håller för granskning.", tid=-5, kv=2, ku=1),
             C=dict(t="Bilderna visar inte vad som gjorts, och kanten är kvar.", tid=0, kv=-1, ku=-1))),
 
- dict(id="s09", tid="14:05", tjanst="Stentvätt", bild="villa", rubrik="Kunden frågar om taket",
+ dict(id="s09", tid="14:05", tjanst="Stentvätt", bild="tak-pavaxt", rubrik="Kunden frågar om taket",
   lage="Medan du packar frågar kunden vad det skulle kosta att få bort påväxten på taket, och om det blir rent direkt.",
   alt=dict(A="Förklara kort hur takbehandlingen verkar över tid, visa flyern med priset och erbjudandet, och notera intresset så att kontoret kan skicka offert.",
            B="Säg att du inte vet och att kunden kan kolla på hemsidan.",
@@ -169,7 +169,7 @@ S = [
             B=dict(t="Kunden känner sig avfärdad. Klagomålet kommer, nu argare.", tid=0, kv=-1, ku=-2),
             C=dict(t="Kanten blir rätt, kunden har blivit hörd och ärendet ligger hos rätt person.", tid=-10, kv=1, ku=1))),
 
- dict(id="s11", tid="15:30", tjanst="Rensning av hängrännor", bild=None, ikon="stege", rubrik="Huset är högre än ordern",
+ dict(id="s11", tid="15:30", tjanst="Rensning av hängrännor", bild="ranna", rubrik="Huset är högre än ordern",
   lage="Ordern säger ett och ett halvplanshus, men huset har två våningar. Gräset är halt efter regnet. Bilden från teleskopröret blir suddig, och du funderar på att gå upp på taket.",
   alt=dict(A="Ställ stegen mot rännan och kliv upp på taket, då går det snabbare.",
            B="Ring närmast ansvarig om att huset inte stämmer med ordern. Jobba från marken, och använd stegen bara för bilderna.",

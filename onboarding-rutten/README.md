@@ -4,7 +4,7 @@ Interaktiv onboardingövning för nya operatörer. En fristående HTML-fil som f
 
 ## Bygga
 
-1. Lägg bilderna (png) i `bilder/`. Namnen står i `situationer.py` (fältet `bild`) och `bygg_html.py` (`BESKAR`). Bilderna kommer från OneDrive, Onboarding_Utbildning/Bilder Onboarding, och checkas aldrig in.
+1. Lägg bilderna (png) i `bilder/`. Namnen står i `situationer.py` (fältet `bild`) och `bygg_html.py` (`BESKAR`). Bilderna kommer från OneDrive (Onboarding_Utbildning/Bilder Onboarding) och SharePoint (SE Marknadsföring/1. Bilder/Tak samt danska nanostone.dk: Videomateriale och Ydelser/Facade/Algebehandling) och checkas aldrig in. Bilder med EXIF-rotation vänds rätt före sparning.
 2. `python3 situationer.py` skriver `situationer-v2.json`.
 3. `python3 bygg_html.py` skriver `en-dag-pa-rutten.html` (cirka 4 MB, allt inbäddat, ingen EXIF).
 
