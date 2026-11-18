@@ -402,8 +402,10 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
 .tel .rutt .bana{top:18px}.tel .rutt .kord{top:17px}
 .tel .bil{width:22px;height:20px;margin-left:-11px;top:4px}
 .tel .matare{gap:10px}.tel .mat{min-width:58px}.tel .mat .tal{font-size:17px}.tel .mat small{font-size:8.5px;letter-spacing:.1em}
-.tel .scen{display:block;overflow-y:auto}
-.tel .foto{height:38vh;min-height:220px}
+.tel .scen{display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
+.tel .foto{touch-action:pan-y;isolation:isolate}.tel .foto video,.tel .foto img{pointer-events:none}
+.tel .scen.in .rubrik,.tel .scen.in .lage,.tel .scen.in #alts,.tel .scen.in .foto-info .klocka,.tel .scen.in .foto-info .tjanst{animation:none}
+.tel .foto{height:30vh;min-height:190px}
 .tel .klocka{font-size:68px}
 .tel .text{overflow:visible;padding:20px 16px 110px}
 .tel .rubrik{font-size:44px}
