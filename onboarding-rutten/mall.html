@@ -75,7 +75,7 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .kartbox .ort.s0{fill:#6f8d99;font-weight:400}
 .kartbox .vatten text{fill:#3e6278;font-family:"OS",sans-serif;font-style:italic;letter-spacing:.3em}
 .kartbox .bas{fill:none;stroke:rgba(255,255,255,.55);stroke-width:2;stroke-dasharray:2 7;stroke-linecap:round;vector-effect:non-scaling-stroke}
-.kartbox .klar{fill:none;stroke:var(--red);stroke-width:4;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.kartbox path.klar{fill:none;stroke:var(--red);stroke-width:4;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .kartbox .ritas{fill:none;stroke:var(--red);stroke-width:4;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .kartbox .st circle{fill:var(--n1);stroke:#fff;stroke-width:2;vector-effect:non-scaling-stroke}
 .kartbox .st text{fill:#fff;font-family:"BSD","OS",sans-serif;font-weight:800;text-anchor:middle;dominant-baseline:central}
@@ -83,6 +83,11 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .kartbox .st.fel circle{fill:var(--red);stroke:var(--red)}
 .kartbox .st.nu circle{fill:#fff}.kartbox .st.nu text{fill:var(--n0)}
 .kartbox .st{opacity:0;transition:opacity .4s}.kartbox .st.syns{opacity:1}
+.kartbox .st.dubbel{display:none}
+.kartbox .hus{fill:#fff}.kartbox .st.nu .hus,.kartbox .st.klar .hus{fill:var(--n0)}
+.kartbox .bil .kaross{fill:#f4f7f9}.kartbox .bil .ruta{fill:#1b3f5d}.kartbox .bil .hjul{fill:#0a1b2a}.kartbox .bil .rand{fill:var(--red)}
+.kartbox .bil .skugga{fill:rgba(0,0,0,.45)}.kartbox .bil .ljus{fill:#ffe9a8}.kartbox .bil .ljuskon{fill:url(#ljusgrad)}
+.kor-km{display:block;margin-top:.5em;font-size:.72em;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--t3)}
 .puls{fill:none;stroke:#fff;stroke-width:2;vector-effect:non-scaling-stroke;animation:puls 1.8s ease-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes puls{from{opacity:.9;transform:scale(1)}to{opacity:0;transform:scale(3.2)}}
 .vinjett{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 60% 50%,transparent 55%,rgba(7,19,31,.9) 100%)}
@@ -277,7 +282,7 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
 <!-- KÖRNING MELLAN STOPP -->
 <div id="korning" aria-hidden="true">
   <div class="kartbox" id="k-kor"></div>
-  <div class="kor-info"><div class="kicker" id="kor-fran"></div><span class="kor-tid bsd" id="kor-tid"></span><span class="kor-ort" id="kor-ort"></span></div>
+  <div class="kor-info"><div class="kicker" id="kor-fran"></div><span class="kor-tid bsd" id="kor-tid"></span><span class="kor-ort" id="kor-ort"></span><span class="kor-km" id="kor-km"></span></div>
   <button class="hoppa" id="hoppa" type="button">Hoppa fram</button>
 </div>
 
@@ -323,7 +328,7 @@ h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46p
   <div class="grain"></div>
   <div class="slut-in">
     <header style="display:flex;justify-content:space-between;align-items:center"><img class="logo" src="__LOGO__" alt="Nanostone"><button class="ikonknapp" id="hem2" type="button" aria-label="Till start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></button></header>
-    <div class="kicker" style="margin-top:28px">16:15 · Dagen är slut</div>
+    <div class="kicker" style="margin-top:28px">16:25 · Hemma · Dagen är slut</div>
     <h1 class="slut-titel bsd" id="slut-titel">Bra jobbat</h1>
     <div class="betyg">
       <div><b id="s-ratt"></b><small>rätt val</small></div>
@@ -381,6 +386,7 @@ function nytt(){ return {i:0, svar:Array(S.length).fill(null), visat:false, tid:
 /* ---------- Karta ---------- */
 const NS = "http://www.w3.org/2000/svg";
 const PTS = S.map(x => K.stopp[x.id]);
+const SAMMA = PTS.map((p,i)=> i>0 && p[0]===PTS[i-1][0] && p[1]===PTS[i-1][1]);
 function seg(i){ // Catmull-Rom mellan stopp i och i+1, som kubisk bezier
   const p0=PTS[Math.max(0,i-1)], p1=PTS[i], p2=PTS[i+1], p3=PTS[Math.min(PTS.length-1,i+2)];
   const c1=[p1[0]+(p2[0]-p0[0])/6, p1[1]+(p2[1]-p0[1])/6], c2=[p2[0]-(p3[0]-p1[0])/6, p2[1]-(p3[1]-p1[1])/6];
@@ -397,18 +403,28 @@ function nyKarta(box, opt={}){
   const vagar = K.vag.map(v=>`<path class="vag ${v.typ==="Major Highway"?"stor":""}" d="${v.d}"/>`).join("");
   svg.innerHTML = `<defs><clipPath id="${id}c"><path d="${K.land}"/></clipPath>
     <radialGradient id="${id}g" cx="62%" cy="42%" r="75%"><stop offset="0" stop-color="#18405f"/><stop offset="1" stop-color="#0f2a40"/></radialGradient>
+    <linearGradient id="ljusgrad" x1="0" x2="1"><stop offset="0" stop-color="rgba(255,233,168,.55)"/><stop offset="1" stop-color="rgba(255,233,168,0)"/></linearGradient>
     <pattern id="${id}p" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 0v6" stroke="rgba(255,255,255,.03)" stroke-width="1.5"/></pattern></defs>
     <path d="${K.land}" fill="url(#${id}g)"/><path d="${K.land}" fill="url(#${id}p)"/>
     <g clip-path="url(#${id}c)"><path class="kom" d="${K.kom}"/>${vagar}</g>
     <path class="kust" d="${K.land}"/>
     <g class="vatten">${vatten}</g>${opt.orter===false?"":`<g>${orter}</g>`}
-    <g class="ruttg"><path class="bas" d="${SEG.join("")}"/>${SEG.map((d,i)=>`<path class="klar" data-i="${i}" d="${d}" style="opacity:0"/>`).join("")}<path class="ritas" d=""/><path class="matt" d="" style="fill:none;stroke:none"/></g>
-    <g class="stg">${PTS.map((p,i)=>`<g class="st" data-i="${i}" transform="translate(${p[0]} ${p[1]})"><circle data-r="11" r="11"/><text data-fs="13">${i+1}</text></g>`).join("")}</g>
+    <g class="ruttg"><path class="bas" d="${SEG.join("")}${K.hem}"/>${SEG.map((d,i)=>`<path class="klar" data-i="${i}" d="${d}" style="opacity:0"/>`).join("")}<path class="ritas" d=""/><path class="matt" d="" style="fill:none;stroke:none"/></g>
+    <g class="stg">${PTS.map((p,i)=>`<g class="st${SAMMA[i]?" dubbel":""}" data-i="${i}" transform="translate(${p[0]} ${p[1]})"><circle data-r="${i?11:13}" r="11"/>${i?`<text data-fs="13">${i+1}</text>`:`<g data-sk="1"><path class="hus" d="M0,-7.5L7.5,-1V7H2.5V2.5h-5V7H-7.5V-1Z"/></g>`}</g>`).join("")}</g>
+    <g class="bil" style="display:none"><g class="bilrot"><g class="bilflip"><g data-sk="1.5">
+      <ellipse class="skugga" cx="0" cy="2.5" rx="17" ry="7"/>
+      <path class="ljuskon" d="M15,-3L48,-13V13L15,3Z"/>
+      <rect class="kaross" x="-16" y="-7" width="23" height="14" rx="2"/><path class="kaross" d="M7,-7h4.5l4.5,4v10h-9z"/>
+      <path class="ruta" d="M9,-5h2.2l3.2,3V4.5H9z"/><rect class="rand" x="-16" y="-1.2" width="23" height="2.4"/>
+      <rect class="hjul" x="-12" y="-9" width="6" height="2.6" rx="1"/><rect class="hjul" x="4" y="-9" width="6" height="2.6" rx="1"/>
+      <rect class="hjul" x="-12" y="6.4" width="6" height="2.6" rx="1"/><rect class="hjul" x="4" y="6.4" width="6" height="2.6" rx="1"/>
+      <rect class="ljus" x="15.2" y="-5.5" width="1.6" height="2.4" rx=".6"/><rect class="ljus" x="15.2" y="3.1" width="1.6" height="2.4" rx=".6"/>
+    </g></g></g></g>
     <g class="puck" style="display:none"><circle class="puls" data-r="9" r="9"/><circle data-r="8" r="8" fill="#fff"/><circle data-r="4" r="4" fill="#e52f19"/></g>`;
   box.innerHTML = ""; box.appendChild(svg);
   const v = document.createElement("div"); v.className="vinjett"; box.appendChild(v);
-  const k = {sk: opt.skala, box, svg, vb:[0,0,K.vb[0],K.vb[1]], puck: svg.querySelector(".puck"), ritas: svg.querySelector(".ritas"), matt: svg.querySelector(".matt"),
-    klar:[...svg.querySelectorAll(".klar")], st:[...svg.querySelectorAll(".st")], skal:[...svg.querySelectorAll("[data-fs],[data-r]")]};
+  const k = {sk: opt.skala, box, svg, bil: svg.querySelector(".bil"), bilrot: svg.querySelector(".bilrot"), bilflip: svg.querySelector(".bilflip"), vb:[0,0,K.vb[0],K.vb[1]], puck: svg.querySelector(".puck"), ritas: svg.querySelector(".ritas"), matt: svg.querySelector(".matt"),
+    klar:[...svg.querySelectorAll("path.klar")], st:[...svg.querySelectorAll(".st")], skal:[...svg.querySelectorAll("[data-fs],[data-r],[data-sk]")]};
   return k;
 }
 function satVy(k, b){
@@ -416,6 +432,7 @@ function satVy(k, b){
   const r = k.box.getBoundingClientRect(); const z = b[2] / Math.max(1, r.width); // användarenheter per pixel
   const f = z*(k.sk || (window.innerWidth<760 ? .66 : 1.25));
   for(const e of k.skal){ const d=e.dataset; if(d.fs) e.setAttribute("font-size", (d.fs*f).toFixed(2)); if(d.r) e.setAttribute("r", (d.r*f).toFixed(2));
+    if(d.sk) e.setAttribute("transform", `scale(${(f*d.sk).toFixed(3)})`);
     if(d.dx!=null){ e.setAttribute("x", (+d.x + d.dx*f).toFixed(1)); e.setAttribute("y", (+d.y + d.dy*f).toFixed(1)); } }
   k.z = z;
 }
@@ -427,7 +444,12 @@ function vyFor(k, rb, yta=[0,0,1,1]){
   return [rb[0]-(ax+(aw-rb[2]*s)/2)/s, rb[1]-(ay+(ah-rb[3]*s)/2)/s, ew/s, eh/s];
 }
 function bbox(pts, pad){ const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]); const x0=Math.min(...xs)-pad, y0=Math.min(...ys)-pad; return [x0, y0, Math.max(...xs)+pad-x0, Math.max(...ys)+pad-y0]; }
-function puck(k, p){ k.puck.style.display=""; const s = (k.z||1)*1.25; k.puck.setAttribute("transform", `translate(${p[0]} ${p[1]})`); }
+function bil(k, p, ang){
+  k.puck.style.display="none"; k.bil.style.display="";
+  const a = ang!=null ? ang : (k.ang||0); k.bilrot.setAttribute("transform", `translate(${p[0]} ${p[1]}) rotate(${a.toFixed(1)})`);
+  k.bilflip.setAttribute("transform", Math.cos(a*Math.PI/180) < 0 ? "scale(1,-1)" : "");
+}
+function puck(k, p){ if(k.bil) k.bil.style.display="none";  k.puck.style.display=""; const s = (k.z||1)*1.25; k.puck.setAttribute("transform", `translate(${p[0]} ${p[1]})`); }
 function stoppStatus(k, nu){
   k.st.forEach((g,i)=>{ const sv = st ? st.svar[i] : null;
     g.classList.add("syns");
@@ -437,18 +459,25 @@ function stoppStatus(k, nu){
 function delbana(k, f){ // ritar banan i k.matt fram till andel f, returnerar punkten
   const m = k.matt, L = m.getTotalLength(), n = Math.max(2, Math.ceil(80*f)); let d = "";
   for(let j=0;j<=n;j++){ const q = m.getPointAtLength(L*f*j/n); d += (j?"L":"M")+q.x.toFixed(1)+","+q.y.toFixed(1); }
-  k.ritas.setAttribute("d", f>0 ? d : ""); const q = m.getPointAtLength(L*f); return [q.x,q.y];
+  k.ritas.setAttribute("d", f>0 ? d : ""); const q = m.getPointAtLength(L*f);
+  const a = m.getPointAtLength(Math.max(0, L*f-3)), b = m.getPointAtLength(Math.min(L, L*f+3));
+  if(Math.hypot(b.x-a.x, b.y-a.y) > .01) k.ang = Math.atan2(b.y-a.y, b.x-a.x)*180/Math.PI;
+  return [q.x,q.y];
 }
 const ease = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
 const lerp = (a,b,t) => a.map((v,i)=>v+(b[i]-v)*t);
 const RM = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
 
 /* Startkartan: rutten ritas upp. */
+const HEMMA = "16:25";
 const kStart = nyKarta($("k-start"));
-const ruttLangd = (()=>{ const p=document.createElementNS(NS,"path"); p.setAttribute("d", SEG.join("")); kStart.svg.appendChild(p); const l=p.getTotalLength(); p.remove(); return l; })();
-$("rk-rubrik").textContent = `${S.length} stopp · ca ${Math.round(ruttLangd / K.kmper / 5)*5} km`;
-$("rk-sub").textContent = `${S[0].tid} till ${S[S.length-1].tid} · ${new Set(S.map(x=>K.ort[x.id])).size} orter`;
-S.forEach((x,i)=>{ const li=document.createElement("li"); li.innerHTML=`<b>${i+1}</b>${x.tid} ${K.ort[x.id]}`; $("korlista").appendChild(li); });
+function langd(d){ const p=document.createElementNS(NS,"path"); p.setAttribute("d", d); kStart.svg.appendChild(p); const l=p.getTotalLength(); p.remove(); return l; }
+const ruttLangd = langd(SEG.join("")+K.hem);
+const km = d => Math.max(1, Math.round(langd(d) / K.kmper));
+$("rk-rubrik").textContent = `${S.length} lägen · ca ${Math.round(ruttLangd / K.kmper / 5)*5} km`;
+$("rk-sub").textContent = `Hemifrån ${S[0].tid} · hemma ${HEMMA} · ${new Set(S.slice(1).map(x=>K.ort[x.id]).filter(o=>!o.startsWith("E"))).size} orter`;
+S.forEach((x,i)=>{ const li=document.createElement("li"); li.innerHTML=`<b>${i?i+1:"⌂"}</b>${x.tid} ${K.ort[x.id]}`; $("korlista").appendChild(li); });
+{ const li=document.createElement("li"); li.innerHTML=`<b>⌂</b>${HEMMA} Hemma`; $("korlista").appendChild(li); }
 function startVy(){
   const tel = window.matchMedia("(max-width:760px)").matches;
   satVy(kStart, vyFor(kStart, bbox(PTS, 70), tel ? [.08,.08,.92,.27] : [.5,.07,.8,.93]));
@@ -456,13 +485,13 @@ function startVy(){
 let startAnim = 0;
 function spelaStart(){
   startVy(); cancelAnimationFrame(startAnim);
-  kStart.matt.setAttribute("d", SEG.join("")); kStart.ritas.setAttribute("d","");
+  kStart.matt.setAttribute("d", SEG.join("")+K.hem); kStart.ritas.setAttribute("d","");
   kStart.st.forEach(g=>g.classList.remove("syns","nu","klar","fel")); kStart.klar.forEach(p=>p.style.opacity=0);
   const t0 = performance.now(), T = RM ? 1 : 3400;
   const steg = t => { const f = Math.min(1,(t-t0)/T), e = ease(f);
-    puck(kStart, delbana(kStart, e));
+    bil(kStart, delbana(kStart, e));
     kStart.st.forEach((g,i)=>{ if(i===0 || e*(PTS.length-1) >= i-0.05) g.classList.add("syns"); });
-    if(f<1) startAnim = requestAnimationFrame(steg); else puck(kStart, PTS[0]); };
+    if(f<1) startAnim = requestAnimationFrame(steg); else bil(kStart, [PTS[0][0]+kStart.z*30, PTS[0][1]+kStart.z*12], -20); };
   startAnim = requestAnimationFrame(steg);
 }
 window.addEventListener("resize", ()=>{ if($("start").classList.contains("on")) startVy(); });
@@ -473,30 +502,31 @@ spelaStart();
 const kKor = nyKarta($("k-kor"));
 const kMini = nyKarta($("k-mini"), {skala:.72});
 let korKlar = null, korAnim = 0;
-function kor(i, klart){
-  const tel = laget==="tel", KY1 = tel?[.05,.05,.95,.6]:[.35,0,1,1], KY2 = tel?[.03,.03,.97,.6]:[.3,0,1,1], KY3 = tel?[.06,.06,.94,.6]:[.3,.05,1,.95]; // kör till stopp i (i = S.length betyder hem)
+function kor(i, klart){ // kör till läge i (i = S.length betyder hemfärd)
+  const tel = laget==="tel", KY1 = tel?[.08,.06,.92,.58]:[.36,.04,.98,.96], KY3 = tel?[.06,.06,.94,.6]:[.32,.06,.98,.94];
   const ov = $("korning"); ov.classList.add("on"); ov.setAttribute("aria-hidden","false");
-  const fran = i>0 ? PTS[i-1] : null, till = i<S.length ? PTS[i] : PTS[S.length-1];
-  stoppStatus(kKor, i<S.length ? i : null);
-  kKor.klar.forEach((p,j)=>p.style.opacity = j < i-1 ? 1 : 0);
-  const r = kKor.ritas;
-  let A, B, L = 0;
-  if(i===0){ A = vyFor(kKor, bbox(PTS,90)); B = vyFor(kKor, bbox([till],150), KY1); r.setAttribute("d",""); }
-  else if(i>=S.length){ A = vyFor(kKor, bbox([fran],160), KY1); B = vyFor(kKor, bbox(PTS,90), KY2); r.setAttribute("d",""); kKor.klar.forEach(p=>p.style.opacity=1); }
-  else { A = vyFor(kKor, bbox([fran,till],130), KY3); B = vyFor(kKor, bbox([fran,till],100), KY3); kKor.matt.setAttribute("d", SEG[i-1]); L = 1; }
-  const tidFran = i>0 ? S[i-1].tid : "06:45", tidTill = i<S.length ? S[i].tid : "16:15";
-  $("kor-fran").textContent = i===0 ? "Dagen börjar" : i>=S.length ? "Dagen är slut" : `Stopp ${i+1} av ${S.length} · ${S[i].tjanst}`;
-  $("kor-ort").textContent = i<S.length ? K.ort[S[i].id] : "Tillbaka i Lund";
+  const hem = i>=S.length, fran = i>0 ? PTS[i-1] : PTS[0], till = hem ? PTS[0] : PTS[i];
+  stoppStatus(kKor, hem ? null : i);
+  kKor.klar.forEach((p,j)=>p.style.opacity = (hem || j < i-1) ? 1 : 0);
+  let A, B, kor = true, d = "";
+  if(i===0){ A = vyFor(kKor, bbox(PTS,90), KY1); B = vyFor(kKor, bbox([till],140), KY1); kor = false; kKor.ritas.setAttribute("d",""); }
+  else { d = hem ? K.hem : SEG[i-1]; A = vyFor(kKor, bbox([fran,till],140), KY3); B = vyFor(kKor, bbox([fran,till],105), KY3); kKor.matt.setAttribute("d", d); }
+  const tidFran = i>0 ? S[i-1].tid : "06:50", tidTill = hem ? HEMMA : S[i].tid;
+  $("kor-fran").textContent = i===0 ? "Du utgår hemifrån" : hem ? "Rutten avslutad hos sista kunden · Hemfärd" : (i===1 ? "Rutten startar när du börjar köra · " : "") + `Läge ${i+1} av ${S.length} · ${S[i].tjanst}`;
+  $("kor-ort").textContent = hem ? "Hemma" : K.ort[S[i].id];
+  $("kor-km").textContent = kor ? `ca ${km(d)} km` : "Dagens rutt i Diroto";
   const m0 = minuter(tidFran), m1 = minuter(tidTill);
-  const T = RM ? 200 : (laget==="tel" ? 1700 : 2500), t0 = performance.now();
+  const T = RM ? 200 : (tel ? 2200 : 3200), t0 = performance.now();
+  const mid = [(fran[0]+till[0])/2, (fran[1]+till[1])/2];
   let klar = false;
   const fardig = () => { if(klar) return; klar = true; cancelAnimationFrame(korAnim); ov.classList.remove("on"); ov.setAttribute("aria-hidden","true"); korKlar=null; klart && klart(); };
   korKlar = fardig;
   const steg = t => { const f = Math.min(1,(t-t0)/T), e = ease(f);
-    satVy(kKor, lerp(A,B,e));
-    if(L){ puck(kKor, delbana(kKor, e)); } else puck(kKor, i===0 ? till : (i>=S.length ? lerp(fran, PTS[S.length-1], e) : till));
+    const v = lerp(A,B,e);
+    if(kor){ const p = delbana(kKor, e); v[0] += (p[0]-mid[0])*.35*Math.sin(Math.PI*f); v[1] += (p[1]-mid[1])*.35*Math.sin(Math.PI*f); satVy(kKor, v); bil(kKor, p); }
+    else { satVy(kKor, v); bil(kKor, [till[0]+kKor.z*34, till[1]+kKor.z*14], -20); }
     const m = Math.round(m0 + (m1-m0)*e); $("kor-tid").textContent = String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
-    if(f<1) korAnim = requestAnimationFrame(steg); else setTimeout(fardig, RM?0:650); };
+    if(f<1) korAnim = requestAnimationFrame(steg); else { if(hem) bil(kKor, [till[0]+kKor.z*34, till[1]+kKor.z*14], -20); setTimeout(fardig, RM?0:900); } };
   korAnim = requestAnimationFrame(steg);
 }
 $("korning").addEventListener("click", ()=>korKlar && korKlar());
@@ -526,7 +556,7 @@ if(window.matchMedia("(max-width:760px)").matches){ $("go-tel").classList.remove
 
 /* ---------- Ruttlinjen ---------- */
 function minuter(t){ const [h,m]=t.split(":").map(Number); return h*60+m; }
-const T0 = minuter("06:45"), T1 = minuter("16:15");
+const T0 = minuter("06:45"), T1 = minuter("16:30");
 function pos(t){ return ((minuter(t)-T0)/(T1-T0)*100); }
 function byggRutt(){
   const r = $("rutt"); r.querySelectorAll(".stopp").forEach(e=>e.remove());
@@ -618,7 +648,7 @@ function nasta(){
   if(!st.visat) return;
   st.i++; st.visat=false; st.valt=null; st.roster=[0,0,0]; spara();
   if(st.i >= S.length){ kor(S.length, ()=>rita(true)); return; }
-  rita(true); kor(st.i);
+  rita(true); if(!SAMMA[st.i]) kor(st.i);
 }
 function spara(){ if(laget==="tel") lagra.set("rutten-tel", st); }
 $("huvud").onclick = () => st.visat ? nasta() : visaSvar();
@@ -666,7 +696,7 @@ function slut(){
   $("lasin").classList.toggle("hidden", laget!=="grupp");
   if(laget==="tel"){ $("kod").textContent = kodFor(st.svar); lagra.set("rutten-tel", st); }
   ritaStat(); visa("slut");
-  requestAnimationFrame(()=>{ if(!kSlut) kSlut = nyKarta($("k-slut")); stoppStatus(kSlut, null); kSlut.klar.forEach(p=>p.style.opacity=1); satVy(kSlut, vyFor(kSlut, bbox(PTS,90))); puck(kSlut, PTS[S.length-1]); });
+  requestAnimationFrame(()=>{ if(!kSlut) kSlut = nyKarta($("k-slut")); stoppStatus(kSlut, null); kSlut.klar.forEach(p=>p.style.opacity=1); satVy(kSlut, vyFor(kSlut, bbox(PTS,90))); bil(kSlut, [PTS[0][0]+kSlut.z*30, PTS[0][1]+kSlut.z*12], -20); });
 }
 function ritaStat(){
   const koder = $("koder").value.split(/[\s,;]+/).filter(Boolean);

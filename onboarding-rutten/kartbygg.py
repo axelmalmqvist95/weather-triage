@@ -84,7 +84,7 @@ vatten = [dict(n=n, x=round(P(a, b)[0], 1), y=round(P(a, b)[1], 1)) for n, a, b 
 STOPP = {"s01": (13.212, 55.716), "s02": (13.082, 55.668), "s03": (12.935, 55.585), "s04": (13.015, 55.520),
          "s05": (13.035, 55.474), "s13": (12.968, 55.418), "s06": (12.862, 55.410), "s07": (13.140, 55.383),
          "s08": (13.232, 55.503), "s09": (13.262, 55.545), "s10": (13.492, 55.478), "s11": (13.214, 55.637),
-         "s12": (13.230, 55.700)}
+         "s12": (13.214, 55.637)}  # samma kund som s11
 stopp = {k: [round(P(a, b)[0], 1), round(P(a, b)[1], 1)] for k, (a, b) in STOPP.items()}
 
 # Rutten som kurva i stoppens ordning. Mellanpunkter håller bilen på land (via Vellinge i stället för över viken).
@@ -112,9 +112,16 @@ swe = [poly[0] for f in land["features"] if f["properties"]["A3"] == "SWE" for p
 for k, (a, b) in STOPP.items():
     assert any(inne((a, b), r) for r in swe), f"{k} ligger i vattnet"
 
-ORT = {"s01": "Lund", "s02": "Lomma", "s03": "Malmö", "s04": "E6 mot Vellinge", "s05": "Vellinge", "s13": "Höllviken",
-       "s06": "Skanör", "s07": "Trelleborg", "s08": "Svedala", "s09": "Svedala", "s10": "Skurup", "s11": "Staffanstorp", "s12": "Lund"}
-ut = dict(seg=segm, vb=[W, H], kmper=round(SK / 111.32, 3), ort=ORT, land="".join(land_d), kom="".join(kom_d), vag=vag, orter=orter, vatten=vatten, stopp=stopp,
+ORT = {"s01": "Hemma", "s02": "Lomma", "s03": "Malmö", "s04": "E6 mot Vellinge", "s05": "Vellinge", "s13": "Höllviken",
+       "s06": "Skanör", "s07": "Trelleborg", "s08": "Svedala", "s09": "Svedala", "s10": "Skurup", "s11": "Staffanstorp", "s12": "Staffanstorp"}
+# Hemfärd: från sista kunden hem igen.
+hk = [P(*STOPP["s11"]), P(*STOPP["s12"]), P(13.232, 55.672), P(*STOPP["s01"]), P(*STOPP["s01"])]
+hem = f"M{hk[1][0]:.1f},{hk[1][1]:.1f}"
+for j in range(1, 3):
+    p0, p1, p2, p3 = hk[j - 1], hk[j], hk[j + 1], hk[j + 2]
+    c1 = (p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6); c2 = (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6)
+    hem += f"C{c1[0]:.1f},{c1[1]:.1f} {c2[0]:.1f},{c2[1]:.1f} {p2[0]:.1f},{p2[1]:.1f}"
+ut = dict(hem=hem, seg=segm, vb=[W, H], kmper=round(SK / 111.32, 3), ort=ORT, land="".join(land_d), kom="".join(kom_d), vag=vag, orter=orter, vatten=vatten, stopp=stopp,
           kalla="Karta: Lantmäteriet (CC0), OpenStreetMap-bidragsgivare (ODbL), Natural Earth")
 UT.write_text(json.dumps(ut, ensure_ascii=False, separators=(",", ":")))
 print(UT, W, H, "land", len(ut["land"]), "kom", len(ut["kom"]), "vag", len(vag), sum(len(v["d"]) for v in vag))
