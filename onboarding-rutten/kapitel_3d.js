@@ -189,8 +189,9 @@ function visaKapitel(id, klart){
   $("kap-pins").innerHTML = "";
   if(kap && kap.scene){ kap.scene.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
   kap = { id, k, i:0, klart, scene:null, nalar:[], svarat:{} };
-  const film = !!k.film; $("kap-duk").classList.toggle("hidden", film); $("kap-film").classList.toggle("hidden", !film); $("kap-filmtag").classList.toggle("hidden", !film);
-  if(!film){
+  const film = !!k.film, foto = id==="bil"; $("kap-duk").classList.add("hidden"); $("kap-bilder").classList.toggle("hidden", !foto); $("kap-bilder").querySelectorAll("img").forEach(im=>{ im.className=""; im.removeAttribute("src"); }); $("kap-film").classList.toggle("hidden", !film); $("kap-filmtag").classList.toggle("hidden", !film);
+  if(foto){ /* riktiga bilder, se kapSteg */ }
+  else if(!film){
     trea(); const scene = nyScen();
     const c = { scene, textur:[], nal(x,y,z,inne,nid){ const m = d3("mark", "", $("kap-pins")); m.dataset.id=nid; m.innerHTML=`<div class="pin">${inne}</div>`; m.dataset.x=x; m.dataset.y=y; m.dataset.z=z; kap.nalar.push(m); return m; } };
     kap.scene = scene; kap.scen = k.bygg(c);
@@ -198,11 +199,11 @@ function visaKapitel(id, klart){
   } else filmKlar();
   $("kap-kicker").textContent = k.kicker; $("kap-titel").textContent = k.titel;
   $("kap-prog").innerHTML = k.steg.map(()=>"<i></i>").join("");
-  $("kapitel").classList.toggle("smal", kapitelSmal()); $("kapitel").classList.toggle("filmlage", film);
+  $("kapitel").classList.toggle("smal", kapitelSmal()); $("kapitel").classList.toggle("filmlage", film); $("kapitel").classList.toggle("fotolage", foto);
   $("mobil").classList.toggle("hidden", id!=="bil"); $("kap-remsa").innerHTML = ""; $("kap-foto").classList.remove("on"); $("kap-sokare").classList.remove("on","tagen"); $("kap-skick").classList.toggle("hidden", !film);
   visa("kapitel");
   if(!film && id==="bil") spelaIntro(); else ljud.motor && !film && ljud.motor(2400, .5);
-  if(!film){ storlek(); R3.nu = null; const m0 = kamMal(k.steg[0]); const start = { p:m0.p.clone().sub(m0.t).multiplyScalar(1.6).add(m0.t), t:m0.t.clone() }; R3.nu = { p:start.p.clone(), t:start.t.clone() }; kamTill(m0); }
+  if(!film && !foto){ storlek(); R3.nu = null; const m0 = kamMal(k.steg[0]); const start = { p:m0.p.clone().sub(m0.t).multiplyScalar(1.6).add(m0.t), t:m0.t.clone() }; R3.nu = { p:start.p.clone(), t:start.t.clone() }; kamTill(m0); }
   kapSteg(0, true);
 }
 /* Husfilmen: spelas avsnitt för avsnitt och stannar på sista bilden. */
@@ -225,6 +226,7 @@ const SKICK = [[0,0],[2.77,0],[19.7,30],[33.15,60],[50.1,90],[53.5,100],[60,100]
 function kapSteg(i, forsta){
   const k = kap.k; i = Math.max(0, Math.min(k.steg.length-1, i)); kap.i = i; const s = k.steg[i];
   if(kap.k.film){ filmSeg(s.seg[0], s.seg[1]); const v = $("kap-film"); v.style.transformOrigin = s.zoom ? s.zoom[1] : "50% 50%"; v.style.transform = s.zoom ? `scale(${s.zoom[0]})` : ""; }
+  else if(kap.id==="bil") visaBakgrund(s, i);
   else { kamTill(kamMal(s)); kap.scen.satt({ bak:s.bak, dorr:s.dorr, dack:s.dack, varn:s.varn, mark:s.mark, qr:s.qr || i<2 }); }
   { const feb = $("kap-fe"); feb.innerHTML = ""; if(s.fe) foreEfter(feb, s.fe); }
   $("kap-prog").querySelectorAll("i").forEach((e,j)=>{ e.className = j<i ? "klar" : j===i ? "on" : ""; });
@@ -242,12 +244,12 @@ function kapSteg(i, forsta){
   $("inst-monster").classList.toggle("on", !!s.monster);
   if(s.monster){ $("mm-varde").textContent = s.monster; $("mm-grans").textContent = s.varn ? "Gräns vintertid: 3,0 mm" : "Gräns: 1,6 mm sommar, 3,0 mm vinter"; $("mm-varde").style.color = s.varn ? "var(--red2)" : "#fff"; }
   if(s.tel) ritaMobil(s.tel, i);
-  $("kap-foto").classList.remove("on"); if(s.foto && !s.blixt){ const jag2 = kap; setTimeout(()=>{ if(kap===jag2 && kap.i===i) visaFoto(s); }, 900); }
+  $("kap-foto").classList.remove("on"); if(s.foto && !s.blixt && kap.id!=="bil"){ const jag2 = kap; setTimeout(()=>{ if(kap===jag2 && kap.i===i) visaFoto(s); }, 900); }
   const sok = $("kap-sokare"); sok.classList.remove("on","tagen"); sok.querySelector("b").textContent = "Ta bild";
   if(s.blixt && !kap.k.film){ const jag = kap; clearTimeout(kap.fotoT);
     setTimeout(()=>{ if(kap===jag && kap.i===i) sok.classList.add("on"); }, 700);
     kap.fotoT = setTimeout(()=>{ if(kap!==jag || kap.i!==i) return;
-      const bild = s.foto ? KAPFOTO[[].concat(s.foto)[0]] : fota(); ljud.klick(); if(s.foto) visaFoto(s); const b=$("kap-blixt"); if(!RM){ b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); }
+      const bild = s.foto ? KAPFOTO[[].concat(s.foto)[0]] : fota(); ljud.klick(); if(s.foto && kap.id!=="bil") visaFoto(s); const b=$("kap-blixt"); if(!RM){ b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); }
       sok.classList.add("tagen"); sok.querySelector("b").textContent = "Bild tagen";
       const vy = $("skarm").querySelector(".vy"); if(vy && bild){ vy.classList.add("tagen"); vy.innerHTML = `<img alt="" src="${bild}">`; }
       if(bild){ const rm = $("kap-remsa"); let fg = rm.querySelector(`[data-i="${i}"]`); if(!fg){ fg = document.createElement("figure"); fg.dataset.i = i; rm.appendChild(fg); }
@@ -269,6 +271,16 @@ function spelaIntro(){
 function slutIntro(){ const v = $("kap-intro"); if(v.classList.contains("hidden")) return; v.classList.add("ut"); $("kapitel").classList.remove("intro"); setTimeout(()=>{ v.pause(); v.classList.add("hidden"); }, 900); }
 $("kap-intro").addEventListener("ended", slutIntro);
 $("kap-intro").addEventListener("click", slutIntro);
+/* Ken Burns: mjuk zoom mot den del av bilden som steget handlar om. */
+const FOKUS = { fv:"35% 55%", fh:"62% 55%", bh:"40% 55%", bv:"60% 55%", forar:"45% 50%", last:"50% 55%", qr:"45% 45%", matare:"52% 55%", dack:"52% 40%", dack28:"55% 40%", lampa:"48% 55%", skada:"45% 50%" };
+function visaBakgrund(s, i){
+  const box = $("kap-bilder"), [a, b] = box.querySelectorAll("img"), fs = [].concat(s.foto || (i===0 ? "fv" : "fh"));
+  const ny = box.dataset.v === "a" ? b : a, gammal = ny === a ? b : a; box.dataset.v = ny === a ? "a" : "b";
+  const satt = (el, key) => { el.src = KAPFOTO[key]; el.style.transformOrigin = FOKUS[key] || "50% 50%"; el.style.transition = "none"; el.style.transform = "scale(1.12)"; void el.offsetWidth; el.style.transition = ""; el.className = "on"; el.style.transform = "scale(1)"; };
+  satt(ny, fs[0]); gammal.className = "";
+  $("kap-bildtext").textContent = [].concat(s.fototext||"")[0] || ""; $("kap-bildtext").classList.toggle("on", !!s.fototext);
+  clearInterval(kap.bgV); if(fs.length > 1){ let n = 0; const jag = kap; kap.bgV = setInterval(()=>{ if(kap!==jag || kap.i!==i){ clearInterval(jag.bgV); return; } n = (n+1) % fs.length; const [x, y] = box.querySelectorAll("img"), nn = box.dataset.v === "a" ? y : x, gg = nn === x ? y : x; box.dataset.v = nn === x ? "a" : "b"; satt(nn, fs[n]); gg.className = ""; $("kap-bildtext").textContent = [].concat(s.fototext||"")[n] || ""; }, 4200); }
+}
 function visaFoto(s){ const kf = $("kap-foto"), fs = [].concat(s.foto), ts = [].concat(s.fototext||""), jag = kap, i0 = kap.i; let n = 0;
   const visa1 = () => { kf.innerHTML = `<img alt="" src="${KAPFOTO[fs[n]]}"><span>${ts[n]||""}</span><em>Visualisering</em>`; kf.classList.add("on"); };
   visa1(); clearInterval(kap.fotoV); if(fs.length > 1) kap.fotoV = setInterval(()=>{ if(kap!==jag || kap.i!==i0){ clearInterval(jag.fotoV); return; } kf.classList.remove("on"); setTimeout(()=>{ n = (n+1) % fs.length; visa1(); }, 350); }, 3600); }

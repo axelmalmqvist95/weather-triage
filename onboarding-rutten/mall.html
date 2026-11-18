@@ -318,7 +318,7 @@ __KAPITEL_CSS__
 
 <!-- KAPITEL I 3D -->
 <section id="kapitel" class="screen" aria-label="Kapitel">
-  <div class="stage3d" id="kap-scen"><canvas id="kap-duk"></canvas><video id="kap-intro" class="hidden" muted playsinline preload="auto"></video><video id="kap-film" class="hidden" muted playsinline preload="auto"></video><div class="kap-filmskugga"></div><div id="kap-pins"></div><div class="sokare" id="kap-sokare"><i></i><i></i><i></i><i></i><b>Ta bild</b></div><div class="skick hidden" id="kap-skick"><small>Husets skick</small><b id="kap-skicktal">0</b><span>/100</span><div class="skickrad"><i id="kap-skickrad"></i></div></div><div class="remsa" id="kap-remsa"></div><figure class="kapfoto" id="kap-foto"></figure><span class="kap-filmtag hidden" id="kap-filmtag">Visualisering · exempelhus</span></div>
+  <div class="stage3d" id="kap-scen"><canvas id="kap-duk"></canvas><div id="kap-bilder" class="hidden"><img alt=""><img alt=""><div class="kap-bildskugga"></div><div id="kap-bildtext"></div><em class="kap-vis">Visualisering</em></div><video id="kap-intro" class="hidden" muted playsinline preload="auto"></video><video id="kap-film" class="hidden" muted playsinline preload="auto"></video><div class="kap-filmskugga"></div><div id="kap-pins"></div><div class="sokare" id="kap-sokare"><i></i><i></i><i></i><i></i><b>Ta bild</b></div><div class="skick hidden" id="kap-skick"><small>Husets skick</small><b id="kap-skicktal">0</b><span>/100</span><div class="skickrad"><i id="kap-skickrad"></i></div></div><div class="remsa" id="kap-remsa"></div><figure class="kapfoto" id="kap-foto"></figure><span class="kap-filmtag hidden" id="kap-filmtag">Visualisering · exempelhus</span></div>
   <div class="blixt" id="kap-blixt"></div>
   <div class="kap-topp"><img class="logo" src="__LOGO__" alt="Nanostone"><div class="kicker" id="kap-kicker"></div><div class="kap-prog" id="kap-prog"></div>
     <button class="ikonknapp ljudknapp" type="button" aria-label="Ljud av eller på"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="vag" d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/><path class="kryss" d="M16 9l5 6M21 9l-5 6"/></svg></button><button class="ikonknapp" id="kap-stang" type="button" aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -424,7 +424,6 @@ __KAPITEL_CSS__
 </section>
 </div>
 
-<script>__THREE__</script>
 <script>
 "use strict";
 const DATA = __DATA__;

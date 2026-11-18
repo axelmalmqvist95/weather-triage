@@ -68,7 +68,6 @@ html = html.replace("__OS400__", b64(FONT / "OpenSans-Regular.ttf"))
 html = html.replace("__OS700__", b64(FONT / "OpenSans-Bold.ttf"))
 import re as _re
 assert not _re.search(r"__(?!THREE__|HUSFILM_DATA__|BILINFILM__|KORFILM__|VILLAFILM__)[A-Z_]+__", html), _re.findall(r"__[A-Z_]+__", html)[:3]
-html = html.replace("__THREE__", (HAR / "three.min.js").read_text())
 html = html.replace("__HUSFILM_DATA__", base64.b64encode((HAR / "husfilm.mp4").read_bytes()).decode())
 html = html.replace("__VILLAFILM__", base64.b64encode((HAR / "villafilm.mp4").read_bytes()).decode())
 html = html.replace("__KORFILM__", base64.b64encode((HAR / "korfilm.mp4").read_bytes()).decode())
