@@ -125,7 +125,7 @@ S = [
             B=dict(t="Tio minuter senare har du rätt metod, och kunden har sett att skadorna fanns före.", tid=-10, kv=1, ku=1),
             C=dict(t="Resultatet blir ojämnt och ingen vet om metoden var rätt.", tid=0, kv=-1, ku=-1))),
 
- dict(id="s07", tid="12:50", tjanst="Algbehandling fasad", bild="fasad-skum", fe="fasad", rubrik="Grannen ser skum på bilen",
+ dict(id="s07", tid="12:50", tjanst="Algbehandling fasad", bild="skum-bil", fe="fasad", rubrik="Grannen ser skum på bilen",
   lage="Du skumbehandlar en fasad. En vindby för skum över staketet, och grannen kommer ut och säger att det har hamnat på bilen och buskarna. Grannen är upprörd.",
   alt=dict(A="Pausa, skölj av bil och växter direkt, fota och prata lugnt med grannen. Ring närmast ansvarig och lova ingen ersättning.",
            B="Säg att försäkringen täcker det och att grannen kan skicka en räkning till kontoret.",
