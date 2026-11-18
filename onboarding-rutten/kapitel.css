@@ -199,3 +199,17 @@
 #kapitel.fotolage:not(.smal) .kap-vis{right:calc(min(470px,36vw) + clamp(16px,2.4vw,40px) + 22px)}
 #kapitel.fotolage:not(.smal) .sokare{left:24%;width:40%}
 #app{overflow:clip}
+
+.skarm .vy.live{padding:0;background:#000}
+.skarm .vy.live img{width:100%;height:100%;object-fit:cover;image-rendering:auto;animation:handkam 3.4s ease-in-out infinite alternate;filter:saturate(1.05) contrast(1.04)}
+@keyframes handkam{0%{transform:scale(1.16) translate(-1.2%,.6%) rotate(-.4deg)}50%{transform:scale(1.14) translate(.8%,-.8%) rotate(.3deg)}100%{transform:scale(1.17) translate(1.2%,.9%) rotate(-.2deg)}}
+.skarm .vy .hk{position:absolute;width:14%;height:11%;border:2px solid rgba(255,255,255,.9);z-index:2;pointer-events:none}
+.skarm .vy .v1{left:9%;top:10%;border-right:0;border-bottom:0}.skarm .vy .v2{right:9%;top:10%;border-left:0;border-bottom:0}
+.skarm .vy .v3{left:9%;bottom:10%;border-right:0;border-top:0}.skarm .vy .v4{right:9%;bottom:10%;border-left:0;border-top:0}
+.skarm .vy .rec{position:absolute;left:6px;top:5px;z-index:2;font:700 7px/1 "Open Sans",sans-serif;letter-spacing:.12em;color:#fff;background:rgba(0,0,0,.45);padding:3px 5px 3px 11px;border-radius:3px}
+.skarm .vy .rec::before{content:"";position:absolute;left:4px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:#e52f19;animation:recblink 1s steps(2) infinite}
+@keyframes recblink{50%{opacity:0}}
+.skarm .vy .tblixt{position:absolute;inset:0;background:#fff;opacity:0;animation:tblixt .5s ease-out;pointer-events:none}
+@keyframes tblixt{0%{opacity:.95}100%{opacity:0}}
+.skarm .kn.ok{background:#1f8a4c;color:#fff}
+@media (prefers-reduced-motion:reduce){.skarm .vy.live img{animation:none;transform:scale(1.12)}.skarm .vy .tblixt{animation:none}}

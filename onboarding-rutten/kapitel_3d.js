@@ -251,7 +251,7 @@ function kapSteg(i, forsta){
     kap.fotoT = setTimeout(()=>{ if(kap!==jag || kap.i!==i) return;
       const bild = s.foto ? KAPFOTO[[].concat(s.foto)[0]] : fota(); ljud.klick(); if(s.foto && kap.id!=="bil") visaFoto(s); const b=$("kap-blixt"); if(!RM){ b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); }
       sok.classList.add("tagen"); sok.querySelector("b").textContent = "Bild tagen";
-      const vy = $("skarm").querySelector(".vy"); if(vy && bild){ vy.classList.add("tagen"); vy.innerHTML = `<img alt="" src="${bild}">`; }
+      const vy = $("skarm").querySelector(".vy"); if(vy && bild){ vy.classList.remove("live"); vy.classList.add("tagen"); vy.innerHTML = `<img alt="" src="${bild}"><i class="tblixt"></i>`; const kn = $("skarm").querySelector(".kn"); if(kn){ kn.textContent = "✓ Bild sparad"; kn.classList.add("ok"); } }
       if(bild){ const rm = $("kap-remsa"); let fg = rm.querySelector(`[data-i="${i}"]`); if(!fg){ fg = document.createElement("figure"); fg.dataset.i = i; rm.appendChild(fg); }
         fg.innerHTML = `<img alt="" src="${bild}"><figcaption>${s.tel && s.tel.n ? s.tel.n : "✓"}</figcaption>`; }
       setTimeout(()=>{ if(kap===jag && kap.i===i) sok.classList.remove("on"); }, 900);
@@ -289,12 +289,17 @@ function fota(){
     const w = src.width, h = src.height, sw = w*.52, sh = sw*.75, sx = w*.09, sy = Math.max(0, h*.17 + (h*.62 - sh)/2);
     c.getContext("2d").drawImage(src, sx, sy, sw, Math.min(sh, h-sy), 0, 0, 320, 240); return c.toDataURL("image/jpeg", .8); }catch(e){ return null; }
 }
+function kamVy(i){
+  const st = kap && kap.k.steg[i], f = st && st.foto ? [].concat(st.foto)[0] : null;
+  if(!f || !KAPFOTO[f]) return `<div class="vy">Kameran</div>`;
+  return `<div class="vy live"><img alt="" src="${KAPFOTO[f]}" style="transform-origin:${FOKUS[f]||"50% 50%"}"><i class="hk v1"></i><i class="hk v2"></i><i class="hk v3"></i><i class="hk v4"></i><b class="rec">KAMERA</b></div>`;
+}
 function ritaMobil(t, i){
   const n = KAPITEL.bil.steg.length; const pr = Math.round(i/(n-1)*100);
   let vy = "";
   if(t.vy==="qr") vy = `<div class="vy"><img src="${QR}" alt=""><div class="linje"></div></div>`;
   else if(t.vy==="skanna") vy = `<div class="vy"><img src="${QR}" alt=""><div class="linje"></div></div><div class="fl">${t.f}</div>`;
-  else if(t.vy==="bild") vy = `<h4>${t.ti||""}</h4><div class="tips">${t.tip||""}</div><div class="vy">Kameran</div>${t.f?`<div class="fl">${t.f}</div>`:""}<div class="kn">Ta bild</div>`;
+  else if(t.vy==="bild") vy = `<h4>${t.ti||""}</h4><div class="tips">${t.tip||""}</div>${kamVy(i)}${t.f?`<div class="fl">${t.f}</div>`:""}<div class="kn">Ta bild</div>`;
   else if(t.vy==="lampa") vy = `<h4>Lyser någon varningslampa?</h4><div class="tg"><span class="${t.ja?"on":""}">Ja</span><span class="${t.ja?"":"on"}">Nej</span></div><div class="fl">${t.f}</div><div class="kn">Skicka</div>`;
   else if(t.vy==="klar") vy = `<div class="vy" style="background:#1f8a4c;color:#fff;font-size:13px">Skickad<br>11 bilder · 4 däck</div><div class="kn ok">Klar</div>`;
   $("skarm").innerHTML = `<div class="hd"><b>${t.h}</b><span>${t.s}</span></div><div class="pr"><i style="width:${pr}%"></i></div><div class="bd">${vy}</div>`;
