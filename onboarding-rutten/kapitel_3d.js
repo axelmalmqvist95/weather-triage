@@ -272,7 +272,7 @@ function slutIntro(){ const v = $("kap-intro"); if(v.classList.contains("hidden"
 $("kap-intro").addEventListener("ended", slutIntro);
 $("kap-intro").addEventListener("click", slutIntro);
 /* Ken Burns: mjuk zoom mot den del av bilden som steget handlar om. */
-const FOKUS = { fv:"35% 55%", fh:"62% 55%", bh:"40% 55%", bv:"60% 55%", forar:"45% 50%", last:"50% 55%", qr:"45% 45%", matare:"52% 55%", dack:"52% 40%", dack28:"55% 40%", lampa:"48% 55%", skada:"45% 50%" };
+const FOKUS = { fv:"35% 55%", fh:"62% 55%", bh:"40% 55%", bv:"60% 55%", forar:"45% 50%", fram:"40% 27%", last:"50% 55%", qr:"45% 45%", matare:"52% 55%", dack:"52% 40%", dack28:"55% 40%", lampa:"48% 55%", skada:"45% 50%" };
 function visaBakgrund(s, i){
   const box = $("kap-bilder"), [a, b] = box.querySelectorAll("img"), fs = [].concat(s.foto || (i===0 ? "fv" : "fh"));
   const ny = box.dataset.v === "a" ? b : a, gammal = ny === a ? b : a; box.dataset.v = ny === a ? "a" : "b";
@@ -296,7 +296,7 @@ function ritaMobil(t, i){
   else if(t.vy==="skanna") vy = `<div class="vy"><img src="${QR}" alt=""><div class="linje"></div></div><div class="fl">${t.f}</div>`;
   else if(t.vy==="bild") vy = `<h4>${t.ti||""}</h4><div class="tips">${t.tip||""}</div><div class="vy">Kameran</div>${t.f?`<div class="fl">${t.f}</div>`:""}<div class="kn">Ta bild</div>`;
   else if(t.vy==="lampa") vy = `<h4>Lyser någon varningslampa?</h4><div class="tg"><span class="${t.ja?"on":""}">Ja</span><span class="${t.ja?"":"on"}">Nej</span></div><div class="fl">${t.f}</div><div class="kn">Skicka</div>`;
-  else if(t.vy==="klar") vy = `<div class="vy" style="background:#1f8a4c;color:#fff;font-size:13px">Skickad<br>11 bilder · 4 däck</div><div class="kn ok">Klar</div>`;
+  else if(t.vy==="klar") vy = `<div class="vy" style="background:#1f8a4c;color:#fff;font-size:13px">Skickad<br>12 bilder · 4 däck</div><div class="kn ok">Klar</div>`;
   $("skarm").innerHTML = `<div class="hd"><b>${t.h}</b><span>${t.s}</span></div><div class="pr"><i style="width:${pr}%"></i></div><div class="bd">${vy}</div>`;
 }
 function kapFram(){ if(!kap) return; if(kap.i >= kap.k.steg.length-1){ const k = kap.klart; kap.klart = null; k ? k() : visa("start"); return; } kapSteg(kap.i+1); }
