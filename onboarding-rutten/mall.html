@@ -411,7 +411,7 @@ __KAPITEL_CSS__
       <div class="dip-las hidden" id="dip-las"><b class="bsd">Diplomet är låst</b><span id="dip-lastext"></span></div>
       <div class="dip-oppen hidden" id="dip-oppen">
         <h2 class="sek">Ditt diplom</h2>
-        <div class="dip-rad"><input id="dip-namn" type="text" maxlength="40" autocomplete="off" placeholder="Skriv ditt namn" aria-label="Namn på diplomet"><a class="knapp" id="dip-spara" download="Diplom-En-dag-pa-rutten.png">Spara diplomet</a></div>
+        <div class="dip-rad"><input id="dip-namn" type="text" maxlength="40" autocomplete="off" placeholder="Skriv ditt namn" aria-label="Namn på diplomet"><button class="knapp" id="dip-spara" type="button">Spara diplomet</button></div>
         <img id="dip-bild" alt="Diplom: Klar för rutten">
         <p class="dip-tips">Håll fingret på bilden för att spara den i telefonen.</p>
       </div>
@@ -847,6 +847,18 @@ function slut(){
   requestAnimationFrame(()=>{ if(!kSlut) kSlut = nyKarta($("k-slut")); stoppStatus(kSlut, null); kSlut.klar.forEach(p=>p.style.opacity=1); satVy(kSlut, vyFor(kSlut, bbox(PTS,90))); bil(kSlut, [PTS[0][0]+kSlut.z*30, PTS[0][1]+kSlut.z*12], -20); });
 }
 /* ---------- Diplom och konfetti ---------- */
+$("dip-spara").onclick = async () => {
+  const url = ritaDiplom.url; if(!url) return; const kn = $("dip-spara"), namn = "Diplom-En-dag-pa-rutten.jpg";
+  const bin = atob(url.split(",")[1]), u8 = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
+  const blob = new Blob([u8], {type:"image/jpeg"});
+  if(window.claude && typeof window.claude.use === "function"){
+    try{ const dl = await window.claude.use("downloads");
+      if(dl){ await dl.save({filename: namn, data: blob}); kn.textContent = "Diplomet sparat"; return; } }
+    catch(e){ if(e && e.code === "declined") return; }
+    kn.textContent = "Håll fingret på bilden för att spara"; return;
+  }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = namn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+};
 const DIP_GRANS = () => S.length - 5;
 function ritaDiplom(r){
   const W = 1600, H = 900, c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
@@ -876,7 +888,7 @@ function ritaDiplom(r){
   x.fillStyle = "#9fb8c0"; x.font = '400 18px "OS"'; x.fillText("Nanostone AB · "+dat, 150, 852);
   x.textAlign = "right"; x.fillStyle = "#fff"; x.font = '800 40px "BSD"'; x.fillText(r===S.length ? "PERFEKT DAG" : r>=S.length-2 ? "BRA JOBBAT" : "GODKÄND DAG", W-70, H-70); x.textAlign = "left";
   let url = ""; try{ url = c.toDataURL("image/jpeg", .9); }catch(e){}
-  if(url){ $("dip-bild").src = url; $("dip-spara").href = url; $("dip-spara").download = "Diplom-En-dag-pa-rutten.jpg"; }
+  if(url){ $("dip-bild").src = url; ritaDiplom.url = url; }
 }
 function diplom(r){
   const ok = r >= DIP_GRANS();
