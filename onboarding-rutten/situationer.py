@@ -19,7 +19,7 @@ S = [
             B=dict(t="Jobben blir gjorda med anpassad plan, och om något måste flyttas har en ansvarig sett beslutet.", tid=-5, kv=1, ku=1),
             C=dict(t="En behandling i kraftigt regn kan regnas bort. Då är jobbet gjort men resultatet uteblir.", tid=0, kv=-2, ku=-1))),
 
- dict(id="s16", tid="06:20", tjanst="Hemma, före avfärd", bild=None, ikon="klocka", rubrik="Diroto eller NUBA?",
+ dict(id="s16", tid="06:20", tjanst="Hemma, före avfärd", bild="diroto", ikon="klocka", rubrik="Diroto eller NUBA?",
   lage="Du sätter dig i bilen. Tänk dig en dag där första kunden ligger en och en halv timme hemifrån. Vad gör du i Diroto och i NUBA?",
   alt=dict(A="Startar rutten i Diroto och stämplar in i NUBA direkt när du sätter dig i bilen.",
            B="Startar rutten i Diroto när du sätter dig i bilen. Stämplar in i NUBA när du har kört en timme.",

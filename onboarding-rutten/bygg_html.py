@@ -67,9 +67,10 @@ html = html.replace("__BSD800X__", b64(FONT / "big-shoulders-display-latin-ext-8
 html = html.replace("__OS400__", b64(FONT / "OpenSans-Regular.ttf"))
 html = html.replace("__OS700__", b64(FONT / "OpenSans-Bold.ttf"))
 import re as _re
-assert not _re.search(r"__(?!THREE__|HUSFILM_DATA__|BILINFILM__|KORFILM__|VILLAFILM__)[A-Z_]+__", html), _re.findall(r"__[A-Z_]+__", html)[:3]
+assert not _re.search(r"__(?!THREE__|HUSFILM_DATA__|BILINFILM__|KORFILM__|VILLAFILM__|GRYFILM__)[A-Z_]+__", html), _re.findall(r"__[A-Z_]+__", html)[:3]
 html = html.replace("__HUSFILM_DATA__", base64.b64encode((HAR / "husfilm.mp4").read_bytes()).decode())
 html = html.replace("__VILLAFILM__", base64.b64encode((HAR / "villafilm.mp4").read_bytes()).decode())
+html = html.replace("__GRYFILM__", base64.b64encode((HAR / "gryfilm.mp4").read_bytes()).decode())
 html = html.replace("__KORFILM__", base64.b64encode((HAR / "korfilm.mp4").read_bytes()).decode())
 html = html.replace("__BILINFILM__", base64.b64encode((HAR / "bilinfilm.mp4").read_bytes()).decode())
 for tecken in ("—", "–"):

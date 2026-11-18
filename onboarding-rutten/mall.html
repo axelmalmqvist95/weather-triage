@@ -231,6 +231,7 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 #start:has(.delt[open]) .start-ingress{display:none}
 #valk{position:absolute;right:clamp(24px,5vw,90px);top:clamp(24px,7vh,90px);z-index:5;text-align:right;pointer-events:none;display:none}
 #valk.on{display:block}
+#valk::before{content:"";position:absolute;inset:-18% -30% -22% -55%;z-index:-1;background:radial-gradient(ellipse at 70% 45%,rgba(6,17,27,.82) 0,rgba(6,17,27,.55) 45%,rgba(6,17,27,0) 72%)}
 #valk small{display:block;color:var(--t2);font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:clamp(11px,.9vw,16px);margin-bottom:.6em;opacity:0;animation:valkin .8s .4s ease-out forwards}
 #valk b{display:block;font-family:"BSD";font-weight:800;line-height:.95;font-size:clamp(34px,4.4vw,84px);text-transform:uppercase;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6);opacity:0;transform:translateX(40px);animation:valkin .7s cubic-bezier(.2,.8,.2,1) forwards}
 #valk b.liten{font-size:clamp(24px,2.8vw,54px)}
@@ -478,7 +479,7 @@ __KAPITEL_CSS__
 "use strict";
 const DATA = __DATA__;
 const BILDER = __BILDER__;
-const KORFILM = "__KORFILM__", VILLAFILM = "__VILLAFILM__"; const filmUrl2 = {}; let korUrl = null;
+const KORFILM = "__KORFILM__", VILLAFILM = "__VILLAFILM__", GRYFILM = "__GRYFILM__"; const filmUrl2 = {}; let korUrl = null;
 /* Videorna packas upp en gång, asynkront, direkt när sidan laddats. Aldrig under uppspelning. */
 const VIDEO = {};
 function forbered(nyck, b64){ if(!VIDEO[nyck]) VIDEO[nyck] = fetch("data:video/mp4;base64," + b64).then(r => r.blob()).then(b => URL.createObjectURL(b)); return VIDEO[nyck]; }
@@ -702,8 +703,8 @@ function kor(i, klart){ // kör till läge i (i = S.length betyder hemfärd)
   const m0 = minuter(tidFran), m1 = minuter(tidTill);
   const T = RM ? 200 : ((i===0 || i>=S.length || (S[i] && S[i].id==="s07")) ? 7200 : (tel ? 2200 : 3200)), t0 = performance.now();
   const villa = S[i] && S[i].id === "s07", film = (i===0 || hem || villa) && !RM, fv = $("kor-film"); ov.classList.toggle("film", film);
-  if(film){ const nyck = villa ? "villa" : "kor"; fv.classList.remove("hidden");
-    koppla(fv, nyck, villa ? VILLAFILM : KORFILM, () => { try{ fv.currentTime = 0; }catch(e){} const pp = fv.play(); pp && pp.catch(()=>{}); }); } else { fv.pause(); fv.classList.add("hidden"); }
+  if(film){ const nyck = villa ? "villa" : i===0 ? "gry" : "kor"; fv.classList.remove("hidden");
+    koppla(fv, nyck, villa ? VILLAFILM : i===0 ? GRYFILM : KORFILM, () => { try{ fv.currentTime = 0; }catch(e){} const pp = fv.play(); pp && pp.catch(()=>{}); }); } else { fv.pause(); fv.classList.add("hidden"); }
   const tyst = (kor || film) ? ljud.motor((film ? 7400 : T)+500) : null;
   const mid = [(fran[0]+till[0])/2, (fran[1]+till[1])/2];
   let klar = false;
@@ -747,7 +748,7 @@ function starta(l, fortsatt){
   if(!fortsatt || st.i===0){ if(st.i===0) valkommen(); kor(st.i, () => { $("valk").classList.remove("on"); spot(); }); } else ritaVem();
 }
 document.querySelectorAll(".ljudknapp").forEach(b=>{ b.classList.toggle("av", !ljud.pa); b.onclick = () => { const p = ljud.vaxla(); document.querySelectorAll(".ljudknapp").forEach(x=>x.classList.toggle("av", !p)); if(p) ljud.tick(); }; });
-koppla($("kor-film"), "kor", KORFILM); forbered("villa", VILLAFILM);
+koppla($("kor-film"), "gry", GRYFILM); forbered("kor", KORFILM); forbered("villa", VILLAFILM);
 $("go-grupp").onclick = () => starta("grupp");
 $("go-tel").onclick = () => starta("tel");
 $("fortsatt").onclick = () => starta("tel", true);
