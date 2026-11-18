@@ -242,6 +242,53 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 #valk b{display:block;font-family:"BSD";font-weight:800;line-height:.95;font-size:clamp(34px,4.4vw,84px);text-transform:uppercase;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6);opacity:0;transform:translateX(40px);animation:valkin .7s cubic-bezier(.2,.8,.2,1) forwards}
 #valk b.liten{font-size:clamp(24px,2.8vw,54px)}
 @keyframes valkin{to{opacity:1;transform:none}}
+/* 1. Logga-intro */
+#ident{position:fixed;inset:0;z-index:180;background:#000;display:none;place-items:center;overflow:hidden;cursor:pointer}
+#ident.on{display:grid}
+#ident i{position:absolute;left:50%;top:50%;width:46vmin;height:9vmin;background:var(--red);transform-origin:center;opacity:0}
+#ident.on .s1{animation:idstreck 1.1s cubic-bezier(.7,0,.2,1) .05s both;--r:-58deg;--x:-160vmax}
+#ident.on .s2{animation:idstreck 1.1s cubic-bezier(.7,0,.2,1) .2s both;--r:-58deg;--x:160vmax;background:#ff5a40}
+#ident.on .s3{animation:idstreck 1.1s cubic-bezier(.7,0,.2,1) .35s both;--r:-58deg;--x:-160vmax;background:#b8200f}
+@keyframes idstreck{0%{opacity:1;transform:translate(-50%,-50%) rotate(var(--r)) translateX(var(--x)) scaleX(2.4)}55%{opacity:1;transform:translate(-50%,-50%) rotate(var(--r)) translateX(0) scaleX(1)}80%{opacity:1;transform:translate(-50%,-50%) rotate(var(--r)) translateX(0) scaleX(.15)}100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--r)) translateX(0) scaleX(0)}}
+#ident img{position:relative;height:clamp(40px,7vmin,96px);opacity:0}
+#ident.on img{animation:idlogo 1.6s cubic-bezier(.2,.8,.2,1) 1.05s both}
+@keyframes idlogo{0%{opacity:0;transform:scale(1.25);filter:blur(14px)}35%{opacity:1;filter:blur(0)}80%{opacity:1;transform:scale(1)}100%{opacity:1;transform:scale(.98)}}
+.id-rad{position:absolute;left:50%;top:calc(50% + clamp(36px,6vmin,80px));height:3px;width:min(34vw,360px);background:var(--red);transform:translateX(-50%) scaleX(0)}
+#ident.on .id-rad{animation:idrad .9s cubic-bezier(.7,0,.2,1) 1.5s both}
+@keyframes idrad{to{transform:translateX(-50%) scaleX(1)}}
+#ident.ut{animation:idut .5s ease-in forwards}
+@keyframes idut{to{opacity:0}}
+/* 2. Titelsekvens */
+.start-titel .ord{display:inline-block;font:inherit}
+#start:not(.titel) .start-titel .ord{clip-path:inset(0 0 100% 0)}
+#start.on .start-titel{animation:none}
+#start.on.titel .start-titel .ord{animation:ordin .75s cubic-bezier(.2,.8,.2,1) both}
+#start.on.titel .start-titel .ord:nth-of-type(1){animation-delay:.25s}#start.on.titel .start-titel .ord:nth-of-type(2){animation-delay:.45s}#start.on.titel .start-titel .ord:nth-of-type(3){animation-delay:.75s}
+#start.on.titel .start-titel span.ord{animation:ordin .9s cubic-bezier(.2,.8,.2,1) 1.05s both,ordglod 2.4s ease-out 1.6s both}
+@keyframes ordin{from{clip-path:inset(0 0 100% 0);transform:translateY(.35em)}to{clip-path:inset(-10% -5% -10% -5%);transform:none}}
+@keyframes ordglod{0%{text-shadow:0 0 0 rgba(229,47,25,0)}30%{text-shadow:0 0 60px rgba(229,47,25,.65)}100%{text-shadow:0 0 0 rgba(229,47,25,0)}}
+/* 3. Filmisk finish */
+#korn{position:fixed;inset:0;z-index:170;pointer-events:none;opacity:.035;background-size:180px 180px}
+body:has(#korning.on) #korn,body:has(#slut.on) #korn,body:has(#kapitel.on) #korn,body:has(#ident.on) #korn{display:none}
+.tel #korn{display:none}
+@keyframes korn{0%{transform:translate(0,0)}25%{transform:translate(-23px,14px)}50%{transform:translate(17px,-21px)}75%{transform:translate(-11px,-9px)}100%{transform:translate(0,0)}}
+#lacka{position:fixed;left:-60vw;top:-30vh;width:160vw;height:160vh;z-index:60;pointer-events:none;opacity:0;mix-blend-mode:screen;background:radial-gradient(closest-side at 30% 40%,rgba(255,120,50,.5),rgba(255,90,40,.18) 55%,rgba(255,90,40,0) 100%),radial-gradient(closest-side at 38% 75%,rgba(229,47,25,.38),rgba(229,47,25,0) 100%)}
+#lacka{display:none}#lacka.go{display:block;animation:lacka 1.3s ease-out forwards}
+@keyframes lacka{0%{opacity:0;transform:translateX(-12vw)}25%{opacity:.9}100%{opacity:0;transform:translateX(40vw)}}
+#korning .band{position:absolute;left:0;right:0;height:clamp(28px,7.5vh,90px);background:#000;z-index:4;transform:scaleY(0);transition:transform .7s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+#korning .band.ov{top:0;transform-origin:top}#korning .band.ne{bottom:0;transform-origin:bottom}
+#korning.on .band{transform:scaleY(1)}
+.tel #korning .band{display:none}
+/* 4. Rubriker i TV-stil */
+.scen.in .foto-info .klocka{animation:tvklocka .7s cubic-bezier(.2,.8,.2,1) .15s both}
+.scen.in .foto-info .tjanst{animation:tvband .6s cubic-bezier(.7,0,.2,1) .45s both}
+@keyframes tvklocka{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}
+@keyframes tvband{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.scen.in .rubrik{animation:tvrubrik .7s cubic-bezier(.2,.8,.2,1) .2s both}
+@keyframes tvrubrik{from{opacity:0;clip-path:inset(0 0 100% 0);transform:translateY(.3em)}to{opacity:1;clip-path:inset(-10% -2% -10% -2%);transform:none}}
+.scen.in .lage{animation:upp .6s ease-out .45s both}.scen.in #alts{animation:upp .6s ease-out .6s both}
+@media (prefers-reduced-motion:reduce){#korn,#lacka.go,.scen.in .foto-info .klocka,.scen.in .foto-info .tjanst,.scen.in .rubrik,.scen.in .lage,.scen.in #alts,#start .start-titel .ord{animation:none!important;clip-path:none!important}#korning .band{transition:none}}
+@media print{#korn,#lacka,#ident{display:none!important}}
 #morkt{position:fixed;inset:0;z-index:200;background:#000;display:none;place-items:center;cursor:none}
 #morkt.on{display:grid;animation:spotin .4s ease-out}#morkt .logo{height:clamp(22px,2.4vw,40px);opacity:.18}
 #hjalp{position:fixed;inset:0;z-index:150;display:none;place-items:center;background:rgba(3,8,13,.86);backdrop-filter:blur(6px)}
@@ -384,7 +431,7 @@ __KAPITEL_CSS__
     <header><img class="logo" src="__LOGO__" alt="Nanostone"></header>
     <div>
       <div class="kicker">Onboarding · Drift</div>
-      <h1 class="start-titel bsd">En dag<br>på <span>rutten</span></h1>
+      <h1 class="start-titel bsd"><b class="ord">En</b> <b class="ord">dag</b><br><b class="ord">på</b> <span class="ord">rutten</span></h1>
       <p class="start-ingress">Från morgonen hemma till sista bilden i Diroto. Första kunden klockan sju. Under dagen dyker det upp lägen som alla operatörer råkar ut för. Välj vad du gör, och se vad som händer.</p>
       <div class="val">
         <button class="knapp" id="go-grupp" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="13" rx="1"/><path d="M8 21h8M12 17v4"/></svg>Spela i grupp på storskärm</button>
@@ -407,6 +454,8 @@ __KAPITEL_CSS__
 </section>
 
 <!-- KÖRNING MELLAN STOPP -->
+<div id="ident" aria-hidden="true"><i class="s1"></i><i class="s2"></i><i class="s3"></i><img src="__LOGO__" alt=""><span class="id-rad"></span></div>
+<div id="korn" aria-hidden="true"></div><div id="lacka" aria-hidden="true"></div>
 <div id="morkt" aria-hidden="true"><img class="logo" src="__LOGO__" alt=""></div>
 <div id="hjalp" role="dialog" aria-label="Kortkommandon"><div class="hj-in"><h2 class="bsd">Kortkommandon</h2><dl>
   <dt><kbd>→</kbd> <kbd>Mellanslag</kbd> <kbd>PgDn</kbd></dt><dd>Visa svaret, nästa stopp, hoppa över film</dd>
@@ -420,7 +469,7 @@ __KAPITEL_CSS__
   <dt><kbd>H</kbd></dt><dd>Visa eller dölj den här rutan</dd>
 </dl><p>Klickerns pilar fungerar som piltangenterna. Muspekaren göms efter tre sekunder.</p></div></div>
 <div id="korning" aria-hidden="true">
-  <div class="kartbox" id="k-kor"></div><video id="kor-film" class="hidden" muted playsinline preload="auto"></video>
+  <div class="band ov" aria-hidden="true"></div><div class="band ne" aria-hidden="true"></div><div class="kartbox" id="k-kor"></div><video id="kor-film" class="hidden" muted playsinline preload="auto"></video>
   <div class="kor-info"><div class="kicker" id="kor-fran"></div><span class="kor-tid bsd" id="kor-tid"></span><span class="kor-ort" id="kor-ort"></span><span class="kor-km" id="kor-km"></span></div>
   <div id="valk"></div>
   <button class="hoppa" id="hoppa" type="button">Hoppa fram</button>
@@ -584,6 +633,11 @@ const ljud = (() => {
     svep(){ const a = ctx(); if(!a) return; const d = .55, n = a.createBuffer(1, a.sampleRate*d, a.sampleRate), ch = n.getChannelData(0); for(let i=0;i<ch.length;i++){ const x = i/ch.length; ch[i] = (Math.random()*2-1)*Math.sin(Math.PI*x); }
       const src = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime; src.buffer = n; fl.type = "bandpass"; fl.Q.value = 1.4;
       fl.frequency.setValueAtTime(380, t); fl.frequency.exponentialRampToValueAtTime(2600, t+d); g.gain.value = .16; src.connect(fl).connect(g).connect(a.destination); src.start(); },
+    slag(){ const a = ctx(); if(!a) return; const t = a.currentTime;
+      const o = a.createOscillator(), g = a.createGain(); o.type = "sine"; o.frequency.setValueAtTime(110, t+.95); o.frequency.exponentialRampToValueAtTime(38, t+2.1); g.gain.setValueAtTime(0, t+.95); g.gain.linearRampToValueAtTime(.32, t+1.0); g.gain.exponentialRampToValueAtTime(.0001, t+2.4); o.connect(g).connect(a.destination); o.start(t+.95); o.stop(t+2.5);
+      [0,.15,.3].forEach(d=>{ const n = a.createBuffer(1, a.sampleRate*.35, a.sampleRate), ch = n.getChannelData(0); for(let i=0;i<ch.length;i++){ const x=i/ch.length; ch[i]=(Math.random()*2-1)*Math.sin(Math.PI*x)*x; }
+        const sr = a.createBufferSource(), fl = a.createBiquadFilter(), gg = a.createGain(); sr.buffer = n; fl.type = "bandpass"; fl.frequency.setValueAtTime(600, t+d); fl.frequency.exponentialRampToValueAtTime(3800, t+d+.35); gg.gain.value = .13; sr.connect(fl).connect(gg).connect(a.destination); sr.start(t+d); });
+      ton(1568, 1.0, 1.4, "sine", .035); ton(2093, 1.05, 1.2, "sine", .025); },
     gong(){ ton(392,0,1.1,"sine",.11); ton(523,0,1.1,"sine",.09); ton(784,.02,.8,"triangle",.04); },
     ring(){ [0,.09,.18,.27,.5,.59,.68,.77].forEach((t,i)=>ton(i%2?1175:1397,t,.09,"sine",.09)); },
     framme(){ ton(784,0,.16,"sine",.1); ton(1047,.12,.3,"sine",.1); },
@@ -638,6 +692,12 @@ function nedrakning(){
     nedT = requestAnimationFrame(steg); };
   nedT = requestAnimationFrame(steg);
 }
+(function(){ try{ const c = document.createElement("canvas"); c.width = c.height = 180; const x = c.getContext("2d"), d = x.createImageData(180,180);
+  for(let i=0;i<d.data.length;i+=4){ const v = Math.random()*255|0; d.data[i]=d.data[i+1]=d.data[i+2]=v; d.data[i+3]=255; } x.putImageData(d,0,0); $("korn").style.backgroundImage = "url("+c.toDataURL("image/png")+")"; }catch(e){} })();
+function scenIn(){ const sc = $("scen"); if(!sc || !$("spel").classList.contains("on")) return; sc.classList.remove("in"); void sc.offsetWidth; sc.classList.add("in"); if(laget==="grupp"){ try{ ljud.svep(); }catch(e){} lacka(); } }
+function titel(){ const st0 = $("start"); st0.classList.remove("titel"); void st0.offsetWidth; requestAnimationFrame(()=>requestAnimationFrame(()=>st0.classList.add("titel"))); }
+if(document.readyState === "complete") titel(); else window.addEventListener("load", titel);
+function lacka(){ if(RM) return; const l = $("lacka"); l.classList.remove("go"); void l.offsetWidth; l.classList.add("go"); clearTimeout(lacka.t); lacka.t = setTimeout(()=>l.classList.remove("go"), 1400); }
 let musT = 0; const musRor = () => { document.body.classList.remove("dold-mus"); clearTimeout(musT); musT = setTimeout(()=>{ if(laget==="grupp" || $("start").classList.contains("on")) document.body.classList.add("dold-mus"); }, 3000); };
 document.addEventListener("mousemove", musRor, {passive:true}); document.addEventListener("pointerdown", musRor, {passive:true});
 let vakt = null; async function hallVaken(){ try{ if("wakeLock" in navigator && !vakt && document.visibilityState==="visible"){ vakt = await navigator.wakeLock.request("screen"); vakt.addEventListener("release", ()=>{ vakt = null; }); } }catch(e){} }
@@ -646,6 +706,7 @@ $("hjalp").onclick = () => $("hjalp").classList.remove("on");
 document.addEventListener("keydown", e => {
   if(e.target && (e.target.tagName==="TEXTAREA" || e.target.tagName==="INPUT")) return;
   const m = {PageDown:"ArrowRight", PageUp:"ArrowLeft"}[e.key];
+  if(identSlut && $("ident").classList.contains("on") && (m || e.key===" " || e.key==="Enter" || e.key==="ArrowRight")){ e.preventDefault(); e.stopImmediatePropagation(); identSlut(); return; }
   if(m){ e.preventDefault(); e.stopImmediatePropagation(); document.dispatchEvent(new KeyboardEvent("keydown", {key:m, bubbles:true})); return; }
   if(e.key==="." || e.key==="b" && e.ctrlKey){ e.preventDefault(); e.stopImmediatePropagation(); $("morkt").classList.toggle("on"); return; }
   if($("morkt").classList.contains("on")){ e.preventDefault(); e.stopImmediatePropagation(); $("morkt").classList.remove("on"); return; }
@@ -681,13 +742,13 @@ function snabbrunda(klart){
 }
 let spotT = [], spotKlar = null;
 function spot(){
-  if(!showLage() || st.i >= S.length || st.visat){ ritaVem(); return; }
+  if(!showLage() || st.i >= S.length || st.visat){ ritaVem(); scenIn(); return; }
   const ns = namnlista(); st.ko = (st.ko||[]).filter(n=>ns.includes(n));
   if(!st.ko.length){ st.ko = ns.slice(); for(let i=st.ko.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [st.ko[i],st.ko[j]] = [st.ko[j],st.ko[i]]; } if(st.ko.length>1 && st.ko[0]===st.vem) st.ko.push(st.ko.shift()); }
   const vald = st.ko.shift(); st.vem = vald; ritaVem();
   const el = $("spot"), nm = $("spot-namn"), s = S[st.i]; $("spot-lage").textContent = "Läge "+(st.i+1)+" av "+S.length+" · "+s.tid+" · "+s.rubrik;
   el.classList.remove("klar"); el.classList.add("on"); spotT.forEach(clearTimeout); spotT = [];
-  const slut = () => { spotT.forEach(clearTimeout); spotT = []; el.classList.remove("on","klar"); spotKlar = null; };
+  const slut = () => { spotT.forEach(clearTimeout); spotT = []; el.classList.remove("on","klar"); spotKlar = null; scenIn(); };
   spotKlar = slut; el.onclick = slut;
   if(RM){ nm.textContent = vald; el.classList.add("klar"); spotT.push(setTimeout(slut, 1800)); return; }
   let t = 0; const varv = 16;
@@ -812,7 +873,7 @@ function startVy(){
   satVy(kStart, vyFor(kStart, bbox(PTS, 70), tel ? [.08,.08,.92,.27] : [.5,.07,.8,.93]));
 }
 let startAnim = 0;
-function spelaStart(){
+function spelaStart(){ try{ titel(); }catch(e){}
   startVy(); cancelAnimationFrame(startAnim);
   kStart.matt.setAttribute("d", SEG.join("")+K.hem); kStart.ritas.setAttribute("d","");
   kStart.st.forEach(g=>g.classList.remove("syns","nu","klar","fel")); kStart.klar.forEach(p=>p.style.opacity=0);
@@ -893,7 +954,15 @@ function starta(l, fortsatt){
 }
 document.querySelectorAll(".ljudknapp").forEach(b=>{ b.classList.toggle("av", !ljud.pa); b.onclick = () => { const p = ljud.vaxla(); document.querySelectorAll(".ljudknapp").forEach(x=>x.classList.toggle("av", !p)); if(p) ljud.tick(); }; });
 koppla($("kor-film"), "gry", GRYFILM); forbered("sol", SOLFILM); forbered("villa", VILLAFILM); Object.values(LAGESFILM).forEach(([n,d])=>forbered(n,d));
-$("go-grupp").onclick = () => starta("grupp");
+function ident(klart){
+  if(RM){ klart(); return; } const el = $("ident"); let klar = false;
+  const slut = () => { if(klar) return; klar = true; el.classList.add("ut"); setTimeout(()=>{ el.className = ""; }, 500); klart(); };
+  el.className = "on"; el.onclick = slut; identSlut = slut;
+  try{ ljud.slag(); }catch(e){}
+  setTimeout(slut, 3300);
+}
+let identSlut = null;
+$("go-grupp").onclick = () => ident(() => { identSlut = null; starta("grupp"); });
 $("go-tel").onclick = () => starta("tel");
 $("fortsatt").onclick = () => starta("tel", true);
 $("hem").onclick = $("hem2").onclick = () => { visa("start"); spelaStart(); const sp=lagra.get("rutten-tel"); $("fortsatt").classList.toggle("hidden", !(sp&&sp.i>0&&sp.i<S.length)); };
@@ -932,7 +1001,6 @@ function rita(ny){
   ritaRutt(); ritaMat();
   if(st.i >= S.length){ slut(); return; }
   const s = S[st.i], scen=$("scen");
-  if(ny && laget==="grupp"){ try{ ljud.svep(); }catch(e){} }
   if(ny){ scen.classList.remove("in"); void scen.offsetWidth; requestAnimationFrame(()=>scen.classList.add("in")); $("text").scrollTop=0; scen.scrollTop=0; }
   const f = $("foto");
   f.querySelectorAll("img,.ill,video").forEach(e=>e.remove());
