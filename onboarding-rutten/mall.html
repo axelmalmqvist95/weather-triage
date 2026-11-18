@@ -624,7 +624,18 @@ const BILDER = __BILDER__;
 const SOLFILM = "__SOLFILM__", VILLAFILM = "__VILLAFILM__", GRYFILM = "__GRYFILM__", LAGESFILM = { s01:["regn","__REGNFILM__"], s15:["tvatt","__TVATTFILM__"], s07:["skum","__SKUMFILM__"], s11:["rann","__RANNFILM__"] }, POOLFILM = "__POOLFILM__"; const filmUrl2 = {}; let korUrl = null;
 /* Videorna packas upp en gång, asynkront, direkt när sidan laddats. Aldrig under uppspelning. */
 const VIDEO = {};
-function forbered(nyck, b64){ if(!VIDEO[nyck]) VIDEO[nyck] = fetch("data:video/mp4;base64," + b64).then(r => r.blob()).then(b => URL.createObjectURL(b)); return VIDEO[nyck]; }
+const B64 = {};
+function forbered(nyck, b64){ B64[nyck] = b64; if(!VIDEO[nyck]) VIDEO[nyck] = Promise.resolve().then(() => fetch("data:video/mp4;base64," + b64)).then(r => r.blob()).then(b => b && b.size ? b : Promise.reject(new Error("tom")))
+  .catch(() => { const bin = atob(b64), u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i); return new Blob([u], {type:"video/mp4"}); })
+  .then(b => URL.createObjectURL(b.type ? b : new Blob([b], {type:"video/mp4"}))); return VIDEO[nyck]; }
+// Spelar en film tåligt: tyst och inbäddad (krav på mobil), nytt försök vid nästa tryck, och reservväg om blob-adressen inte går att spela.
+function spela(v, fel){
+  v.muted = true; v.defaultMuted = true; v.setAttribute("muted",""); v.setAttribute("playsinline",""); v.setAttribute("webkit-playsinline","");
+  if(!v.dataset.vakt){ v.dataset.vakt = "1"; v.addEventListener("error", () => { const k = v.dataset.k; if(k && B64[k] && v.dataset.reserv !== k){ v.dataset.reserv = k; v.src = "data:video/mp4;base64," + B64[k]; v.load(); spela(v, fel); } }); }
+  let p; try{ p = v.play(); }catch(e){}
+  if(p && p.catch) p.catch(e => { if(e && e.name === "NotAllowedError"){ const igen = () => { document.removeEventListener("pointerdown", igen, true); document.removeEventListener("keydown", igen, true); let q; try{ q = v.play(); }catch(x){} q && q.catch && q.catch(()=>{}); };
+      document.addEventListener("pointerdown", igen, true); document.addEventListener("keydown", igen, true); } else if(fel) fel(); });
+}
 function koppla(el, nyck, b64, sen){ if(el.dataset.k === nyck){ sen && sen(); return; } el.dataset.k = nyck; forbered(nyck, b64).then(u => { if(el.dataset.k !== nyck) return; el.src = u; el.load(); sen && sen(); }); }
 const K = __KARTA__;
 const FE = __FE__;
@@ -709,7 +720,7 @@ function gag(klart){
   const stampla = () => { if(el.classList.contains("stamplad")) return; el.classList.add("stamplad"); ljud.stampel(); };
   gagKlar = () => { if(!el.classList.contains("stamplad")){ stampla(); return; } slut(); };
   el.onclick = () => gagKlar && gagKlar();
-  forbered("pool", POOLFILM).then(u => { if(!gagKlar) return; if(v.dataset.k !== "pool"){ v.dataset.k = "pool"; v.src = u; } try{ v.currentTime = 0; }catch(e){} const pp = v.play(); pp && pp.catch(()=>{});
+  forbered("pool", POOLFILM).then(u => { if(!gagKlar) return; if(v.dataset.k !== "pool"){ v.dataset.k = "pool"; v.src = u; } try{ v.currentTime = 0; }catch(e){} spela(v);
     tid.push(setTimeout(()=>{ if(gagKlar) ljud.plask(); }, 2450)); tid.push(setTimeout(()=>{ if(gagKlar) stampla(); }, 3300)); });
 }
 let snabb = null;
@@ -937,16 +948,16 @@ function kor(i, klart){ // kör till läge i (i = S.length betyder hemfärd)
   $("kor-ort").textContent = hem ? "Hemma" : K.ort[S[i].id];
   const kmTot = kor ? km(d) : 0; $("kor-km").textContent = kor ? "0 km" : "Dagens rutt i Diroto";
   const m0 = minuter(tidFran), m1 = minuter(tidTill);
-  const T = RM ? 200 : ((i===0 || i>=S.length || (S[i] && S[i].id==="s07")) ? 7200 : (tel ? 2200 : 3200)), t0 = performance.now();
-  const villa = S[i] && S[i].id === "s07", film = (i===0 || hem || villa) && !RM, fv = $("kor-film"); ov.classList.toggle("film", film);
+  const arFilm = (i===0 || i>=S.length || (S[i] && S[i].id==="s07")), T = arFilm ? 7200 : (tel ? 2200 : 3200), t0 = performance.now();
+  const villa = S[i] && S[i].id === "s07", film = (i===0 || hem || villa), fv = $("kor-film"); ov.classList.toggle("film", film);
   if(film){ const nyck = villa ? "villa" : i===0 ? "gry" : "sol"; fv.classList.remove("hidden");
-    koppla(fv, nyck, villa ? VILLAFILM : i===0 ? GRYFILM : SOLFILM, () => { try{ fv.currentTime = 0; }catch(e){} const pp = fv.play(); pp && pp.catch(()=>{}); }); } else { fv.pause(); fv.classList.add("hidden"); }
+    koppla(fv, nyck, villa ? VILLAFILM : i===0 ? GRYFILM : SOLFILM, () => { try{ fv.currentTime = 0; }catch(e){} spela(fv); }); } else { fv.pause(); fv.classList.add("hidden"); }
   const tyst = (kor || film) ? ljud.motor((film ? 7400 : T)+500) : null;
   const mid = [(fran[0]+till[0])/2, (fran[1]+till[1])/2];
   let klar = false;
   const stang = () => { ov.style.transition = "none"; ov.classList.remove("on","iris"); ov.style.webkitMaskImage = ov.style.maskImage = ""; void ov.offsetWidth; ov.style.transition = ""; ov.setAttribute("aria-hidden","true"); };
   const fardig = () => { if(klar) return; klar = true; cancelAnimationFrame(korAnim); korKlar=null; tyst && tyst(); if(kor) ljud.framme(); klart && klart();
-    if(RM){ stang(); return; }
+
     // Iris: nästa skärm öppnar sig från bilens plats på kartan.
     ov.classList.add("iris");
     const r = kKor.bilrot.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
@@ -963,7 +974,7 @@ function kor(i, klart){ // kör till läge i (i = S.length betyder hemfärd)
     else { satVy(kKor, v); bil(kKor, [till[0]+kKor.z*34, till[1]+kKor.z*14], -20); }
     if(kor && !film) $("kor-km").textContent = (f<1 ? Math.round(kmTot*e) : "ca "+kmTot) + " km";
     const m = Math.round(m0 + (m1-m0)*e); $("kor-tid").textContent = String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
-    if(f<1) korAnim = requestAnimationFrame(steg); else { if(hem) bil(kKor, [till[0]+kKor.z*34, till[1]+kKor.z*14], -20); setTimeout(fardig, RM?0:900); } };
+    if(f<1) korAnim = requestAnimationFrame(steg); else { if(hem) bil(kKor, [till[0]+kKor.z*34, till[1]+kKor.z*14], -20); setTimeout(fardig, 900); } };
   korAnim = requestAnimationFrame(steg);
 }
 $("korning").addEventListener("click", ()=>korKlar && korKlar());
@@ -1037,8 +1048,8 @@ function rita(ny){
   f.querySelectorAll("img,.ill,video").forEach(e=>e.remove());
   if(s.bild && BILDER[s.bild]){ const im=new Image(); im.alt=""; im.src=BILDER[s.bild]; f.prepend(im); }
   else { const d=document.createElement("div"); d.className="ill"; d.innerHTML=ILL[s.ikon]||""; f.prepend(d); }
-  const lf = LAGESFILM[s.id]; if(lf && !RM){ const v = document.createElement("video"); v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute("playsinline",""); v.className = "lagesfilm"; const fore = f.querySelector("img,.ill"); fore ? fore.after(v) : f.prepend(v);
-    forbered(lf[0], lf[1]).then(u => { if(!v.isConnected) return; v.src = u; const pp = v.play(); pp && pp.catch(()=>{}); v.addEventListener("playing", ()=>v.classList.add("on"), {once:true}); }); }
+  const lf = LAGESFILM[s.id]; if(lf){ const v = document.createElement("video"); v.dataset.k = lf[0]; v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute("playsinline",""); v.className = "lagesfilm"; const fore = f.querySelector("img,.ill"); fore ? fore.after(v) : f.prepend(v);
+    forbered(lf[0], lf[1]).then(u => { if(!v.isConnected) return; v.addEventListener("playing", ()=>v.classList.add("on"), {once:true}); v.src = u; spela(v); v.addEventListener("playing", ()=>v.classList.add("on"), {once:true}); }); }
   $("nr").textContent = `Läge ${st.i+1} av ${S.length}`;
   $("klocka").textContent = s.tid; $("tjanst").textContent = s.tjanst + " · " + K.ort[s.id];
   if(ny) requestAnimationFrame(miniVy);
@@ -1112,7 +1123,7 @@ function nasta(){
   st.kap = st.kap || {};
   const efter = KAP_EFTER[S[st.i].id];
   if(efter && !st.kap[efter]){ st.kap[efter] = true; spara(); visaKapitel(efter, ()=>{ visa("spel"); nasta(); }); return; }
-  if(S[st.i].id==="s05" && !st.kap.gag && !RM){ st.kap.gag = true; spara(); gag(()=>nasta()); return; }
+  if(S[st.i].id==="s05" && !st.kap.gag){ st.kap.gag = true; spara(); gag(()=>nasta()); return; }
   if(S[st.i].id==="s06" && !st.kap.snabb){ st.kap.snabb = true; spara(); snabbrunda(()=>nasta()); return; }
   stoppNed(); st.i++; st.visat=false; st.valt=null; st.roster=[0,0,0]; $("vem").classList.remove("on"); spara();
   if(st.i >= S.length){ kor(S.length, ()=>{ if(!st.kap.bil){ st.kap.bil = true; spara(); visaKapitel("bil", ()=>rita(true)); } else rita(true); }); return; }
@@ -1169,7 +1180,7 @@ function slut(){
   $("kodruta").classList.toggle("hidden", laget!=="tel");
   $("lasin").classList.toggle("hidden", laget!=="grupp");
   if(laget==="tel"){ $("kod").textContent = kodFor(st.svar); lagra.set("rutten-tel", st); }
-  if(!RM){ const sf = $("slut-film"); koppla(sf, "sol", SOLFILM, () => { try{ sf.currentTime = 0; }catch(e){} const pp = sf.play(); pp && pp.catch(()=>{}); }); }
+  { const sf = $("slut-film"); koppla(sf, "sol", SOLFILM, () => { try{ sf.currentTime = 0; }catch(e){} spela(sf); }); }
   ritaStat(); visa("slut"); galleri(); pall(r);
   requestAnimationFrame(()=>{ if(!kSlut) kSlut = nyKarta($("k-slut")); stoppStatus(kSlut, null); kSlut.klar.forEach(p=>p.style.opacity=1); satVy(kSlut, vyFor(kSlut, bbox(PTS,90))); bil(kSlut, [PTS[0][0]+kSlut.z*30, PTS[0][1]+kSlut.z*12], -20); });
 }

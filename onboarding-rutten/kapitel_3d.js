@@ -214,7 +214,7 @@ function filmKlar(){
 }
 function filmSeg(a, b){
   const v = $("kap-film"); filmStopp = b;
-  const kor = () => { try{ v.currentTime = a; }catch(e){} if(b - a > .05){ const p = v.play(); p && p.catch(()=>{}); } else v.pause(); };
+  const kor = () => { try{ v.currentTime = a; }catch(e){} if(b - a > .05){ spela(v); } else v.pause(); };
   if(v.readyState >= 1) kor(); else v.addEventListener("loadedmetadata", kor, { once:true });
 }
 $("kap-film").addEventListener("timeupdate", () => { const v = $("kap-film"); if(v.currentTime >= filmStopp - .04){ v.pause(); } });
@@ -264,9 +264,9 @@ function kapSteg(i, forsta){
 let introUrl = null;
 koppla($("kap-intro"), "intro", BILINFILM); koppla($("kap-film"), "hus", HUSFILM);
 function spelaIntro(){
-  const v = $("kap-intro"); if(RM){ v.classList.add("hidden"); return; }
+  const v = $("kap-intro");
   $("kapitel").classList.add("intro"); v.classList.remove("hidden","ut");
-  koppla(v, "intro", BILINFILM, () => { try{ v.currentTime = 0; }catch(e){} const p = v.play(); p && p.catch(()=>slutIntro()); }); ljud.motor(7600, .7);
+  koppla(v, "intro", BILINFILM, () => { try{ v.currentTime = 0; }catch(e){} spela(v, () => slutIntro()); }); ljud.motor(7600, .7);
 }
 function slutIntro(){ const v = $("kap-intro"); if(v.classList.contains("hidden")) return; v.classList.add("ut"); $("kapitel").classList.remove("intro"); setTimeout(()=>{ v.pause(); v.classList.add("hidden"); }, 900); }
 $("kap-intro").addEventListener("ended", slutIntro);
