@@ -427,7 +427,7 @@ __KAPITEL_CSS__
 "use strict";
 const DATA = __DATA__;
 const BILDER = __BILDER__;
-const KORFILM = "__KORFILM__"; let korUrl = null;
+const KORFILM = "__KORFILM__", VILLAFILM = "__VILLAFILM__"; const filmUrl2 = {}; let korUrl = null;
 const K = __KARTA__;
 const FE = __FE__;
 const S = DATA.situationer;
@@ -607,9 +607,10 @@ function kor(i, klart){ // kör till läge i (i = S.length betyder hemfärd)
   $("kor-ort").textContent = hem ? "Hemma" : K.ort[S[i].id];
   const kmTot = kor ? km(d) : 0; $("kor-km").textContent = kor ? "0 km" : "Dagens rutt i Diroto";
   const m0 = minuter(tidFran), m1 = minuter(tidTill);
-  const T = RM ? 200 : ((i===0 || i>=S.length) ? 7200 : (tel ? 2200 : 3200)), t0 = performance.now();
-  const film = (i===0 || hem) && !RM, fv = $("kor-film"); ov.classList.toggle("film", film);
-  if(film){ if(!korUrl){ const bin = atob(KORFILM); const u = new Uint8Array(bin.length); for(let j=0;j<bin.length;j++) u[j]=bin.charCodeAt(j); korUrl = URL.createObjectURL(new Blob([u], {type:"video/mp4"})); fv.src = korUrl; }
+  const T = RM ? 200 : ((i===0 || i>=S.length || (S[i] && S[i].id==="s07")) ? 7200 : (tel ? 2200 : 3200)), t0 = performance.now();
+  const villa = S[i] && S[i].id === "s07", film = (i===0 || hem || villa) && !RM, fv = $("kor-film"); ov.classList.toggle("film", film);
+  if(film){ const nyck = villa ? "villa" : "kor"; if(!filmUrl2[nyck]){ const bin = atob(villa ? VILLAFILM : KORFILM); const u = new Uint8Array(bin.length); for(let j=0;j<bin.length;j++) u[j]=bin.charCodeAt(j); filmUrl2[nyck] = URL.createObjectURL(new Blob([u], {type:"video/mp4"})); }
+    if(fv.dataset.k !== nyck){ fv.src = filmUrl2[nyck]; fv.dataset.k = nyck; }
     fv.classList.remove("hidden"); try{ fv.currentTime = 0; }catch(e){} const pp = fv.play(); pp && pp.catch(()=>{}); } else { fv.pause(); fv.classList.add("hidden"); }
   const tyst = (kor || film) ? ljud.motor((film ? 7400 : T)+500) : null;
   const mid = [(fran[0]+till[0])/2, (fran[1]+till[1])/2];

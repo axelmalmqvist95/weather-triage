@@ -35,7 +35,7 @@ S = [
             B=dict(t="Rutten följs i Diroto och tiden i NUBA blir rätt från början.", tid=0, kv=1, ku=0),
             C=dict(t="Du stämplar in en halvtimme för sent i NUBA, och tiden måste rättas i efterhand.", tid=0, kv=0, ku=0))),
 
- dict(id="s02", tid="07:00", tjanst="Stentvätt", bild="uppfart-fore", fe="uppfart", rubrik="Ytan är större än ordern",
+ dict(id="s02", tid="07:00", tjanst="Stentvätt", bild="matning", fe="uppfart", rubrik="Ytan är större än ordern",
   lage="Kunden visar runt och vill att gången längs huset också ska med. Du mäter med mäthjulet: ytan blir drygt 30 m² större än i ordern. Kunden säger att det är lugnt och att du kan köra.",
   alt=dict(A="Tvätta allt nu eftersom kunden sagt ja, och skriv det nya måttet i Diroto efteråt.",
            B="Ring kundtjänst med uppmätt yta innan du börjar på det extra, så att kunden får besked om priset.",
@@ -65,7 +65,7 @@ S = [
             B=dict(t="Resten av ytan blir ojämn och tar dubbelt så lång tid.", tid=-30, kv=-1, ku=0),
             C=dict(t="Tio minuters stopp, sedan en jämn yta. Felet är åtgärdat innan nästa kund.", tid=-10, kv=1, ku=1))),
 
- dict(id="s04", tid="10:20", tjanst="Mellan två stopp", bild="bil", rubrik="Du blir sen till nästa kund",
+ dict(id="s04", tid="10:20", tjanst="Mellan två stopp", bild="sen", rubrik="Du blir sen till nästa kund",
   lage="Förra jobbet tog längre tid än planerat. Enligt navigeringen kommer du fram ungefär en timme efter den tid kunden har fått. Kunden har skrivit i ordern att kunden vill vara hemma när ni kommer.",
   alt=dict(A="Kör på och förklara när du kommer fram. Förseningar händer alla.",
            B="Stanna säkert och ring kunden direkt. Ge en ny ungefärlig tid och hör av dig igen om den ändras.",
@@ -203,7 +203,7 @@ S = [
             B=dict(t="Kunden känner sig avfärdad. Klagomålet kommer, nu argare.", tid=0, kv=-1, ku=-2),
             C=dict(t="Kanten blir rätt, kunden har blivit hörd och ärendet ligger hos rätt person.", tid=-10, kv=1, ku=1))),
 
- dict(id="s11", tid="15:30", tjanst="Rensning av hängrännor", bild="ranna", rubrik="Huset är högre än ordern",
+ dict(id="s11", tid="15:30", tjanst="Rensning av hängrännor", bild="ranna-flow", rubrik="Huset är högre än ordern",
   lage="Ordern säger ett och ett halvplanshus, men huset har två våningar. Gräset är halt efter regnet. Du har ingen GoPro med dig i dag, och du funderar på att gå upp på taket för att ta bilderna.",
   alt=dict(A="Ställ stegen mot rännan och kliv upp på taket, då går det snabbare.",
            B="Ring närmast ansvarig om att huset inte stämmer med ordern. Jobba från marken. Utan GoPro tar du bilderna från stegen.",
@@ -218,7 +218,7 @@ S = [
             B=dict(t="Rätt beslut om jobbet, och bilder som visar att rännorna är rena.", tid=-10, kv=1, ku=1),
             C=dict(t="Utan efterbilder kan ingen se att jobbet är gjort.", tid=0, kv=-1, ku=-1))),
 
- dict(id="s12", tid="16:00", tjanst="Hos sista kunden", bild="gang-efter", rubrik="Avsluta rutten",
+ dict(id="s12", tid="16:00", tjanst="Hos sista kunden", bild="kvall", rubrik="Avsluta rutten",
   lage="Sista jobbet är klart och du står kvar hos sista kunden. Du har bilder från sju stopp i telefonen, två avvikelser och en kund som vill ha offert på taket. Du är trött och vill hem.",
   alt=dict(A="Kör hem och ladda upp bilderna i kväll när du har mer tid.",
            B="Sätt status på alla jobb nu och ladda upp bilderna när du har wifi.",
