@@ -133,3 +133,9 @@
 #kap-scen canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #kap-pins{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 #kap-pins .mark{position:absolute;left:0;top:0;width:0;height:0}
+
+#kap-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#08090b}
+.kap-filmskugga{position:absolute;inset:0;pointer-events:none;display:none;background:linear-gradient(90deg,rgba(6,17,27,0) 45%,rgba(6,17,27,.55) 70%),linear-gradient(180deg,rgba(6,17,27,.55),transparent 18%)}
+#kapitel.filmlage .kap-filmskugga{display:block}
+.kap-filmtag{position:absolute;left:clamp(16px,2.4vw,40px);bottom:clamp(16px,2.4vw,40px);z-index:4;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:6px 10px;background:rgba(6,17,27,.7);color:var(--t2)}
+#kapitel.filmlage.smal #kap-film{height:50%;top:0;bottom:auto}

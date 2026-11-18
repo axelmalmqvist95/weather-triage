@@ -65,8 +65,9 @@ html = html.replace("__BSD800X__", b64(FONT / "big-shoulders-display-latin-ext-8
 html = html.replace("__OS400__", b64(FONT / "OpenSans-Regular.ttf"))
 html = html.replace("__OS700__", b64(FONT / "OpenSans-Bold.ttf"))
 import re as _re
-assert not _re.search(r"__(?!THREE__)[A-Z_]+__", html), _re.findall(r"__[A-Z_]+__", html)[:3]
+assert not _re.search(r"__(?!THREE__|HUSFILM_DATA__)[A-Z_]+__", html), _re.findall(r"__[A-Z_]+__", html)[:3]
 html = html.replace("__THREE__", (HAR / "three.min.js").read_text())
+html = html.replace("__HUSFILM_DATA__", base64.b64encode((HAR / "husfilm.mp4").read_bytes()).decode())
 for tecken in ("—", "–"):
     assert tecken not in json.dumps(data, ensure_ascii=False), "tankstreck i texten"
 ut = RUT / "en-dag-pa-rutten.html"

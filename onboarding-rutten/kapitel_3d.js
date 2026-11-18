@@ -1,5 +1,6 @@
 /* ---------- Kapitel i 3D (three.js r128, inbäddad) ---------- */
 const LOGOF = "__LOGOF__";
+const HUSFILM = "__HUSFILM_DATA__";
 const T3 = window.THREE;
 
 function d3(cls, css, foralder, html){ const e=document.createElement("div"); if(cls) e.className=cls; if(css) e.style.cssText=css; if(html!=null) e.innerHTML=html; foralder && foralder.appendChild(e); return e; }
@@ -96,7 +97,7 @@ function byggBil(c){
   const sk = new T3.Mesh(new T3.PlaneGeometry(560,250), new T3.MeshBasicMaterial({map:skugga, transparent:true, depthWrite:false})); sk.rotation.x=-Math.PI/2; sk.position.set(40,.6,0); S.add(sk);
 
   // Fotopunkter och QR-markör
-  const M = {}; [["fv",360,-260],["fh",360,260],["bh",-330,260],["bv",-330,-260]].forEach(([id,x,z])=>{ M[id]=c.nal(x,0,z, KAMIKON, id); });
+  const M = {}; [["fv",420,-300],["fh",420,300],["bh",-380,300],["bv",-380,-300]].forEach(([id,x,z])=>{ M[id]=c.nal(x,0,z, KAMIKON, id); });
   M.qr = c.nal(156,128,-82, "QR", "qr");
   const mal = { dorr:0, bak:0 }, nu = { dorr:0, bak:0 };
   return {
@@ -112,68 +113,6 @@ function byggBil(c){
   };
 }
 
-/* ---------- Scen: kundens hus ---------- */
-function byggHus(c){
-  const S = c.scene;
-  const grasT = duk(1024,1024,(x,w,h)=>{ x.fillStyle="#3d5a32"; x.fillRect(0,0,w,h);
-    brus(x,w,h,60000,(x,a,b)=>{ const g=70+Math.random()*60; x.fillStyle=`rgba(${40+Math.random()*30},${g},${30+Math.random()*20},.55)`; x.fillRect(a,b,2,3); });
-    brus(x,w,h,26,(x,a,b)=>{ const r=20+Math.random()*50; const gr=x.createRadialGradient(a,b,0,a,b,r); gr.addColorStop(0,"rgba(150,160,80,.45)"); gr.addColorStop(1,"rgba(150,160,80,0)"); x.fillStyle=gr; x.fillRect(a-r,b-r,2*r,2*r); }); });
-  grasT.wrapS = grasT.wrapT = T3.RepeatWrapping; grasT.repeat.set(4,4);
-  const mark = nat(new T3.PlaneGeometry(3000,3000), mat({map:grasT, roughness:1}), 0,0,0); mark.rotation.x=-Math.PI/2; mark.castShadow=false; S.add(mark);
-  const sten = (smutsig) => duk(512,512,(x,w,h)=>{ x.fillStyle="#7a7d7f"; x.fillRect(0,0,w,h);
-    for(let r=0;r<h;r+=32) for(let k=0;k<w;k+=64){ const o=(r/32)%2?32:0; const v=110+Math.random()*30; x.fillStyle=`rgb(${v},${v+2},${v+4})`; x.fillRect(k+o-64+2,r+2,60,28); }
-    if(smutsig){ brus(x,w,h,16,(x,a,b)=>{ const rr=30+Math.random()*70; const g=x.createRadialGradient(a,b,0,a,b,rr); g.addColorStop(0,"rgba(70,100,45,.75)"); g.addColorStop(1,"rgba(70,100,45,0)"); x.fillStyle=g; x.fillRect(a-rr,b-rr,2*rr,2*rr); });
-      brus(x,w,h,900,(x,a,b)=>{ x.fillStyle="rgba(225,225,210,.55)"; x.beginPath(); x.arc(a,b,1+Math.random()*3,0,7); x.fill(); }); } });
-  const uppf = nat(new T3.BoxGeometry(280,3,190), mat({map:sten(false), roughness:.9}), 60,1.5,215); uppf.castShadow=false; S.add(uppf);
-  const grannUppf = nat(new T3.BoxGeometry(230,3,170), mat({map:sten(true), roughness:.9}), 430,1.5,235); grannUppf.castShadow=false; S.add(grannUppf);
-  // Altan
-  const tra = duk(512,512,(x,w,h)=>{ for(let k=0;k<w;k+=32){ const v=120+Math.random()*25; x.fillStyle=`rgb(${v},${v-12},${v-28})`; x.fillRect(k,0,30,h); x.fillStyle="rgba(40,30,20,.6)"; x.fillRect(k+30,0,2,h); }
-    brus(x,w,h,8,(x,a,b)=>{ const rr=40+Math.random()*60; const g=x.createRadialGradient(a,b,0,a,b,rr); g.addColorStop(0,"rgba(80,110,70,.6)"); g.addColorStop(1,"rgba(80,110,70,0)"); x.fillStyle=g; x.fillRect(a-rr,b-rr,2*rr,2*rr); }); });
-  S.add(nat(new T3.BoxGeometry(150,14,210), mat({map:tra, roughness:.85}), -262,7,0));
-  // Huskropp med alger nertill på framsidan
-  const puts = (alger) => duk(512,256,(x,w,h)=>{ x.fillStyle="#e7e1d5"; x.fillRect(0,0,w,h); brus(x,w,h,8000,(x,a,b)=>{ x.fillStyle=`rgba(120,110,95,${Math.random()*.08})`; x.fillRect(a,b,2,2); });
-    if(alger){ const g=x.createLinearGradient(0,h,0,h*.45); g.addColorStop(0,"rgba(60,95,55,.75)"); g.addColorStop(1,"rgba(60,95,55,0)"); x.fillStyle=g;
-      for(let k=0;k<w;k+=6){ const hh=h*(.25+.3*Math.abs(Math.sin(k*.05))); x.fillRect(k,h-hh,6,hh); }
-      x.fillStyle="rgba(40,55,40,.35)"; for(let k=20;k<w;k+=46){ x.fillRect(k,h*.08,3,h*.5*Math.random()+20); } } });
-  const vagg = mat({map:puts(false), roughness:.9}), vaggF = mat({map:puts(true), roughness:.9});
-  S.add(nat(new T3.BoxGeometry(300,150,200), [vagg,vagg,vagg,vagg,vaggF,vagg], 0,75,0));
-  // Gavlar
-  const gavel = new T3.Shape(); gavel.moveTo(-100,0); gavel.lineTo(100,0); gavel.lineTo(0,80); gavel.lineTo(-100,0);
-  [1,-1].forEach(s=>{ const g = nat(new T3.ExtrudeGeometry(gavel,{depth:4,bevelEnabled:false}), vagg, s*148,150,0); g.rotation.y=Math.PI/2; g.position.x = s>0 ? 146 : -150; S.add(g); });
-  // Tak med pannor och mossa på framsidan
-  const tak = (mossa) => duk(1024,512,(x,w,h)=>{ x.fillStyle="#6a3428"; x.fillRect(0,0,w,h);
-    for(let r=0;r<h;r+=26){ for(let k=0;k<w;k+=34){ const v=80+Math.random()*30; x.fillStyle=`rgb(${v+40},${v-15},${v-25})`; x.beginPath(); x.ellipse(k+17+(r/26%2)*17,r+14,17,13,0,0,Math.PI); x.fill(); } x.fillStyle="rgba(20,8,5,.5)"; x.fillRect(0,r+24,w,2); }
-    if(mossa){ brus(x,w,h,22,(x,a,b)=>{ const rr=40+Math.random()*90; const g=x.createRadialGradient(a,b,0,a,b,rr); g.addColorStop(0,"rgba(78,112,48,.6)"); g.addColorStop(1,"rgba(78,112,48,0)"); x.fillStyle=g; x.fillRect(a-rr,b-rr,2*rr,2*rr); }); } });
-  const takF = nat(new T3.BoxGeometry(344,7,144), [mat({color:0x4a2a22}),mat({color:0x4a2a22}),mat({map:tak(true),roughness:.8}),mat({color:0x3b221c}),mat({color:0x4a2a22}),mat({color:0x4a2a22})], 0,191,57);
-  takF.rotation.x = 0.629; S.add(takF);
-  const takB = nat(new T3.BoxGeometry(344,7,144), [mat({color:0x4a2a22}),mat({color:0x4a2a22}),mat({map:tak(false),roughness:.8}),mat({color:0x3b221c}),mat({color:0x4a2a22}),mat({color:0x4a2a22})], 0,191,-57);
-  takB.rotation.x = -0.629; S.add(takB);
-  S.add(nat(new T3.BoxGeometry(30,60,30), mat({color:0x8b5a48, roughness:.9}), -70,232,-30));
-  // Fönster och dörr
-  const ram = mat({color:0xf6f3ec, roughness:.6}), ruta = new T3.MeshPhysicalMaterial({color:0x223747, roughness:.05, metalness:.3, clearcoat:1});
-  const fonster = (x,y,z,ry) => { const g = new T3.Group(); g.position.set(x,y,z); g.rotation.y=ry||0; g.add(nat(new T3.BoxGeometry(52,60,3), ram)); g.add(nat(new T3.BoxGeometry(42,50,3.4), ruta)); g.add(nat(new T3.BoxGeometry(3,50,3.8), ram)); S.add(g); };
-  [-100,-20,100].forEach(x=>fonster(x,92,100.5)); [-60,60].forEach(z=>fonster(-150.5,92,z,Math.PI/2)); [-60,60].forEach(z=>fonster(150.5,92,z,Math.PI/2)); [-80,40].forEach(x=>fonster(x,92,-100.5));
-  S.add(nat(new T3.BoxGeometry(42,86,4), mat({color:0x3d2c22, roughness:.7}), 48,43,101));
-  // Hängrännor, stuprör och löv
-  const platt = mat({color:0xa3adb5, metalness:.7, roughness:.35});
-  [1,-1].forEach(s=>{ const r = nat(new T3.CylinderGeometry(6,6,344,16,1,false,0,Math.PI), platt, 0,146,s*116); r.rotation.z=Math.PI/2; r.rotation.x = s>0 ? Math.PI : 0; S.add(r); });
-  S.add(nat(new T3.CylinderGeometry(4,4,146,12), platt, 166,73,116));
-  const lov = [0x7a5a28,0x5d6e2a,0x8a6a30]; for(let i=0;i<30;i++){ const l = nat(new T3.SphereGeometry(3+Math.random()*2.5,6,5), mat({color:lov[i%3], roughness:1}), -160+Math.random()*320,150,116+(Math.random()-.5)*6); S.add(l); }
-  // Grannhuset
-  S.add(nat(new T3.BoxGeometry(210,130,180), mat({color:0xb4bcc0, roughness:.9}), 470,65,-40));
-  const gt = nat(new T3.BoxGeometry(230,6,128), mat({color:0x30343a, roughness:.8}), 470,158,-82); gt.rotation.x=-0.62; S.add(gt);
-  const gt2 = nat(new T3.BoxGeometry(230,6,128), mat({color:0x3a3f45, roughness:.8}), 470,158,2); gt2.rotation.x=0.62; S.add(gt2);
-  // Buskar och träd
-  const buske = mat({color:0x2f5a2c, roughness:1}), buske2 = mat({color:0x3c6b33, roughness:1});
-  [[-60,330],[-20,345],[200,90],[220,-60],[-200,-150]].forEach(([x,z],i)=>{ const b = nat(new T3.SphereGeometry(28,16,12), i%2?buske:buske2, x,20,z); b.scale.set(1.2,.8,1); S.add(b); });
-  [[-420,-260],[-380,240],[620,180]].forEach(([x,z])=>{ S.add(nat(new T3.CylinderGeometry(6,8,70,10), mat({color:0x4a3a2c}), x,35,z)); S.add(nat(new T3.ConeGeometry(55,150,16), buske, x,140,z)); });
-  const P = {
-    tak: c.nal(0,250,40, "1", "tak"), ranna: c.nal(110,165,122, "2", "ranna"), fasad: c.nal(-60,70,108, "3", "fasad"),
-    sten: c.nal(60,6,215, "4", "sten"), altan: c.nal(-262,22,0, "5", "altan"), gras: c.nal(-120,2,360, "6", "gras"), granne: c.nal(430,6,235, "7", "granne")
-  };
-  return { satt(t){ Object.entries(P).forEach(([id,m])=>m.classList.toggle("on", t.mark===id)); }, uppdatera(){} };
-}
-
 /* ---------- Motor ---------- */
 let kap = null, R3 = null;
 function trea(){
@@ -184,7 +123,7 @@ function trea(){
   r.outputEncoding = T3.sRGBEncoding; r.toneMapping = T3.ACESFilmicToneMapping; r.toneMappingExposure = 1.05;
   const cam = new T3.PerspectiveCamera(32, 1, 5, 9000);
   R3 = { r, cam, mal:null, nu:null, t0:0 };
-  const loop = ms => { requestAnimationFrame(loop); if(!kap || !$("kapitel").classList.contains("on")) return; rendera(ms); };
+  const loop = ms => { requestAnimationFrame(loop); if(!kap || kap.k.film || !$("kapitel").classList.contains("on") || !R3.mal) return; rendera(ms); };
   requestAnimationFrame(loop);
   return R3;
 }
@@ -203,44 +142,65 @@ function storlek(){
   if(smal) cam.setViewOffset(w, h, 0, h*.22, w, h); else cam.setViewOffset(w, h, w*.11, 0, w, h);
   cam.updateProjectionMatrix();
 }
-function kamMal(c){ const [rx,ry,sk,fx,fy,fz] = c; const smal = $("kapitel").classList.contains("smal");
-  const bil = kap && kap.id==="bil" ? 1.22 : 1; return { az: -ry*Math.PI/180, el: Math.max(4,-rx)*Math.PI/180, d: 1050/sk*(smal?1.35:1)*bil, tx:fx, ty:-fy, tz:fz }; }
+function kamMal(s){ const smal = $("kapitel").classList.contains("smal"); const c = s.cam;
+  const t = new T3.Vector3(...c.t), p = new T3.Vector3(...c.p); if(smal){ p.sub(t).multiplyScalar(1.3).add(t); } return { p, t }; }
+function kamTill(m, direkt){
+  const n = R3.nu || { p:m.p.clone(), t:m.t.clone() };
+  R3.fran = { p:n.p.clone(), t:n.t.clone() }; R3.mal = m; R3.t0 = performance.now(); R3.T = (direkt||RM) ? 1 : 1500;
+  if(!R3.nu) R3.nu = { p:m.p.clone(), t:m.t.clone() };
+}
+const mjuk = x => x<.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2;
 function rendera(ms){
-  const { r, cam } = R3; const m = R3.mal, n = R3.nu;
-  const k = RM ? 1 : .055; for(const key in m){ n[key] += (m[key]-n[key])*k; }
-  const sv = RM ? 0 : Math.sin(ms/4200)*.045;
-  const az = n.az + sv, el = n.el;
-  cam.position.set(n.tx + n.d*Math.sin(az)*Math.cos(el), n.ty + n.d*Math.sin(el), n.tz + n.d*Math.cos(az)*Math.cos(el));
-  cam.lookAt(n.tx, n.ty, n.tz);
-  kap.scen.uppdatera(ms);
-  r.render(kap.scene, cam);
-  // HTML-nålar
+  const { r, cam } = R3; const f = Math.min(1, (performance.now()-R3.t0)/R3.T), e = mjuk(f);
+  // båge: lyft och dra ut kameran lite mitt i förflyttningen så att den inte går genom bilen
+  const p = R3.fran.p.clone().lerp(R3.mal.p, e), t = R3.fran.t.clone().lerp(R3.mal.t, e);
+  const bage = Math.sin(Math.PI*e) * Math.min(260, R3.fran.p.distanceTo(R3.mal.p)*.25);
+  const ut = p.clone().sub(t).setY(0); if(ut.lengthSq()>1){ ut.normalize().multiplyScalar(bage); p.add(ut); } p.y += bage*.5;
+  R3.nu.p.copy(p); R3.nu.t.copy(t);
+  const sv = RM ? 0 : Math.sin(ms/3800)*6;
+  cam.position.set(p.x + sv, p.y + Math.sin(ms/5200)*3, p.z - sv*.6); cam.lookAt(t);
+  kap.scen.uppdatera(ms); r.render(kap.scene, cam);
   const box = $("kap-scen").getBoundingClientRect(); const v = new T3.Vector3();
-  kap.nalar.forEach(e=>{ v.set(+e.dataset.x, +e.dataset.y, +e.dataset.z).project(cam); const syns = v.z < 1;
-    e.style.transform = `translate(${((v.x+1)/2*box.width).toFixed(1)}px,${((1-v.y)/2*box.height).toFixed(1)}px)`; e.style.visibility = syns ? "" : "hidden"; });
+  kap.nalar.forEach(el=>{ v.set(+el.dataset.x, +el.dataset.y, +el.dataset.z).project(cam);
+    el.style.transform = `translate(${((v.x+1)/2*box.width).toFixed(1)}px,${((1-v.y)/2*box.height).toFixed(1)}px)`; el.style.visibility = v.z < 1 ? "" : "hidden"; });
 }
 function kapitelSmal(){ return window.matchMedia("(max-width:760px)").matches || (typeof laget!=="undefined" && laget==="tel" && window.innerWidth < 900); }
 function visaKapitel(id, klart){
-  const k = KAPITEL[id]; trea();
+  const k = KAPITEL[id];
   $("kap-pins").innerHTML = "";
-  const scene = nyScen(); const nalar = [];
-  const c = { scene, textur:[], nal(x,y,z,inne,nid){ const m = d3("mark", "", $("kap-pins")); m.dataset.id=nid; m.innerHTML=`<div class="pin">${inne}</div>`; m.dataset.x=x; m.dataset.y=y; m.dataset.z=z; nalar.push(m); return m; } };
   if(kap && kap.scene){ kap.scene.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
-  kap = { id, k, i:0, klart, scene, nalar, svarat:{} };
-  kap.scen = k.bygg(c);
-  if(LOGOBILD && !LOGOBILD.complete) LOGOBILD.onload = () => c.textur.forEach(t=>{ t.needsUpdate = true; });
+  kap = { id, k, i:0, klart, scene:null, nalar:[], svarat:{} };
+  const film = !!k.film; $("kap-duk").classList.toggle("hidden", film); $("kap-film").classList.toggle("hidden", !film); $("kap-filmtag").classList.toggle("hidden", !film);
+  if(!film){
+    trea(); const scene = nyScen();
+    const c = { scene, textur:[], nal(x,y,z,inne,nid){ const m = d3("mark", "", $("kap-pins")); m.dataset.id=nid; m.innerHTML=`<div class="pin">${inne}</div>`; m.dataset.x=x; m.dataset.y=y; m.dataset.z=z; kap.nalar.push(m); return m; } };
+    kap.scene = scene; kap.scen = k.bygg(c);
+    if(LOGOBILD && !LOGOBILD.complete) LOGOBILD.onload = () => c.textur.forEach(t=>{ t.needsUpdate = true; });
+  } else filmKlar();
   $("kap-kicker").textContent = k.kicker; $("kap-titel").textContent = k.titel;
   $("kap-prog").innerHTML = k.steg.map(()=>"<i></i>").join("");
-  $("kapitel").classList.toggle("smal", kapitelSmal());
+  $("kapitel").classList.toggle("smal", kapitelSmal()); $("kapitel").classList.toggle("filmlage", film);
   $("mobil").classList.toggle("hidden", id!=="bil");
-  visa("kapitel"); storlek();
-  const m0 = kamMal(k.steg[0].kam); R3.mal = {...m0}; R3.nu = {...m0, d:m0.d*1.6, az:m0.az-.5};
+  visa("kapitel");
+  if(!film){ storlek(); R3.nu = null; const m0 = kamMal(k.steg[0]); const start = { p:m0.p.clone().sub(m0.t).multiplyScalar(1.6).add(m0.t), t:m0.t.clone() }; R3.nu = { p:start.p.clone(), t:start.t.clone() }; kamTill(m0); }
   kapSteg(0, true);
 }
+/* Husfilmen: spelas avsnitt för avsnitt och stannar på sista bilden. */
+let filmUrl = null, filmStopp = 0;
+function filmKlar(){
+  const v = $("kap-film");
+  if(!filmUrl){ const bin = atob(HUSFILM); const u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); filmUrl = URL.createObjectURL(new Blob([u], {type:"video/mp4"})); v.src = filmUrl; }
+}
+function filmSeg(a, b){
+  const v = $("kap-film"); filmStopp = b;
+  const kor = () => { try{ v.currentTime = a; }catch(e){} if(b - a > .05){ const p = v.play(); p && p.catch(()=>{}); } else v.pause(); };
+  if(v.readyState >= 1) kor(); else v.addEventListener("loadedmetadata", kor, { once:true });
+}
+$("kap-film").addEventListener("timeupdate", () => { const v = $("kap-film"); if(v.currentTime >= filmStopp - .04){ v.pause(); } });
 function kapSteg(i, forsta){
   const k = kap.k; i = Math.max(0, Math.min(k.steg.length-1, i)); kap.i = i; const s = k.steg[i];
-  R3.mal = kamMal(s.kam);
-  kap.scen.satt({ bak:s.bak, dorr:s.dorr, dack:s.dack, varn:s.varn, mark:s.mark, qr:s.qr || i<2 });
+  if(kap.k.film) filmSeg(s.seg[0], s.seg[1]);
+  else { kamTill(kamMal(s)); kap.scen.satt({ bak:s.bak, dorr:s.dorr, dack:s.dack, varn:s.varn, mark:s.mark, qr:s.qr || i<2 }); }
   $("kap-prog").querySelectorAll("i").forEach((e,j)=>{ e.className = j<i ? "klar" : j===i ? "on" : ""; });
   $("kap-steg").textContent = `${k.titel} · ${i+1} av ${k.steg.length}`;
   $("kap-rubrik").textContent = s.t;
@@ -256,7 +216,7 @@ function kapSteg(i, forsta){
   $("inst-monster").classList.toggle("on", !!s.monster);
   if(s.monster){ $("mm-varde").textContent = s.monster; $("mm-grans").textContent = s.varn ? "Gräns vintertid: 3,0 mm" : "Gräns: 1,6 mm sommar, 3,0 mm vinter"; $("mm-varde").style.color = s.varn ? "var(--red2)" : "#fff"; }
   if(s.tel) ritaMobil(s.tel, i);
-  if(s.blixt && !forsta && !RM){ const b=$("kap-blixt"); setTimeout(()=>{ b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); }, 1100); }
+  if(s.blixt && !forsta && !RM){ const b=$("kap-blixt"); setTimeout(()=>{ b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); }, 1600); }
   $("kap-bak").disabled = i===0; $("kap-bak").style.opacity = i===0 ? .4 : 1;
   $("kap-fram").textContent = i===k.steg.length-1 ? k.slut : "Nästa";
   $("kap-in").scrollTop = 0;
@@ -275,4 +235,4 @@ function kapFram(){ if(!kap) return; if(kap.i >= kap.k.steg.length-1){ const k =
 function kapBak(){ if(kap) kapSteg(kap.i-1); }
 $("kap-fram").onclick = kapFram; $("kap-bak").onclick = kapBak;
 $("kap-stang").onclick = () => { if(!kap) return; const k = kap.klart; kap.klart = null; k ? k() : visa("start"); };
-window.addEventListener("resize", ()=>{ if(kap && R3 && $("kapitel").classList.contains("on")){ $("kapitel").classList.toggle("smal", kapitelSmal()); storlek(); R3.mal = kamMal(kap.k.steg[kap.i].kam); } });
+window.addEventListener("resize", ()=>{ if(kap && !kap.k.film && R3 && $("kapitel").classList.contains("on")){ $("kapitel").classList.toggle("smal", kapitelSmal()); storlek(); kamTill(kamMal(kap.k.steg[kap.i]), true); } });

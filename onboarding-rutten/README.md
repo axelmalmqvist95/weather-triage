@@ -27,6 +27,6 @@ Stoppen är påhittade punkter i rätt ort, inga adresser. `VIA` i `kartbygg.py`
 
 `kapitel_3d.js`, `kapitel_innehall.js`, `kapitel_fe.js` och `kapitel.css` byggs in av `bygg_html.py`. Två kapitel i 3D med three.js r128 (MIT, inbäddad som `three.min.js`, ingen nätanslutning behövs):
 - **Bilkontrollen** (efter hemfärden, och från startsidan): QR-koden, elva bilder, mätarställning, mönsterdjup med lagkrav 1,6 och 3,0 mm, en kontrollfråga. Bygger på Axels Bilkontroll-skript (Kod.gs).
-- **Se hela huset** (efter läge 14:05 om taket): merförsäljning runt kundens hus.
+- **Se hela huset** (efter läge 14:05 om taket): merförsäljning, med husfilmen från artifact "Nanostone Fältet" (m/film.mp4, komprimerad till `husfilm.mp4`, checkas inte in) spelad avsnitt för avsnitt.
 
 Före- och efterpar (`FE` i `bygg_html.py`) visas i svaren och på slutsidan. Par med samma vinkel får ett dragreglage, övriga växlar.
