@@ -272,7 +272,7 @@ function slutIntro(){ const v = $("kap-intro"); if(v.classList.contains("hidden"
 $("kap-intro").addEventListener("ended", slutIntro);
 $("kap-intro").addEventListener("click", slutIntro);
 /* Ken Burns: mjuk zoom mot den del av bilden som steget handlar om. */
-const FOKUS = { fv:"35% 55%", fh:"62% 55%", bh:"40% 55%", bv:"60% 55%", forar:"45% 50%", fram:"40% 27%", last:"50% 55%", qr:"45% 45%", matare:"52% 55%", dack:"52% 40%", dack28:"55% 40%", lampa:"48% 55%", skada:"45% 50%" };
+const FOKUS = { fv:"35% 55%", fh:"62% 55%", bh:"40% 55%", bv:"60% 55%", forar:"45% 50%", utr:"66% 62%", last:"50% 55%", qr:"45% 45%", matare:"52% 55%", dack:"52% 40%", dack28:"55% 40%", lampa:"48% 55%", skada:"45% 50%" };
 function visaBakgrund(s, i){
   const box = $("kap-bilder"), [a, b] = box.querySelectorAll("img"), fs = [].concat(s.foto || (i===0 ? "fv" : "fh"));
   const ny = box.dataset.v === "a" ? b : a, gammal = ny === a ? b : a; box.dataset.v = ny === a ? "a" : "b";
