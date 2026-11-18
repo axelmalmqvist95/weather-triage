@@ -221,18 +221,47 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .betyg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:10px 0 28px}
 .betyg div{background:var(--n2);padding:16px 18px}
 .betyg b{display:block;font-family:"BSD";font-size:clamp(40px,4vw,72px);line-height:1}
-.diplom{margin:0 0 30px}
-.dip-las{background:var(--n2);border-left:4px solid var(--n5);padding:18px 20px;display:flex;flex-direction:column;gap:4px}
-.dip-las b{font-size:clamp(26px,2.4vw,40px);line-height:1;color:var(--t2)}.dip-las span{color:var(--t3)}
-.dip-rad{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 14px}
-.dip-rad input{flex:1;min-width:220px;min-height:56px;padding:0 16px;background:var(--n2);border:2px solid var(--n4);color:var(--w);font:700 1em "OS",sans-serif}
-.dip-rad input:focus{outline:none;border-color:var(--red)}
-#dip-bild{display:block;width:100%;max-width:960px;height:auto;box-shadow:0 30px 80px rgba(0,0,0,.55);animation:dipin .9s cubic-bezier(.2,.8,.2,1) both}
-@keyframes dipin{from{opacity:0;transform:translateY(26px) scale(.97)}to{opacity:1;transform:none}}
-.dip-tips{color:var(--t3);font-size:.8em;margin:10px 0 0;display:none}.tel .dip-tips{display:block}
+.delt{margin-top:14px;max-width:34em;pointer-events:auto}
+.delt summary{cursor:pointer;color:var(--t2);font-weight:700;font-size:.82em;letter-spacing:.06em;list-style:none;display:inline-flex;align-items:center;gap:10px;padding:8px 0}
+.delt summary::-webkit-details-marker{display:none}.delt summary::before{content:"+";display:inline-grid;place-items:center;width:22px;height:22px;background:var(--n3);color:var(--w)}
+.delt[open] summary::before{content:"−"}
+.delt textarea{width:100%;min-height:74px;background:var(--n2);border:2px solid var(--n4);color:var(--w);font:400 .9em "OS",sans-serif;padding:10px 12px;resize:vertical}
+.delt textarea:focus{outline:none;border-color:var(--red)}.delt small{color:var(--t3);display:block;margin-top:6px}
+.tel .delt{display:none}
+#start:has(.delt[open]) .start-ingress{display:none}
+#valk{position:absolute;right:clamp(24px,5vw,90px);top:clamp(24px,7vh,90px);z-index:5;text-align:right;pointer-events:none;display:none}
+#valk.on{display:block}
+#valk small{display:block;color:var(--t2);font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:clamp(11px,.9vw,16px);margin-bottom:.6em;opacity:0;animation:valkin .8s .4s ease-out forwards}
+#valk b{display:block;font-family:"BSD";font-weight:800;line-height:.95;font-size:clamp(34px,4.4vw,84px);text-transform:uppercase;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6);opacity:0;transform:translateX(40px);animation:valkin .7s cubic-bezier(.2,.8,.2,1) forwards}
+#valk b.liten{font-size:clamp(24px,2.8vw,54px)}
+@keyframes valkin{to{opacity:1;transform:none}}
+#spot{position:absolute;inset:0;z-index:30;display:none;place-items:center;text-align:center;background:radial-gradient(ellipse at 50% 46%,rgba(20,49,74,.92) 0,rgba(6,17,27,.97) 46%,#03080d 100%);cursor:pointer}
+#spot.on{display:grid;animation:spotin .25s ease-out}
+@keyframes spotin{from{opacity:0}}
+#spot .kon{position:absolute;left:50%;top:-10%;width:min(90vw,1100px);height:120%;transform:translateX(-50%);background:conic-gradient(from 180deg at 50% 0,transparent 162deg,rgba(255,255,255,.10) 172deg,rgba(255,255,255,.16) 180deg,rgba(255,255,255,.10) 188deg,transparent 198deg);pointer-events:none;animation:konsvep 1.5s ease-in-out}
+@keyframes konsvep{0%{transform:translateX(-50%) rotate(-16deg)}35%{transform:translateX(-50%) rotate(13deg)}70%{transform:translateX(-50%) rotate(-6deg)}100%{transform:translateX(-50%) rotate(0)}}
+#spot .in{position:relative}
+#spot small{display:block;color:var(--t3);font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:clamp(11px,1vw,18px)}
+#spot b{display:block;font-family:"BSD";font-weight:800;text-transform:uppercase;line-height:.9;font-size:clamp(70px,13vw,260px);margin:.12em 0 .1em;color:var(--t3);filter:blur(2px);transition:none}
+#spot.klar b{color:#fff;filter:none;animation:spotpop .5s cubic-bezier(.2,1.5,.4,1)}
+@keyframes spotpop{from{transform:scale(.82)}}
+#spot em{display:block;font-style:normal;font-family:"BSD";font-weight:800;text-transform:uppercase;font-size:clamp(26px,3.4vw,66px);color:var(--red);opacity:0}
+#spot.klar em{opacity:1;transition:opacity .3s .15s}
+.vem{display:none;align-items:center;gap:10px;margin:0 0 .5em;font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.68em;color:var(--t2)}
+.vem.on{display:inline-flex}.vem i{font-style:normal;background:var(--red);color:#fff;padding:.3em .7em}.vem span{color:var(--t3)}
+.pall{margin:0 0 34px}
+.pall-rad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end;max-width:900px;min-height:300px}
+.pall-rad div{background:var(--n2);padding:16px 18px 18px;display:flex;flex-direction:column;justify-content:flex-end;transform-origin:bottom;animation:pallupp .9s cubic-bezier(.2,.8,.2,1) both}
+.pall-rad .p1{height:300px;background:linear-gradient(180deg,#e52f19,#8f1c0e);animation-delay:1.2s;order:2}
+.pall-rad .p2{height:220px;animation-delay:.7s;order:1}.pall-rad .p3{height:160px;animation-delay:.3s;order:3}
+@keyframes pallupp{from{transform:scaleY(0);opacity:0}}
+.pall-rad small{font-weight:700;letter-spacing:.2em;font-size:.62em;color:rgba(255,255,255,.75)}
+.pall-rad b{font-family:"BSD";font-weight:800;text-transform:uppercase;line-height:.95;font-size:clamp(30px,3.4vw,64px);overflow-wrap:anywhere}
+.pall-rad span{color:rgba(255,255,255,.85);font-weight:700}
+.pall-ovr{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px 22px;color:var(--t2)}.pall-ovr b{color:#fff}
+@media (prefers-reduced-motion:reduce){#valk small,#valk b,.pall-rad div,#spot .kon,#spot.klar b{animation:none;opacity:1;transform:none}}
 #konfetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40}
-@media (prefers-reduced-motion:reduce){#dip-bild{animation:none}}
-@media print{.dip-rad,#konfetti{display:none!important}}
+@media print{#konfetti{display:none!important}}
 .betyg small{color:var(--t3);font-size:.62em;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
 .tva{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:start}
 .regler{counter-reset:r;list-style:none;margin:0;padding:0}
@@ -310,6 +339,10 @@ __KAPITEL_CSS__
         <button class="knapp sek" id="go-tel" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>Spela själv</button>
       </div>
       <button class="knapp sek hidden" id="fortsatt" type="button" style="margin-top:14px">Fortsätt där du var</button>
+      <details class="delt" id="delt"><summary id="delt-rubrik">Lägg in deltagarnas namn</summary>
+        <textarea id="delt-namn" placeholder="Erik, Sara, Jonas, Amir" aria-label="Deltagarnas namn"></textarea>
+        <small>Skriv förnamn med komma emellan. Då hälsas alla välkomna i öppningen, en strålkastare lottar vem som svarar i varje läge och dagen slutar med en prispall.</small>
+      </details>
       <div class="extra">
         <button class="knapp sek" id="go-bil" type="button">Bilkontrollen</button>
         <button class="knapp sek" id="go-hus" type="button">Se hela huset</button>
@@ -325,6 +358,7 @@ __KAPITEL_CSS__
 <div id="korning" aria-hidden="true">
   <div class="kartbox" id="k-kor"></div><video id="kor-film" class="hidden" muted playsinline preload="auto"></video>
   <div class="kor-info"><div class="kicker" id="kor-fran"></div><span class="kor-tid bsd" id="kor-tid"></span><span class="kor-ort" id="kor-ort"></span><span class="kor-km" id="kor-km"></span></div>
+  <div id="valk"></div>
   <button class="hoppa" id="hoppa" type="button">Hoppa fram</button>
 </div>
 
@@ -370,6 +404,7 @@ __KAPITEL_CSS__
 <button class="ikonknapp ljudknapp" type="button" aria-label="Ljud av eller på"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="vag" d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/><path class="kryss" d="M16 9l5 6M21 9l-5 6"/></svg></button>
     <button class="ikonknapp" id="hem" type="button" aria-label="Till start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></button>
   </div>
+  <div id="spot"><div class="kon"></div><div class="in"><small id="spot-lage"></small><b id="spot-namn"></b><em>Vad gör du?</em></div></div>
   <div class="scen" id="scen">
     <div class="foto" id="foto">
       <span class="nr" id="nr"></span>
@@ -377,6 +412,7 @@ __KAPITEL_CSS__
       <div class="foto-info"><span class="klocka bsd" id="klocka"></span><span class="tjanst" id="tjanst"></span></div>
     </div>
     <div class="text" id="text">
+      <div class="vem" id="vem"></div>
       <h2 class="rubrik bsd" id="rubrik"></h2>
       <p class="lage" id="lage"></p>
       <div class="alts" id="alts" role="group" aria-label="Vad gör du?"></div>
@@ -407,15 +443,7 @@ __KAPITEL_CSS__
       <div><b id="s-kv"></b><small>kvalitet</small></div>
       <div><b id="s-ku"></b><small>kund</small></div>
     </div>
-    <div id="diplom" class="diplom">
-      <div class="dip-las hidden" id="dip-las"><b class="bsd">Diplomet är låst</b><span id="dip-lastext"></span></div>
-      <div class="dip-oppen hidden" id="dip-oppen">
-        <h2 class="sek">Ditt diplom</h2>
-        <div class="dip-rad"><input id="dip-namn" type="text" maxlength="40" autocomplete="off" placeholder="Skriv ditt namn" aria-label="Namn på diplomet"><button class="knapp" id="dip-spara" type="button">Spara diplomet</button></div>
-        <img id="dip-bild" alt="Diplom: Klar för rutten">
-        <p class="dip-tips">Håll fingret på bilden för att spara den i telefonen.</p>
-      </div>
-    </div>
+    <div id="pall" class="pall hidden"><h2 class="sek">Dagens operatör</h2><div class="pall-rad" id="pall-rad"></div><ol class="pall-ovr" id="pall-ovr"></ol></div>
     <canvas id="konfetti" aria-hidden="true"></canvas>
     <div id="kodruta" class="hidden" style="margin-bottom:28px">
       <h2 class="sek">Din kod</h2>
@@ -498,7 +526,45 @@ const ILL = {
 
 let laget = "grupp";
 let st = null;
-function nytt(){ return {i:0, svar:Array(S.length).fill(null), visat:false, tid:0, kv:70, ku:70, valt:null, roster:[0,0,0], kap:{}}; }
+function nytt(){ return {i:0, svar:Array(S.length).fill(null), visat:false, tid:0, kv:70, ku:70, valt:null, roster:[0,0,0], kap:{}, vem:null, po:{}, ko:[]}; }
+/* ---------- Deltagare, strålkastare och prispall ---------- */
+function namnlista(){ return [...new Set(($("delt-namn").value||"").split(/[,;\n]+/).map(n=>n.trim().slice(0,18)).filter(Boolean))].slice(0,24); }
+function showLage(){ return laget==="grupp" && namnlista().length >= 2; }
+(function(){ const f = $("delt-namn"); try{ f.value = localStorage.getItem("rutten-deltagare") || ""; }catch(e){}
+  const upp = () => { const n = namnlista().length; $("delt-rubrik").textContent = n ? "Deltagare: "+n+" namn" : "Lägg in deltagarnas namn"; };
+  f.oninput = () => { try{ localStorage.setItem("rutten-deltagare", f.value); }catch(e){} upp(); }; upp(); })();
+function valkommen(){ const v = $("valk"); if(!showLage()){ v.classList.remove("on"); v.innerHTML = ""; return; }
+  const ns = namnlista(), liten = ns.length > 6;
+  v.innerHTML = "<small>Välkommen till Nanostone</small>" + ns.map((n,i)=>`<b class="${liten?"liten":""}" style="animation-delay:${(.9+i*(liten?.22:.38)).toFixed(2)}s"></b>`).join("");
+  v.querySelectorAll("b").forEach((b,i)=>b.textContent = ns[i]); v.classList.add("on"); }
+let spotT = [], spotKlar = null;
+function spot(){
+  if(!showLage() || st.i >= S.length || st.visat){ ritaVem(); return; }
+  const ns = namnlista(); st.ko = (st.ko||[]).filter(n=>ns.includes(n));
+  if(!st.ko.length){ st.ko = ns.slice(); for(let i=st.ko.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [st.ko[i],st.ko[j]] = [st.ko[j],st.ko[i]]; } if(st.ko.length>1 && st.ko[0]===st.vem) st.ko.push(st.ko.shift()); }
+  const vald = st.ko.shift(); st.vem = vald; ritaVem();
+  const el = $("spot"), nm = $("spot-namn"), s = S[st.i]; $("spot-lage").textContent = "Läge "+(st.i+1)+" av "+S.length+" · "+s.tid+" · "+s.rubrik;
+  el.classList.remove("klar"); el.classList.add("on"); spotT.forEach(clearTimeout); spotT = [];
+  const slut = () => { spotT.forEach(clearTimeout); spotT = []; el.classList.remove("on","klar"); spotKlar = null; };
+  spotKlar = slut; el.onclick = slut;
+  if(RM){ nm.textContent = vald; el.classList.add("klar"); spotT.push(setTimeout(slut, 1800)); return; }
+  let t = 0; const varv = 16;
+  for(let k=0;k<varv;k++){ t += 55 + k*k*1.1; spotT.push(setTimeout(()=>{ nm.textContent = ns[(k*7+st.i) % ns.length]; ljud.tick(); }, t)); }
+  spotT.push(setTimeout(()=>{ nm.textContent = vald; el.classList.add("klar"); ljud.framme(); }, t+150));
+  spotT.push(setTimeout(slut, t+2100));
+}
+function ritaVem(){ const v = $("vem"); if(!showLage() || !st || !st.vem || st.i >= S.length){ v.classList.remove("on"); return; }
+  v.innerHTML = "<i></i><span></span>"; v.querySelector("i").textContent = st.vem + " svarar"; v.querySelector("span").textContent = (st.po[st.vem]||0) + " poäng"; v.classList.add("on"); }
+function pall(r){
+  const p = $("pall"), po = (st && st.po) || {}, ns = showLage() ? namnlista() : [];
+  if(ns.length < 2){ p.classList.add("hidden"); return; }
+  const lista = ns.map(n=>[n, po[n]||0]).sort((a,b)=>b[1]-a[1]);
+  const rad = $("pall-rad"); rad.innerHTML = "";
+  lista.slice(0,3).forEach(([n,v],i)=>{ const d = document.createElement("div"); d.className = "p"+(i+1); d.innerHTML = "<small></small><b></b><span></span>";
+    d.querySelector("small").textContent = ["1:A PLATS","2:A PLATS","3:E PLATS"][i]; d.querySelector("b").textContent = n; d.querySelector("span").textContent = v + " poäng"; rad.appendChild(d); });
+  const ovr = $("pall-ovr"); ovr.innerHTML = ""; lista.slice(3).forEach(([n,v])=>{ const li = document.createElement("li"); li.innerHTML = "<b></b> "; li.querySelector("b").textContent = n; li.append(v+" p"); ovr.appendChild(li); });
+  p.classList.remove("hidden"); if(!RM) setTimeout(()=>{ if($("slut").classList.contains("on")) konfetti(200); }, 1900);
+}
 const KAP_EFTER = {s09:"hus"};
 
 /* ---------- Karta ---------- */
@@ -678,7 +744,7 @@ function starta(l, fortsatt){
   const sv=document.querySelector('.svar'); (l==="tel" ? $("text") : $("foto")).appendChild(sv);
   st = (fortsatt && lagra.get("rutten-tel")) || nytt();
   byggRutt(); visa("spel"); rita(true);
-  if(!fortsatt || st.i===0) kor(st.i);
+  if(!fortsatt || st.i===0){ if(st.i===0) valkommen(); kor(st.i, () => { $("valk").classList.remove("on"); spot(); }); } else ritaVem();
 }
 document.querySelectorAll(".ljudknapp").forEach(b=>{ b.classList.toggle("av", !ljud.pa); b.onclick = () => { const p = ljud.vaxla(); document.querySelectorAll(".ljudknapp").forEach(x=>x.classList.toggle("av", !p)); if(p) ljud.tick(); }; });
 koppla($("kor-film"), "kor", KORFILM); forbered("villa", VILLAFILM);
@@ -777,14 +843,14 @@ function valj(b){
 function visaSvar(){
   if(st.visat || !st.valt) return;
   const s=S[st.i], k=s.kons[st.valt];
-  st.svar[st.i]=st.valt; st.visat=true;
+  st.svar[st.i]=st.valt; st.visat=true; if(showLage() && st.vem){ st.po[st.vem] = (st.po[st.vem]||0) + (st.valt===s.ratt ? 1 : 0); }
   st.tid += k.tid||0; st.kv = kl(st.kv + (k.kv||0)*8); st.ku = kl(st.ku + (k.ku||0)*8);
   const chip = (id, txt, neg) => { const m = $(id).closest(".mat"); m.querySelectorAll(".dchip").forEach(e=>e.remove()); const c = document.createElement("span"); c.className = "dchip"+(neg?" neg":""); c.textContent = txt; m.appendChild(c); setTimeout(()=>c.remove(), 1800); };
   st.valt===s.ratt ? ljud.ratt() : ljud.fel();
   if(k.kv) chip("m-kv", (k.kv>0?"+":"−")+Math.abs(k.kv*8), k.kv<0);
   if(k.ku) chip("m-ku", (k.ku>0?"+":"−")+Math.abs(k.ku*8), k.ku<0);
   if(k.tid) chip("m-tid", (k.tid<0?"+":"−")+Math.abs(k.tid)+" min", k.tid<0);
-  spara(); rita(false);
+  spara(); rita(false); ritaVem();
   if(laget==="tel") setTimeout(()=>{ document.querySelector(".alt.ratt")?.scrollIntoView({behavior:"smooth",block:"center"}); }, 120);
 }
 function nasta(){
@@ -792,15 +858,16 @@ function nasta(){
   st.kap = st.kap || {};
   const efter = KAP_EFTER[S[st.i].id];
   if(efter && !st.kap[efter]){ st.kap[efter] = true; spara(); visaKapitel(efter, ()=>{ visa("spel"); nasta(); }); return; }
-  st.i++; st.visat=false; st.valt=null; st.roster=[0,0,0]; spara();
+  st.i++; st.visat=false; st.valt=null; st.roster=[0,0,0]; $("vem").classList.remove("on"); spara();
   if(st.i >= S.length){ kor(S.length, ()=>{ if(!st.kap.bil){ st.kap.bil = true; spara(); visaKapitel("bil", ()=>rita(true)); } else rita(true); }); return; }
-  rita(true); if(!SAMMA[st.i]) kor(st.i);
+  rita(true); if(!SAMMA[st.i]) kor(st.i, spot); else spot();
 }
 function spara(){ if(laget==="tel") lagra.set("rutten-tel", st); }
 $("huvud").onclick = () => st.visat ? nasta() : visaSvar();
 
 document.addEventListener("keydown", e=>{
   if(e.target.tagName==="TEXTAREA") return;
+  if(spotKlar){ if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"||e.key==="Escape"){ e.preventDefault(); spotKlar(); } return; }
   if(e.key==="f"||e.key==="F"){ if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); return; }
   if($("kapitel").classList.contains("on")){ if(e.key==="ArrowRight"||e.key===" "||e.key==="Enter"){ if(e.target.closest&&e.target.closest("button")&&e.key!=="ArrowRight") return; e.preventDefault(); kapFram(); } else if(e.key==="ArrowLeft"){ kapBak(); } else if(e.key==="Escape"){ $("kap-stang").click(); } return; }
   if(korKlar){ if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"||e.key==="Escape"){ e.preventDefault(); korKlar(); } return; }
@@ -843,66 +910,10 @@ function slut(){
   $("kodruta").classList.toggle("hidden", laget!=="tel");
   $("lasin").classList.toggle("hidden", laget!=="grupp");
   if(laget==="tel"){ $("kod").textContent = kodFor(st.svar); lagra.set("rutten-tel", st); }
-  ritaStat(); visa("slut"); galleri(); diplom(r);
+  ritaStat(); visa("slut"); galleri(); pall(r);
   requestAnimationFrame(()=>{ if(!kSlut) kSlut = nyKarta($("k-slut")); stoppStatus(kSlut, null); kSlut.klar.forEach(p=>p.style.opacity=1); satVy(kSlut, vyFor(kSlut, bbox(PTS,90))); bil(kSlut, [PTS[0][0]+kSlut.z*30, PTS[0][1]+kSlut.z*12], -20); });
 }
 /* ---------- Diplom och konfetti ---------- */
-$("dip-spara").onclick = async () => {
-  const url = ritaDiplom.url; if(!url) return; const kn = $("dip-spara"), namn = "Diplom-En-dag-pa-rutten.jpg";
-  const bin = atob(url.split(",")[1]), u8 = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
-  const blob = new Blob([u8], {type:"image/jpeg"});
-  if(window.claude && typeof window.claude.use === "function"){
-    try{ const dl = await window.claude.use("downloads");
-      if(dl){ await dl.save({filename: namn, data: blob}); kn.textContent = "Diplomet sparat"; return; } }
-    catch(e){ if(e && e.code === "declined") return; }
-    kn.textContent = "Håll fingret på bilden för att spara"; return;
-  }
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = namn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
-};
-const DIP_GRANS = () => S.length - 5;
-function ritaDiplom(r){
-  const W = 1600, H = 900, c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
-  const namn = ($("dip-namn").value || "").trim() || (laget==="grupp" ? "Gruppen" : "Ny operatör");
-  x.fillStyle = "#06111b"; x.fillRect(0,0,W,H);
-  const foto = ritaDiplom.foto; if(foto && foto.complete && foto.naturalWidth){ const fw = 760, sk = Math.max(fw/foto.naturalWidth, H/foto.naturalHeight), dw = foto.naturalWidth*sk, dh = foto.naturalHeight*sk;
-    x.save(); x.beginPath(); x.moveTo(W-fw+140,0); x.lineTo(W,0); x.lineTo(W,H); x.lineTo(W-fw,H); x.closePath(); x.clip(); x.drawImage(foto, W-fw+(fw-dw)/2, (H-dh)/2, dw, dh);
-    const g = x.createLinearGradient(W-fw,0,W,0); g.addColorStop(0,"rgba(6,17,27,.92)"); g.addColorStop(.45,"rgba(6,17,27,.25)"); g.addColorStop(1,"rgba(6,17,27,.05)"); x.fillStyle = g; x.fillRect(W-fw,0,fw,H);
-    const g2 = x.createLinearGradient(0,H*.55,0,H); g2.addColorStop(0,"rgba(6,17,27,0)"); g2.addColorStop(1,"rgba(6,17,27,.85)"); x.fillStyle = g2; x.fillRect(W-fw,0,fw,H); x.restore(); }
-  x.strokeStyle = "#e52f19"; x.lineWidth = 6; x.beginPath(); x.moveTo(W-760+140,0); x.lineTo(W-760,H); x.stroke();
-  x.fillStyle = "#e52f19"; x.beginPath(); x.moveTo(0,H); x.lineTo(0,H-120); x.lineTo(120,H); x.closePath(); x.fill();
-  const logo = document.querySelector("#slut .logo"); if(logo && logo.naturalWidth){ const lh = 44; x.drawImage(logo, 90, 80, logo.naturalWidth*lh/logo.naturalHeight, lh); }
-  x.fillStyle = "#e52f19"; x.fillRect(90, 196, 44, 4);
-  x.fillStyle = "#9fb8c0"; x.font = '700 20px "OS"'; x.textBaseline = "alphabetic"; try{ x.letterSpacing = "5px"; }catch(e){}
-  x.fillText("DIPLOM · ONBOARDING DRIFT", 150, 204);
-  try{ x.letterSpacing = "0px"; }catch(e){}
-  x.fillStyle = "#fff"; x.font = '800 150px "BSD"'; x.fillText("KLAR FÖR", 84, 350);
-  x.fillStyle = "#e52f19"; x.fillText("RUTTEN", 84, 480);
-  let fs = 62; x.font = `700 ${fs}px "OS"`; while(x.measureText(namn).width > 720 && fs > 30){ fs -= 2; x.font = `700 ${fs}px "OS"`; }
-  x.fillStyle = "#fff"; x.fillText(namn, 90, 590);
-  x.fillStyle = "#d2dee3"; x.font = '400 24px "OS"';
-  const d = new Date(), dat = d.getDate()+" "+["januari","februari","mars","april","maj","juni","juli","augusti","september","oktober","november","december"][d.getMonth()]+" "+d.getFullYear();
-  x.fillText("har kört En dag på rutten, från morgonen hemma", 90, 636); x.fillText("till sista bilden i Diroto.", 90, 668);
-  const rutor = [[r+"/"+S.length,"RÄTT VAL"],[st.tid>=0?"I tid":"+"+(-st.tid)+" min","TIDSPLAN"],[String(Math.round(st.kv)),"KVALITET"],[String(Math.round(st.ku)),"KUND"]];
-  rutor.forEach(([v,t],i)=>{ const bx = 90+i*178; x.fillStyle = "#0f263a"; x.fillRect(bx, 700, 164, 104); x.fillStyle = "#fff"; let vs = 52; x.font = `800 ${vs}px "BSD"`; while(x.measureText(v).width > 134 && vs > 24){ vs -= 2; x.font = `800 ${vs}px "BSD"`; } x.fillText(v, bx+16, 756);
-    x.fillStyle = "#9fb8c0"; x.font = '700 13px "OS"'; try{ x.letterSpacing = "2px"; }catch(e){} x.fillText(t, bx+16, 784); try{ x.letterSpacing = "0px"; }catch(e){} });
-  x.fillStyle = "#9fb8c0"; x.font = '400 18px "OS"'; x.fillText("Nanostone AB · "+dat, 150, 852);
-  x.textAlign = "right"; x.fillStyle = "#fff"; x.font = '800 40px "BSD"'; x.fillText(r===S.length ? "PERFEKT DAG" : r>=S.length-2 ? "BRA JOBBAT" : "GODKÄND DAG", W-70, H-70); x.textAlign = "left";
-  let url = ""; try{ url = c.toDataURL("image/jpeg", .9); }catch(e){}
-  if(url){ $("dip-bild").src = url; ritaDiplom.url = url; }
-}
-function diplom(r){
-  const ok = r >= DIP_GRANS();
-  $("dip-oppen").classList.toggle("hidden", !ok); $("dip-las").classList.toggle("hidden", ok);
-  if(!ok){ $("dip-lastext").textContent = "Minst "+DIP_GRANS()+" rätt av "+S.length+" låser upp ditt diplom. Du hade "+r+". Läs reglerna här nedanför och kör dagen igen."; return; }
-  try{ const n = localStorage.getItem("rutten-namn"); if(n && !$("dip-namn").value) $("dip-namn").value = n; }catch(e){}
-  $("dip-namn").placeholder = laget==="grupp" ? "Gruppens namn, t.ex. Team Syd" : "Skriv ditt namn";
-  $("dip-namn").oninput = () => { try{ localStorage.setItem("rutten-namn", $("dip-namn").value); }catch(e){} ritaDiplom(r); };
-  const rita = () => ritaDiplom(r);
-  if(!ritaDiplom.foto && BILDER.kvall){ const im = new Image(); im.onload = rita; im.src = BILDER.kvall; ritaDiplom.foto = im; }
-  (document.fonts && document.fonts.load ? Promise.all([document.fonts.load('800 150px "BSD"'), document.fonts.load('700 62px "OS"'), document.fonts.load('400 24px "OS"')]) : Promise.resolve()).then(rita, rita);
-  if(!RM) konfetti(r===S.length ? 220 : 130);
-  try{ ljud.framme && ljud.framme(); }catch(e){}
-}
 function konfetti(antal){
   const c = $("konfetti"), x = c.getContext("2d"), dpr = Math.min(2, window.devicePixelRatio||1); let W, H;
   const mat = () => { W = c.width = innerWidth*dpr; H = c.height = innerHeight*dpr; }; mat();
