@@ -258,12 +258,14 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .vem.on{display:inline-flex}.vem i{font-style:normal;background:var(--red);color:#fff;padding:.3em .7em}.vem span{color:var(--t3)}
 .pall{margin:0 0 34px}
 .pall-rad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end;max-width:900px;min-height:300px}
+.pall-rad:has(.p1:only-child){grid-template-columns:minmax(0,1fr)}.pall-rad .p1:only-child{height:auto;min-height:300px}
 .pall-rad div{background:var(--n2);padding:16px 18px 18px;display:flex;flex-direction:column;justify-content:flex-end;transform-origin:bottom;animation:pallupp .9s cubic-bezier(.2,.8,.2,1) both}
 .pall-rad .p1{height:300px;background:linear-gradient(180deg,#e52f19,#8f1c0e);animation-delay:1.2s;order:2}
 .pall-rad .p2{height:220px;animation-delay:.7s;order:1}.pall-rad .p3{height:160px;animation-delay:.3s;order:3}
 @keyframes pallupp{from{transform:scaleY(0);opacity:0}}
 .pall-rad small{font-weight:700;letter-spacing:.2em;font-size:.62em;color:rgba(255,255,255,.75)}
 .pall-rad b{font-family:"BSD";font-weight:800;text-transform:uppercase;line-height:.95;font-size:clamp(30px,3.4vw,64px);overflow-wrap:anywhere}
+.pall-rad .manga b{font-size:clamp(20px,2.1vw,40px)}.pall-rad div{min-height:max-content}
 .pall-rad span{color:rgba(255,255,255,.85);font-weight:700}
 .pall-ovr{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px 22px;color:var(--t2)}.pall-ovr b{color:#fff}
 @media (prefers-reduced-motion:reduce){#valk small,#valk b,.pall-rad div,#spot .kon,#spot.klar b{animation:none;opacity:1;transform:none}}
@@ -568,9 +570,12 @@ function pall(r){
   if(ns.length < 2){ p.classList.add("hidden"); return; }
   const lista = ns.map(n=>[n, po[n]||0]).sort((a,b)=>b[1]-a[1]);
   const rad = $("pall-rad"); rad.innerHTML = "";
-  lista.slice(0,3).forEach(([n,v],i)=>{ const d = document.createElement("div"); d.className = "p"+(i+1); d.innerHTML = "<small></small><b></b><span></span>";
-    d.querySelector("small").textContent = ["1:A PLATS","2:A PLATS","3:E PLATS"][i]; d.querySelector("b").textContent = n; d.querySelector("span").textContent = v + " poäng"; rad.appendChild(d); });
-  const ovr = $("pall-ovr"); ovr.innerHTML = ""; lista.slice(3).forEach(([n,v])=>{ const li = document.createElement("li"); li.innerHTML = "<b></b> "; li.querySelector("b").textContent = n; li.append(v+" p"); ovr.appendChild(li); });
+  const grupper = []; lista.forEach(([n,v])=>{ const g = grupper[grupper.length-1]; if(g && g.v === v) g.ns.push(n); else grupper.push({v, ns:[n]}); });
+  grupper.slice(0,3).forEach((g,i)=>{ const d = document.createElement("div"); d.className = "p"+(i+1)+(g.ns.length>2?" manga":""); d.innerHTML = "<small></small><span></span>";
+    d.querySelector("small").textContent = (g.ns.length>1 ? "DELAD " : "") + ["1:A PLATS","2:A PLATS","3:E PLATS"][i];
+    g.ns.forEach(n=>{ const b = document.createElement("b"); b.textContent = n; d.insertBefore(b, d.querySelector("span")); });
+    d.querySelector("span").textContent = g.v + " poäng" + (g.ns.length>1 ? " var" : ""); rad.appendChild(d); });
+  const ovr = $("pall-ovr"); ovr.innerHTML = ""; grupper.slice(3).forEach(g=>g.ns.forEach(n=>{ const li = document.createElement("li"); li.innerHTML = "<b></b> "; li.querySelector("b").textContent = n; li.append(g.v+" p"); ovr.appendChild(li); }));
   p.classList.remove("hidden"); if(!RM) setTimeout(()=>{ if($("slut").classList.contains("on")) konfetti(200); }, 1900);
 }
 const KAP_EFTER = {s09:"hus"};
