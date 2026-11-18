@@ -308,6 +308,20 @@ body.dold-mus,body.dold-mus *{cursor:none!important}
 .tel #nedrakning{display:none!important}
 #huvud.spanning{animation:pulsknapp .85s ease-in-out}
 @keyframes pulsknapp{0%,100%{transform:none}50%{transform:scale(1.05)}}
+#gag{position:absolute;inset:0;z-index:32;display:none;background:#03080d;overflow:hidden;cursor:pointer}
+#gag.on{display:block;animation:spotin .3s ease-out}
+.gag-bak{position:absolute;left:-6%;top:-6%;width:112%;height:112%;object-fit:cover;filter:blur(26px) brightness(.42) saturate(1.1)}.tel .gag-bak{display:none}
+#gag video{box-shadow:0 0 80px rgba(0,0,0,.7);position:absolute;left:50%;top:0;height:100%;transform:translateX(-50%);max-width:100%;object-fit:contain}
+.gag-skugga{position:absolute;inset:0;pointer-events:none;background:linear-gradient(0deg,rgba(3,8,13,.92) 0,rgba(3,8,13,0) 38%),linear-gradient(180deg,rgba(3,8,13,.7) 0,rgba(3,8,13,0) 18%)}
+.gag-kicker{position:absolute;left:0;right:0;top:clamp(18px,3.4vh,44px);text-align:center;color:var(--t2);font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:clamp(11px,1vw,18px);padding:0 16px}
+.gag-stampel{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) rotate(-9deg) scale(3);opacity:0;color:var(--red2);border:clamp(5px,.7vw,12px) solid var(--red2);padding:.08em .3em .02em;font-size:clamp(46px,9vw,180px);white-space:nowrap;background:rgba(3,8,13,.35);text-shadow:0 4px 0 rgba(0,0,0,.35)}
+#gag.stamplad .gag-stampel{animation:stampel .38s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes stampel{0%{opacity:0;transform:translate(-50%,-50%) rotate(-9deg) scale(3)}60%{opacity:1;transform:translate(-50%,-50%) rotate(-9deg) scale(.94)}100%{opacity:1;transform:translate(-50%,-50%) rotate(-9deg) scale(1)}}
+#gag.stamplad video{animation:skak .35s linear}
+@keyframes skak{0%,100%{translate:0 0}25%{translate:-10px 0}50%{translate:8px 0}75%{translate:-4px 0}}
+.gag-regel{position:absolute;left:0;right:0;bottom:clamp(86px,13vh,150px);text-align:center;margin:0;padding:0 20px;font-size:clamp(17px,1.9vw,36px);font-weight:700;opacity:0;transition:opacity .5s .9s}
+#gag-vidare{position:absolute;left:50%;bottom:clamp(18px,3.4vh,44px);transform:translateX(-50%);opacity:0;transition:opacity .5s 1.3s}
+#gag.stamplad .gag-regel,#gag.stamplad #gag-vidare{opacity:1}
 #snabb{position:absolute;inset:0;z-index:31;box-sizing:border-box;display:none;place-items:center;text-align:center;padding:clamp(18px,4vw,70px);background:radial-gradient(ellipse at 50% 40%,#3a0f09 0,#14080a 45%,#03080d 100%);overflow:auto}
 #snabb.on{display:grid;grid-template-columns:minmax(0,1fr);animation:spotin .25s ease-out}
 #snabb>div{display:none;max-width:1200px;width:100%;min-width:0;justify-self:center}#snabb.f-ring .sn-ring,#snabb.f-fraga .sn-fraga,#snabb.f-dom .sn-fraga,#snabb.f-slut .sn-slut{display:block}
@@ -517,6 +531,11 @@ __KAPITEL_CSS__
 <button class="ikonknapp ljudknapp" type="button" aria-label="Ljud av eller på"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="vag" d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/><path class="kryss" d="M16 9l5 6M21 9l-5 6"/></svg></button>
     <button class="ikonknapp" id="hem" type="button" aria-label="Till start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></button>
   </div>
+  <div id="gag"><img class="gag-bak" id="gag-bak" alt=""><video id="gag-film" muted playsinline></video><div class="gag-skugga"></div>
+    <small class="gag-kicker">Ingen hemma, inget vatten. Men det finns en pool …</small>
+    <div class="gag-stampel bsd" id="gag-stampel">Så gör vi inte</div>
+    <p class="gag-regel" id="gag-regel">Poolen är kundens. Ring numret i Diroto, och sedan närmast ansvarig.</p>
+    <button class="knapp" id="gag-vidare" type="button">Tillbaka till rutten</button></div>
   <div id="nedrakning" aria-live="polite"><b id="ned-tal"></b><small>Rösta nu</small><i id="ned-bage"></i></div>
   <div id="snabb" aria-live="polite">
     <div class="sn-ring" id="sn-ring"><div class="sn-tel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg></div>
@@ -602,7 +621,7 @@ __KAPITEL_CSS__
 "use strict";
 const DATA = __DATA__;
 const BILDER = __BILDER__;
-const SOLFILM = "__SOLFILM__", VILLAFILM = "__VILLAFILM__", GRYFILM = "__GRYFILM__", LAGESFILM = { s01:["regn","__REGNFILM__"], s15:["tvatt","__TVATTFILM__"] }; const filmUrl2 = {}; let korUrl = null;
+const SOLFILM = "__SOLFILM__", VILLAFILM = "__VILLAFILM__", GRYFILM = "__GRYFILM__", LAGESFILM = { s01:["regn","__REGNFILM__"], s15:["tvatt","__TVATTFILM__"], s07:["skum","__SKUMFILM__"], s11:["rann","__RANNFILM__"] }, POOLFILM = "__POOLFILM__"; const filmUrl2 = {}; let korUrl = null;
 /* Videorna packas upp en gång, asynkront, direkt när sidan laddats. Aldrig under uppspelning. */
 const VIDEO = {};
 function forbered(nyck, b64){ if(!VIDEO[nyck]) VIDEO[nyck] = fetch("data:video/mp4;base64," + b64).then(r => r.blob()).then(b => URL.createObjectURL(b)); return VIDEO[nyck]; }
@@ -639,6 +658,8 @@ const ljud = (() => {
         const sr = a.createBufferSource(), fl = a.createBiquadFilter(), gg = a.createGain(); sr.buffer = n; fl.type = "bandpass"; fl.frequency.setValueAtTime(600, t+d); fl.frequency.exponentialRampToValueAtTime(3800, t+d+.35); gg.gain.value = .13; sr.connect(fl).connect(gg).connect(a.destination); sr.start(t+d); });
       ton(1568, 1.0, 1.4, "sine", .035); ton(2093, 1.05, 1.2, "sine", .025); },
     gong(){ ton(392,0,1.1,"sine",.11); ton(523,0,1.1,"sine",.09); ton(784,.02,.8,"triangle",.04); },
+    plask(){ brus(1.1, 1500, .45); setTimeout(()=>brus(.8, 700, .3), 90); },
+    stampel(){ ton(62,0,.4,"sine",.34); ton(45,.02,.5,"sine",.25); brus(.14, 800, .7); },
     ring(){ [0,.09,.18,.27,.5,.59,.68,.77].forEach((t,i)=>ton(i%2?1175:1397,t,.09,"sine",.09)); },
     framme(){ ton(784,0,.16,"sine",.1); ton(1047,.12,.3,"sine",.1); },
     motor(ms, niva){ const a = ctx(); if(!a) return; const d = ms/1000, o = a.createOscillator(), o2 = a.createOscillator(), fl = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime;
@@ -681,6 +702,16 @@ const SNABB = [
   ["Du stämplar in i NUBA när du sätter dig i bilen på morgonen.", false, "Diroto startar du i bilen. NUBA stämplar du hos första kunden, eller efter en timmes körning."],
   ["En operativ rödmarkering kan du göra själv, bara du ringer ansvarig efteråt.", false, "Ansvarig ska alltid godkänna först, och alla lösningar ska vara prövade."],
 ];
+let gagKlar = null;
+function gag(klart){
+  const el = $("gag"), v = $("gag-film"); let tid = []; if(!$("gag-bak").src && BILDER["altan-pool"]) $("gag-bak").src = BILDER["altan-pool"]; el.className = "on";
+  const slut = () => { tid.forEach(clearTimeout); try{ v.pause(); }catch(e){} el.className = ""; gagKlar = null; klart && klart(); };
+  const stampla = () => { if(el.classList.contains("stamplad")) return; el.classList.add("stamplad"); ljud.stampel(); };
+  gagKlar = () => { if(!el.classList.contains("stamplad")){ stampla(); return; } slut(); };
+  el.onclick = () => gagKlar && gagKlar();
+  forbered("pool", POOLFILM).then(u => { if(!gagKlar) return; if(v.dataset.k !== "pool"){ v.dataset.k = "pool"; v.src = u; } try{ v.currentTime = 0; }catch(e){} const pp = v.play(); pp && pp.catch(()=>{});
+    tid.push(setTimeout(()=>{ if(gagKlar) ljud.plask(); }, 2450)); tid.push(setTimeout(()=>{ if(gagKlar) stampla(); }, 3300)); });
+}
 let snabb = null;
 let nedT = 0;
 function stoppNed(){ cancelAnimationFrame(nedT); nedT = 0; $("nedrakning").className = ""; }
@@ -953,7 +984,7 @@ function starta(l, fortsatt){
   if(!fortsatt || st.i===0){ if(st.i===0) valkommen(); kor(st.i, () => { $("valk").classList.remove("on"); spot(); }); } else ritaVem();
 }
 document.querySelectorAll(".ljudknapp").forEach(b=>{ b.classList.toggle("av", !ljud.pa); b.onclick = () => { const p = ljud.vaxla(); document.querySelectorAll(".ljudknapp").forEach(x=>x.classList.toggle("av", !p)); if(p) ljud.tick(); }; });
-koppla($("kor-film"), "gry", GRYFILM); forbered("sol", SOLFILM); forbered("villa", VILLAFILM); Object.values(LAGESFILM).forEach(([n,d])=>forbered(n,d));
+koppla($("kor-film"), "gry", GRYFILM); forbered("sol", SOLFILM); forbered("villa", VILLAFILM); Object.values(LAGESFILM).forEach(([n,d])=>forbered(n,d)); forbered("pool", POOLFILM);
 function ident(klart){
   if(RM){ klart(); return; } const el = $("ident"); let klar = false;
   const slut = () => { if(klar) return; klar = true; el.classList.add("ut"); setTimeout(()=>{ el.className = ""; }, 500); klart(); };
@@ -1081,6 +1112,7 @@ function nasta(){
   st.kap = st.kap || {};
   const efter = KAP_EFTER[S[st.i].id];
   if(efter && !st.kap[efter]){ st.kap[efter] = true; spara(); visaKapitel(efter, ()=>{ visa("spel"); nasta(); }); return; }
+  if(S[st.i].id==="s05" && !st.kap.gag && !RM){ st.kap.gag = true; spara(); gag(()=>nasta()); return; }
   if(S[st.i].id==="s06" && !st.kap.snabb){ st.kap.snabb = true; spara(); snabbrunda(()=>nasta()); return; }
   stoppNed(); st.i++; st.visat=false; st.valt=null; st.roster=[0,0,0]; $("vem").classList.remove("on"); spara();
   if(st.i >= S.length){ kor(S.length, ()=>{ if(!st.kap.bil){ st.kap.bil = true; spara(); visaKapitel("bil", ()=>rita(true)); } else rita(true); }); return; }
@@ -1091,6 +1123,7 @@ $("huvud").onclick = () => st.visat ? nasta() : visaSvar();
 
 document.addEventListener("keydown", e=>{
   if(e.target.tagName==="TEXTAREA") return;
+  if(gagKlar){ if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"||e.key==="Escape"){ e.preventDefault(); gagKlar(); } return; }
   if(snabb){ const k = e.key.toUpperCase(); if(snabb.fas==="fraga"){ if(k==="J"){ e.preventDefault(); snabb.svar(true); } else if(k==="N"){ e.preventDefault(); snabb.svar(false); } }
     else if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"){ e.preventDefault(); snabb.fram(); } return; }
   if(spotKlar){ if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"||e.key==="Escape"){ e.preventDefault(); spotKlar(); } return; }
