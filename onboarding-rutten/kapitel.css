@@ -129,3 +129,7 @@
 #kapitel.smal .kap-prog{display:none}
 @media (max-width:760px){.galleri{grid-template-columns:1fr}.gal-val{flex-direction:row;overflow-x:auto}.gal-val button{grid-template-columns:1fr;min-width:110px}.gal-val button img{width:100%}}
 @media (prefers-reduced-motion:reduce){.svaj{animation:none}.kam{transition:none}}
+
+#kap-scen canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#kap-pins{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#kap-pins .mark{position:absolute;left:0;top:0;width:0;height:0}

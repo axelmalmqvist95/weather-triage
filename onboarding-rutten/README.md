@@ -25,7 +25,7 @@ Stoppen är påhittade punkter i rätt ort, inga adresser. `VIA` i `kartbygg.py`
 
 ## Kapitel i 3D och före/efter
 
-`kapitel.js` och `kapitel.css` byggs in av `bygg_html.py`. Två kapitel i ren CSS 3D, utan bibliotek:
+`kapitel_3d.js`, `kapitel_innehall.js`, `kapitel_fe.js` och `kapitel.css` byggs in av `bygg_html.py`. Två kapitel i 3D med three.js r128 (MIT, inbäddad som `three.min.js`, ingen nätanslutning behövs):
 - **Bilkontrollen** (efter hemfärden, och från startsidan): QR-koden, elva bilder, mätarställning, mönsterdjup med lagkrav 1,6 och 3,0 mm, en kontrollfråga. Bygger på Axels Bilkontroll-skript (Kod.gs).
 - **Se hela huset** (efter läge 14:05 om taket): merförsäljning runt kundens hus.
 

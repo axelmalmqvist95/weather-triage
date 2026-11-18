@@ -1,0 +1,278 @@
+/* ---------- Kapitel i 3D (three.js r128, inbäddad) ---------- */
+const LOGOF = "__LOGOF__";
+const T3 = window.THREE;
+
+function d3(cls, css, foralder, html){ const e=document.createElement("div"); if(cls) e.className=cls; if(css) e.style.cssText=css; if(html!=null) e.innerHTML=html; foralder && foralder.appendChild(e); return e; }
+
+/* Texturer ritade i canvas, inga externa filer. */
+function duk(w, h, rita){ const c=document.createElement("canvas"); c.width=w; c.height=h; rita(c.getContext("2d"), w, h); const t=new T3.CanvasTexture(c); t.encoding=T3.sRGBEncoding; t.anisotropy=8; return t; }
+function brus(x, w, h, n, f){ for(let i=0;i<n;i++){ f(x, Math.random()*w, Math.random()*h, i); } }
+function falskQR(){
+  const c=document.createElement("canvas"), N=25, s=8; c.width=c.height=N*s+16; const x=c.getContext("2d");
+  x.fillStyle="#fff"; x.fillRect(0,0,c.width,c.height); x.fillStyle="#0f263a";
+  let fro=7; const rnd=()=>{ fro=(fro*16807)%2147483647; return fro/2147483647; };
+  for(let i=0;i<N;i++) for(let j=0;j<N;j++){ if(rnd()>.52) x.fillRect(8+i*s,8+j*s,s,s); }
+  const horn=(a,b)=>{ x.fillStyle="#fff"; x.fillRect(8+a*s-s,8+b*s-s,9*s,9*s); x.fillStyle="#0f263a"; x.fillRect(8+a*s,8+b*s,7*s,7*s); x.fillStyle="#fff"; x.fillRect(8+a*s+s,8+b*s+s,5*s,5*s); x.fillStyle="#0f263a"; x.fillRect(8+a*s+2*s,8+b*s+2*s,3*s,3*s); };
+  horn(0,0); horn(N-7,0); horn(0,N-7);
+  return c;
+}
+const QRC = falskQR(); const QR = QRC.toDataURL();
+const KAMIKON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>`;
+let LOGOBILD = null; { const im = new Image(); im.src = LOGOF; LOGOBILD = im; }
+
+function mat(o){ return new T3.MeshStandardMaterial(o); }
+function nat(g, m, x, y, z, skugga){ const me = new T3.Mesh(g, m); me.position.set(x||0, y||0, z||0); if(skugga!==false){ me.castShadow = true; me.receiveShadow = true; } return me; }
+
+/* ---------- Scen: servicebilen ---------- */
+function byggBil(c){
+  const S = c.scene;
+  // Mark: asfalt med parkeringslinjer
+  const asfalt = duk(1024,1024,(x,w,h)=>{ x.fillStyle="#2b3540"; x.fillRect(0,0,w,h);
+    brus(x,w,h,26000,(x,a,b)=>{ const v=30+Math.random()*40; x.fillStyle=`rgba(${v},${v+8},${v+16},.5)`; x.fillRect(a,b,2,2); });
+    x.strokeStyle="rgba(235,240,243,.85)"; x.lineWidth=7; [[250,431,780,431],[250,593,780,593]].forEach(([a,b,c2,d])=>{ x.beginPath(); x.moveTo(a,b); x.lineTo(c2,d); x.stroke(); }); });
+  const mark = nat(new T3.PlaneGeometry(2400,2400), mat({map:asfalt, roughness:.95}), 0,0,0); mark.rotation.x=-Math.PI/2; mark.castShadow=false; asfalt.repeat.set(1,1); S.add(mark);
+  // Linjerna hamnar vid z = ±(1024-260)/1024*... skala om så att bilen står mellan dem
+  
+
+  const bil = new T3.Group(); S.add(bil);
+  const lack = new T3.MeshPhysicalMaterial({color:0xf4f7f9, roughness:.32, metalness:.05, clearcoat:.8, clearcoatRoughness:.25});
+  const glas = new T3.MeshPhysicalMaterial({color:0x0d1820, roughness:.08, metalness:.4, clearcoat:1});
+  const svart = mat({color:0x1a2026, roughness:.7});
+  // Profil från sidan (x längd, y höjd), extruderad i bredd
+  const p = new T3.Shape();
+  p.moveTo(-190,30); p.lineTo(-150,30); p.absarc(-110,34,40,Math.PI,0,true); p.lineTo(135,30); p.absarc(175,34,40,Math.PI,0,true);
+  p.lineTo(266,30); p.quadraticCurveTo(279,30,279,44); p.lineTo(277,80); p.quadraticCurveTo(275,92,260,94); p.lineTo(222,100);
+  p.lineTo(172,164); p.quadraticCurveTo(164,174,148,175); p.lineTo(-176,175); p.quadraticCurveTo(-190,175,-190,161); p.lineTo(-190,30);
+  const kg = new T3.ExtrudeGeometry(p, {depth:136, bevelEnabled:true, bevelThickness:5, bevelSize:5, bevelSegments:4, curveSegments:24}); kg.translate(0,0,-68);
+  const kaross = nat(kg, lack); bil.add(kaross);
+  // Rutor
+  const sr = new T3.Shape(); sr.moveTo(146,108); sr.lineTo(212,108); sr.lineTo(172,160); sr.quadraticCurveTo(166,166,152,166); sr.lineTo(146,166); sr.lineTo(146,108);
+  const sg = new T3.ExtrudeGeometry(sr,{depth:148, bevelEnabled:false}); sg.translate(0,0,-74); bil.add(nat(sg, glas));
+  const vr = new T3.Shape(); vr.moveTo(224,103); vr.lineTo(176,165); vr.lineTo(170,162); vr.lineTo(218,101); vr.lineTo(224,103);
+  const vg = new T3.ExtrudeGeometry(vr,{depth:124, bevelEnabled:false}); vg.translate(0,0,-62); bil.add(nat(vg, glas));
+  // Front: grill, lampor, stötfångare
+  bil.add(nat(new T3.BoxGeometry(6,22,110), svart, 279,58,0));
+  bil.add(nat(new T3.BoxGeometry(12,14,146), svart, 274,34,0));
+  [-50,50].forEach(z=>{ const l = nat(new T3.BoxGeometry(5,12,26), mat({color:0xfff3c8, emissive:0xffe4a0, emissiveIntensity:.9}), 278,80,z); bil.add(l); });
+  [-62,62].forEach(z=>{ bil.add(nat(new T3.BoxGeometry(4,34,9), mat({color:0xb3221a, emissive:0x8a1a12, emissiveIntensity:.6}), -193,118,z)); });
+  bil.add(nat(new T3.BoxGeometry(10,12,148), svart, -192,34,0));
+  // Speglar
+  [-1,1].forEach(s=>{ bil.add(nat(new T3.BoxGeometry(10,22,14), svart, 214,128,s*82)); });
+  // Dekor på sidorna
+  const dekor = (spegel) => duk(1280,512,(x,w,h)=>{ x.clearRect(0,0,w,h);
+    x.fillStyle="#e52f19"; x.fillRect(0,h-58,w,30); x.fillStyle="rgba(15,38,58,.9)"; x.fillRect(0,h-28,w,10);
+    if(LOGOBILD && LOGOBILD.complete){ const lw=w*.62, lh=lw*LOGOBILD.height/LOGOBILD.width; x.drawImage(LOGOBILD,(w-lw)/2,h*.3-lh/2,lw,lh); }
+    x.fillStyle="#0f263a"; x.font="600 46px OS, sans-serif"; x.textAlign="center"; x.fillText("nanostone.se", w/2, h*.62); });
+  [1,-1].forEach(s=>{ const t = dekor(); const m = new T3.MeshBasicMaterial({map:t, transparent:true}); const pl = new T3.Mesh(new T3.PlaneGeometry(330,132), m);
+    pl.position.set(-24,102,s*73.6); if(s<0) pl.rotation.y=Math.PI; bil.add(pl); c.textur.push(t); });
+  // Hjul
+  const hjulG = new T3.Group();
+  [["vf",175,-58],["hf",175,58],["hb",-110,58],["vb",-110,-58]].forEach(([id,x,z])=>{
+    const g = new T3.Group(); g.position.set(x,34,z);
+    const dack = nat(new T3.CylinderGeometry(32,32,24,40), mat({color:0x15191d, roughness:.85})); dack.rotation.x=Math.PI/2; g.add(dack);
+    const falg = nat(new T3.CylinderGeometry(19,19,25,32), mat({color:0xc4ccd3, metalness:.85, roughness:.3})); falg.rotation.x=Math.PI/2; g.add(falg);
+    const nav = nat(new T3.CylinderGeometry(7,7,26.5,16), mat({color:0x5a6570, metalness:.6, roughness:.4})); nav.rotation.x=Math.PI/2; g.add(nav);
+    const ring = new T3.Mesh(new T3.TorusGeometry(44,2.6,12,64), new T3.MeshBasicMaterial({color:0xe52f19, transparent:true, opacity:.95}));
+    ring.position.z = z>0 ? 16 : -16; ring.visible=false; ring.userData.id=id; g.add(ring); g.userData.ring=ring;
+    hjulG.add(g); });
+  bil.add(hjulG);
+  // Förardörr på -z med QR-kod. Gångjärn i framkant (x=214).
+  const dorrPivot = new T3.Group(); dorrPivot.position.set(214,0,-74); bil.add(dorrPivot);
+  const dorrForm = new T3.Shape(); dorrForm.moveTo(0,34); dorrForm.lineTo(0,100); dorrForm.lineTo(-48,164); dorrForm.lineTo(-74,164); dorrForm.lineTo(-74,34); dorrForm.lineTo(0,34);
+  const dorr = nat(new T3.ExtrudeGeometry(dorrForm,{depth:4, bevelEnabled:true, bevelSize:1.5, bevelThickness:1.5, bevelSegments:2}), lack); dorr.position.z=-4.5; dorrPivot.add(dorr);
+  const dorrGlas = new T3.Shape(); dorrGlas.moveTo(-4,108); dorrGlas.lineTo(-44,160); dorrGlas.lineTo(-70,160); dorrGlas.lineTo(-70,108); dorrGlas.lineTo(-4,108);
+  const dg = nat(new T3.ExtrudeGeometry(dorrGlas,{depth:1, bevelEnabled:false}), glas); dg.position.z=-7.2; dorrPivot.add(dg);
+  const qrMat = new T3.MeshBasicMaterial({map:new T3.CanvasTexture(QRC)}); const qr = new T3.Mesh(new T3.PlaneGeometry(18,18), qrMat); qr.position.set(-58,118,-7.6); qr.rotation.y=Math.PI; dorrPivot.add(qr);
+  const hytt = nat(new T3.BoxGeometry(72,128,2), mat({color:0x232c35, roughness:.8}), 177,100,-73.3); bil.add(hytt); hytt.visible=false;
+  const ratt = nat(new T3.TorusGeometry(15,2.5,10,32), svart, 192,118,-36); ratt.rotation.y=Math.PI/2.4; bil.add(ratt);
+  // Bakdörrar på -x med lastutrymme bakom
+  const bakInne = nat(new T3.BoxGeometry(1,140,134), mat({color:0x2a333d, roughness:.9}), -195.6,102,0); bil.add(bakInne); bakInne.visible=false;
+  const hylla = mat({color:0x6c7a87, metalness:.5, roughness:.5});
+  [70,110,150].forEach(y=>{ const h = nat(new T3.BoxGeometry(3,4,120), hylla, -196.4,y,0); h.visible=false; bil.add(h); h.userData.inne=true; });
+  const bak = []; [[-1,-68],[1,68]].forEach(([s,z])=>{ const pv = new T3.Group(); pv.position.set(-198.5,0,z); bil.add(pv);
+    const d = nat(new T3.BoxGeometry(3,140,68), lack, 0,102,-s*34); pv.add(d); pv.userData.s=s; bak.push(pv); });
+  // Skugga under bilen (mjuk)
+  const skugga = duk(256,256,(x,w,h)=>{ const g=x.createRadialGradient(w/2,h/2,10,w/2,h/2,w/2); g.addColorStop(0,"rgba(0,0,0,.55)"); g.addColorStop(1,"rgba(0,0,0,0)"); x.fillStyle=g; x.fillRect(0,0,w,h); });
+  const sk = new T3.Mesh(new T3.PlaneGeometry(560,250), new T3.MeshBasicMaterial({map:skugga, transparent:true, depthWrite:false})); sk.rotation.x=-Math.PI/2; sk.position.set(40,.6,0); S.add(sk);
+
+  // Fotopunkter och QR-markör
+  const M = {}; [["fv",360,-260],["fh",360,260],["bh",-330,260],["bv",-330,-260]].forEach(([id,x,z])=>{ M[id]=c.nal(x,0,z, KAMIKON, id); });
+  M.qr = c.nal(156,128,-82, "QR", "qr");
+  const mal = { dorr:0, bak:0 }, nu = { dorr:0, bak:0 };
+  return {
+    satt(t){ mal.dorr = t.dorr ? 1 : 0; mal.bak = t.bak ? 1 : 0;
+      hjulG.children.forEach(g=>{ const r=g.userData.ring; const on = t.dack==="alla" || t.dack===r.userData.id || t.varn===r.userData.id; r.visible=!!on; r.material.color.set(t.varn===r.userData.id ? 0xf0b43c : 0xe52f19); });
+      Object.entries(M).forEach(([id,m])=>{ m.classList.toggle("on", t.mark===id); m.style.display = (id==="qr" && !t.qr) ? "none" : ""; }); },
+    uppdatera(ms){
+      const k = RM ? 1 : .07; nu.dorr += (mal.dorr-nu.dorr)*k; nu.bak += (mal.bak-nu.bak)*k;
+      dorrPivot.rotation.y = -nu.dorr * 1.15; hytt.visible = nu.dorr > .02;
+      bak.forEach(pv=>{ pv.rotation.y = pv.userData.s * nu.bak * 1.9; }); bakInne.visible = nu.bak > .02; bil.children.forEach(o=>{ if(o.userData.inne) o.visible = nu.bak > .02; });
+      hjulG.children.forEach(g=>{ const r=g.userData.ring; if(r.visible){ const s = 1 + .06*Math.sin(ms/220); r.scale.set(s,s,1); } });
+    }
+  };
+}
+
+/* ---------- Scen: kundens hus ---------- */
+function byggHus(c){
+  const S = c.scene;
+  const grasT = duk(1024,1024,(x,w,h)=>{ x.fillStyle="#3d5a32"; x.fillRect(0,0,w,h);
+    brus(x,w,h,60000,(x,a,b)=>{ const g=70+Math.random()*60; x.fillStyle=`rgba(${40+Math.random()*30},${g},${30+Math.random()*20},.55)`; x.fillRect(a,b,2,3); });
+    brus(x,w,h,26,(x,a,b)=>{ const r=20+Math.random()*50; const gr=x.createRadialGradient(a,b,0,a,b,r); gr.addColorStop(0,"rgba(150,160,80,.45)"); gr.addColorStop(1,"rgba(150,160,80,0)"); x.fillStyle=gr; x.fillRect(a-r,b-r,2*r,2*r); }); });
+  grasT.wrapS = grasT.wrapT = T3.RepeatWrapping; grasT.repeat.set(4,4);
+  const mark = nat(new T3.PlaneGeometry(3000,3000), mat({map:grasT, roughness:1}), 0,0,0); mark.rotation.x=-Math.PI/2; mark.castShadow=false; S.add(mark);
+  const sten = (smutsig) => duk(512,512,(x,w,h)=>{ x.fillStyle="#7a7d7f"; x.fillRect(0,0,w,h);
+    for(let r=0;r<h;r+=32) for(let k=0;k<w;k+=64){ const o=(r/32)%2?32:0; const v=110+Math.random()*30; x.fillStyle=`rgb(${v},${v+2},${v+4})`; x.fillRect(k+o-64+2,r+2,60,28); }
+    if(smutsig){ brus(x,w,h,16,(x,a,b)=>{ const rr=30+Math.random()*70; const g=x.createRadialGradient(a,b,0,a,b,rr); g.addColorStop(0,"rgba(70,100,45,.75)"); g.addColorStop(1,"rgba(70,100,45,0)"); x.fillStyle=g; x.fillRect(a-rr,b-rr,2*rr,2*rr); });
+      brus(x,w,h,900,(x,a,b)=>{ x.fillStyle="rgba(225,225,210,.55)"; x.beginPath(); x.arc(a,b,1+Math.random()*3,0,7); x.fill(); }); } });
+  const uppf = nat(new T3.BoxGeometry(280,3,190), mat({map:sten(false), roughness:.9}), 60,1.5,215); uppf.castShadow=false; S.add(uppf);
+  const grannUppf = nat(new T3.BoxGeometry(230,3,170), mat({map:sten(true), roughness:.9}), 430,1.5,235); grannUppf.castShadow=false; S.add(grannUppf);
+  // Altan
+  const tra = duk(512,512,(x,w,h)=>{ for(let k=0;k<w;k+=32){ const v=120+Math.random()*25; x.fillStyle=`rgb(${v},${v-12},${v-28})`; x.fillRect(k,0,30,h); x.fillStyle="rgba(40,30,20,.6)"; x.fillRect(k+30,0,2,h); }
+    brus(x,w,h,8,(x,a,b)=>{ const rr=40+Math.random()*60; const g=x.createRadialGradient(a,b,0,a,b,rr); g.addColorStop(0,"rgba(80,110,70,.6)"); g.addColorStop(1,"rgba(80,110,70,0)"); x.fillStyle=g; x.fillRect(a-rr,b-rr,2*rr,2*rr); }); });
+  S.add(nat(new T3.BoxGeometry(150,14,210), mat({map:tra, roughness:.85}), -262,7,0));
+  // Huskropp med alger nertill på framsidan
+  const puts = (alger) => duk(512,256,(x,w,h)=>{ x.fillStyle="#e7e1d5"; x.fillRect(0,0,w,h); brus(x,w,h,8000,(x,a,b)=>{ x.fillStyle=`rgba(120,110,95,${Math.random()*.08})`; x.fillRect(a,b,2,2); });
+    if(alger){ const g=x.createLinearGradient(0,h,0,h*.45); g.addColorStop(0,"rgba(60,95,55,.75)"); g.addColorStop(1,"rgba(60,95,55,0)"); x.fillStyle=g;
+      for(let k=0;k<w;k+=6){ const hh=h*(.25+.3*Math.abs(Math.sin(k*.05))); x.fillRect(k,h-hh,6,hh); }
+      x.fillStyle="rgba(40,55,40,.35)"; for(let k=20;k<w;k+=46){ x.fillRect(k,h*.08,3,h*.5*Math.random()+20); } } });
+  const vagg = mat({map:puts(false), roughness:.9}), vaggF = mat({map:puts(true), roughness:.9});
+  S.add(nat(new T3.BoxGeometry(300,150,200), [vagg,vagg,vagg,vagg,vaggF,vagg], 0,75,0));
+  // Gavlar
+  const gavel = new T3.Shape(); gavel.moveTo(-100,0); gavel.lineTo(100,0); gavel.lineTo(0,80); gavel.lineTo(-100,0);
+  [1,-1].forEach(s=>{ const g = nat(new T3.ExtrudeGeometry(gavel,{depth:4,bevelEnabled:false}), vagg, s*148,150,0); g.rotation.y=Math.PI/2; g.position.x = s>0 ? 146 : -150; S.add(g); });
+  // Tak med pannor och mossa på framsidan
+  const tak = (mossa) => duk(1024,512,(x,w,h)=>{ x.fillStyle="#6a3428"; x.fillRect(0,0,w,h);
+    for(let r=0;r<h;r+=26){ for(let k=0;k<w;k+=34){ const v=80+Math.random()*30; x.fillStyle=`rgb(${v+40},${v-15},${v-25})`; x.beginPath(); x.ellipse(k+17+(r/26%2)*17,r+14,17,13,0,0,Math.PI); x.fill(); } x.fillStyle="rgba(20,8,5,.5)"; x.fillRect(0,r+24,w,2); }
+    if(mossa){ brus(x,w,h,22,(x,a,b)=>{ const rr=40+Math.random()*90; const g=x.createRadialGradient(a,b,0,a,b,rr); g.addColorStop(0,"rgba(78,112,48,.6)"); g.addColorStop(1,"rgba(78,112,48,0)"); x.fillStyle=g; x.fillRect(a-rr,b-rr,2*rr,2*rr); }); } });
+  const takF = nat(new T3.BoxGeometry(344,7,144), [mat({color:0x4a2a22}),mat({color:0x4a2a22}),mat({map:tak(true),roughness:.8}),mat({color:0x3b221c}),mat({color:0x4a2a22}),mat({color:0x4a2a22})], 0,191,57);
+  takF.rotation.x = 0.629; S.add(takF);
+  const takB = nat(new T3.BoxGeometry(344,7,144), [mat({color:0x4a2a22}),mat({color:0x4a2a22}),mat({map:tak(false),roughness:.8}),mat({color:0x3b221c}),mat({color:0x4a2a22}),mat({color:0x4a2a22})], 0,191,-57);
+  takB.rotation.x = -0.629; S.add(takB);
+  S.add(nat(new T3.BoxGeometry(30,60,30), mat({color:0x8b5a48, roughness:.9}), -70,232,-30));
+  // Fönster och dörr
+  const ram = mat({color:0xf6f3ec, roughness:.6}), ruta = new T3.MeshPhysicalMaterial({color:0x223747, roughness:.05, metalness:.3, clearcoat:1});
+  const fonster = (x,y,z,ry) => { const g = new T3.Group(); g.position.set(x,y,z); g.rotation.y=ry||0; g.add(nat(new T3.BoxGeometry(52,60,3), ram)); g.add(nat(new T3.BoxGeometry(42,50,3.4), ruta)); g.add(nat(new T3.BoxGeometry(3,50,3.8), ram)); S.add(g); };
+  [-100,-20,100].forEach(x=>fonster(x,92,100.5)); [-60,60].forEach(z=>fonster(-150.5,92,z,Math.PI/2)); [-60,60].forEach(z=>fonster(150.5,92,z,Math.PI/2)); [-80,40].forEach(x=>fonster(x,92,-100.5));
+  S.add(nat(new T3.BoxGeometry(42,86,4), mat({color:0x3d2c22, roughness:.7}), 48,43,101));
+  // Hängrännor, stuprör och löv
+  const platt = mat({color:0xa3adb5, metalness:.7, roughness:.35});
+  [1,-1].forEach(s=>{ const r = nat(new T3.CylinderGeometry(6,6,344,16,1,false,0,Math.PI), platt, 0,146,s*116); r.rotation.z=Math.PI/2; r.rotation.x = s>0 ? Math.PI : 0; S.add(r); });
+  S.add(nat(new T3.CylinderGeometry(4,4,146,12), platt, 166,73,116));
+  const lov = [0x7a5a28,0x5d6e2a,0x8a6a30]; for(let i=0;i<30;i++){ const l = nat(new T3.SphereGeometry(3+Math.random()*2.5,6,5), mat({color:lov[i%3], roughness:1}), -160+Math.random()*320,150,116+(Math.random()-.5)*6); S.add(l); }
+  // Grannhuset
+  S.add(nat(new T3.BoxGeometry(210,130,180), mat({color:0xb4bcc0, roughness:.9}), 470,65,-40));
+  const gt = nat(new T3.BoxGeometry(230,6,128), mat({color:0x30343a, roughness:.8}), 470,158,-82); gt.rotation.x=-0.62; S.add(gt);
+  const gt2 = nat(new T3.BoxGeometry(230,6,128), mat({color:0x3a3f45, roughness:.8}), 470,158,2); gt2.rotation.x=0.62; S.add(gt2);
+  // Buskar och träd
+  const buske = mat({color:0x2f5a2c, roughness:1}), buske2 = mat({color:0x3c6b33, roughness:1});
+  [[-60,330],[-20,345],[200,90],[220,-60],[-200,-150]].forEach(([x,z],i)=>{ const b = nat(new T3.SphereGeometry(28,16,12), i%2?buske:buske2, x,20,z); b.scale.set(1.2,.8,1); S.add(b); });
+  [[-420,-260],[-380,240],[620,180]].forEach(([x,z])=>{ S.add(nat(new T3.CylinderGeometry(6,8,70,10), mat({color:0x4a3a2c}), x,35,z)); S.add(nat(new T3.ConeGeometry(55,150,16), buske, x,140,z)); });
+  const P = {
+    tak: c.nal(0,250,40, "1", "tak"), ranna: c.nal(110,165,122, "2", "ranna"), fasad: c.nal(-60,70,108, "3", "fasad"),
+    sten: c.nal(60,6,215, "4", "sten"), altan: c.nal(-262,22,0, "5", "altan"), gras: c.nal(-120,2,360, "6", "gras"), granne: c.nal(430,6,235, "7", "granne")
+  };
+  return { satt(t){ Object.entries(P).forEach(([id,m])=>m.classList.toggle("on", t.mark===id)); }, uppdatera(){} };
+}
+
+/* ---------- Motor ---------- */
+let kap = null, R3 = null;
+function trea(){
+  if(R3) return R3;
+  const duk3 = $("kap-duk");
+  const r = new T3.WebGLRenderer({canvas:duk3, antialias:true, alpha:true, powerPreference:"high-performance"});
+  r.setPixelRatio(Math.min(2, window.devicePixelRatio||1)); r.shadowMap.enabled = true; r.shadowMap.type = T3.PCFSoftShadowMap;
+  r.outputEncoding = T3.sRGBEncoding; r.toneMapping = T3.ACESFilmicToneMapping; r.toneMappingExposure = 1.05;
+  const cam = new T3.PerspectiveCamera(32, 1, 5, 9000);
+  R3 = { r, cam, mal:null, nu:null, t0:0 };
+  const loop = ms => { requestAnimationFrame(loop); if(!kap || !$("kapitel").classList.contains("on")) return; rendera(ms); };
+  requestAnimationFrame(loop);
+  return R3;
+}
+function nyScen(){
+  const scene = new T3.Scene(); scene.fog = new T3.Fog(0x112c43, 1400, 3200);
+  scene.add(new T3.HemisphereLight(0xdfeaf2, 0x24323c, .75));
+  const sol = new T3.DirectionalLight(0xfff4e6, 1.35); sol.position.set(500,900,450); sol.castShadow = true;
+  sol.shadow.mapSize.set(2048,2048); Object.assign(sol.shadow.camera, {left:-700,right:700,top:700,bottom:-700,near:100,far:2600}); sol.shadow.bias=-0.0004; sol.shadow.radius=4;
+  scene.add(sol); const fyll = new T3.DirectionalLight(0x9fc2e0, .35); fyll.position.set(-600,300,-500); scene.add(fyll);
+  return scene;
+}
+function storlek(){
+  const { r, cam } = R3; const box = $("kap-scen").getBoundingClientRect(); const w = Math.max(1, box.width), h = Math.max(1, box.height);
+  r.setSize(w, h, false); cam.aspect = w/h;
+  const smal = $("kapitel").classList.contains("smal");
+  if(smal) cam.setViewOffset(w, h, 0, h*.22, w, h); else cam.setViewOffset(w, h, w*.11, 0, w, h);
+  cam.updateProjectionMatrix();
+}
+function kamMal(c){ const [rx,ry,sk,fx,fy,fz] = c; const smal = $("kapitel").classList.contains("smal");
+  const bil = kap && kap.id==="bil" ? 1.22 : 1; return { az: -ry*Math.PI/180, el: Math.max(4,-rx)*Math.PI/180, d: 1050/sk*(smal?1.35:1)*bil, tx:fx, ty:-fy, tz:fz }; }
+function rendera(ms){
+  const { r, cam } = R3; const m = R3.mal, n = R3.nu;
+  const k = RM ? 1 : .055; for(const key in m){ n[key] += (m[key]-n[key])*k; }
+  const sv = RM ? 0 : Math.sin(ms/4200)*.045;
+  const az = n.az + sv, el = n.el;
+  cam.position.set(n.tx + n.d*Math.sin(az)*Math.cos(el), n.ty + n.d*Math.sin(el), n.tz + n.d*Math.cos(az)*Math.cos(el));
+  cam.lookAt(n.tx, n.ty, n.tz);
+  kap.scen.uppdatera(ms);
+  r.render(kap.scene, cam);
+  // HTML-nålar
+  const box = $("kap-scen").getBoundingClientRect(); const v = new T3.Vector3();
+  kap.nalar.forEach(e=>{ v.set(+e.dataset.x, +e.dataset.y, +e.dataset.z).project(cam); const syns = v.z < 1;
+    e.style.transform = `translate(${((v.x+1)/2*box.width).toFixed(1)}px,${((1-v.y)/2*box.height).toFixed(1)}px)`; e.style.visibility = syns ? "" : "hidden"; });
+}
+function kapitelSmal(){ return window.matchMedia("(max-width:760px)").matches || (typeof laget!=="undefined" && laget==="tel" && window.innerWidth < 900); }
+function visaKapitel(id, klart){
+  const k = KAPITEL[id]; trea();
+  $("kap-pins").innerHTML = "";
+  const scene = nyScen(); const nalar = [];
+  const c = { scene, textur:[], nal(x,y,z,inne,nid){ const m = d3("mark", "", $("kap-pins")); m.dataset.id=nid; m.innerHTML=`<div class="pin">${inne}</div>`; m.dataset.x=x; m.dataset.y=y; m.dataset.z=z; nalar.push(m); return m; } };
+  if(kap && kap.scene){ kap.scene.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
+  kap = { id, k, i:0, klart, scene, nalar, svarat:{} };
+  kap.scen = k.bygg(c);
+  if(LOGOBILD && !LOGOBILD.complete) LOGOBILD.onload = () => c.textur.forEach(t=>{ t.needsUpdate = true; });
+  $("kap-kicker").textContent = k.kicker; $("kap-titel").textContent = k.titel;
+  $("kap-prog").innerHTML = k.steg.map(()=>"<i></i>").join("");
+  $("kapitel").classList.toggle("smal", kapitelSmal());
+  $("mobil").classList.toggle("hidden", id!=="bil");
+  visa("kapitel"); storlek();
+  const m0 = kamMal(k.steg[0].kam); R3.mal = {...m0}; R3.nu = {...m0, d:m0.d*1.6, az:m0.az-.5};
+  kapSteg(0, true);
+}
+function kapSteg(i, forsta){
+  const k = kap.k; i = Math.max(0, Math.min(k.steg.length-1, i)); kap.i = i; const s = k.steg[i];
+  R3.mal = kamMal(s.kam);
+  kap.scen.satt({ bak:s.bak, dorr:s.dorr, dack:s.dack, varn:s.varn, mark:s.mark, qr:s.qr || i<2 });
+  $("kap-prog").querySelectorAll("i").forEach((e,j)=>{ e.className = j<i ? "klar" : j===i ? "on" : ""; });
+  $("kap-steg").textContent = `${k.titel} · ${i+1} av ${k.steg.length}`;
+  $("kap-rubrik").textContent = s.t;
+  $("kap-text").innerHTML = (s.p||[]).map(t=>`<li>${t}</li>`).join("");
+  $("kap-kort").innerHTML = (s.kort||[]).map(([a,b])=>`<div><small>${a}</small>${b}</div>`).join("");
+  const fr = $("kap-fraga"); fr.innerHTML = "";
+  if(s.fraga){ const sv = d3("kap-svar", "", null, s.fraga.svar);
+    s.fraga.alt.forEach((t,j)=>{ const b = document.createElement("button"); b.type="button"; b.innerHTML = `<b>${"ABC"[j]}</b><span>${t}</span>`;
+      b.onclick = () => { fr.querySelectorAll("button").forEach((x,n)=>{ x.classList.toggle("r", n===s.fraga.ratt); x.classList.toggle("f", n===j && j!==s.fraga.ratt); }); sv.classList.add("on"); kap.svarat[i]=true; };
+      fr.appendChild(b); });
+    fr.appendChild(sv); }
+  $("inst-matare").classList.toggle("on", !!s.matare);
+  $("inst-monster").classList.toggle("on", !!s.monster);
+  if(s.monster){ $("mm-varde").textContent = s.monster; $("mm-grans").textContent = s.varn ? "Gräns vintertid: 3,0 mm" : "Gräns: 1,6 mm sommar, 3,0 mm vinter"; $("mm-varde").style.color = s.varn ? "var(--red2)" : "#fff"; }
+  if(s.tel) ritaMobil(s.tel, i);
+  if(s.blixt && !forsta && !RM){ const b=$("kap-blixt"); setTimeout(()=>{ b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); }, 1100); }
+  $("kap-bak").disabled = i===0; $("kap-bak").style.opacity = i===0 ? .4 : 1;
+  $("kap-fram").textContent = i===k.steg.length-1 ? k.slut : "Nästa";
+  $("kap-in").scrollTop = 0;
+}
+function ritaMobil(t, i){
+  const n = KAPITEL.bil.steg.length; const pr = Math.round(i/(n-1)*100);
+  let vy = "";
+  if(t.vy==="qr") vy = `<div class="vy"><img src="${QR}" alt=""><div class="linje"></div></div>`;
+  else if(t.vy==="skanna") vy = `<div class="vy"><img src="${QR}" alt=""><div class="linje"></div></div><div class="fl">${t.f}</div>`;
+  else if(t.vy==="bild") vy = `<div class="vy">Kameran<br>${t.n ? "bild "+t.n : ""}</div>${t.f?`<div class="fl">${t.f}</div>`:""}<div class="kn">Ta bild</div>`;
+  else if(t.vy==="lampa") vy = `<h4>Lyser någon varningslampa?</h4><div class="tg"><span>Ja</span><span class="on">Nej</span></div><div class="fl">${t.f}</div><div class="kn">Skicka</div>`;
+  else if(t.vy==="klar") vy = `<div class="vy" style="background:#1f8a4c;color:#fff;font-size:13px">Skickad<br>11 bilder · 4 däck</div><div class="kn ok">Klar</div>`;
+  $("skarm").innerHTML = `<div class="hd"><b>${t.h}</b><span>${t.s}</span></div><div class="pr"><i style="width:${pr}%"></i></div><div class="bd">${vy}</div>`;
+}
+function kapFram(){ if(!kap) return; if(kap.i >= kap.k.steg.length-1){ const k = kap.klart; kap.klart = null; k ? k() : visa("start"); return; } kapSteg(kap.i+1); }
+function kapBak(){ if(kap) kapSteg(kap.i-1); }
+$("kap-fram").onclick = kapFram; $("kap-bak").onclick = kapBak;
+$("kap-stang").onclick = () => { if(!kap) return; const k = kap.klart; kap.klart = null; k ? k() : visa("start"); };
+window.addEventListener("resize", ()=>{ if(kap && R3 && $("kapitel").classList.contains("on")){ $("kapitel").classList.toggle("smal", kapitelSmal()); storlek(); R3.mal = kamMal(kap.k.steg[kap.i].kam); } });

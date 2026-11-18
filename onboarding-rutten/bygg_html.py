@@ -33,7 +33,7 @@ data = json.loads((RUT / "situationer-v2.json").read_text())
 S = data["situationer"]
 
 # Sprid rätt svar jämnt över A, B och C. Texterna flyttas, inget innehåll ändras.
-MAL = "BCABCABCACBBAB"
+MAL = "BCCABCABCACBBAB"
 for s, mal in zip(S, MAL):
     ordning = [k for k in "ABC" if k != s["ratt"]]
     ordning.insert("ABC".index(mal), s["ratt"])
@@ -56,7 +56,7 @@ FE = {
 }
 html = html.replace("__FE__", json.dumps(FE))
 html = html.replace("__KAPITEL_CSS__", (HAR / "kapitel.css").read_text())
-html = html.replace("__KAPITEL_JS__", (HAR / "kapitel.js").read_text())
+html = html.replace("__KAPITEL_JS__", "\n".join((HAR / f).read_text() for f in ("kapitel_3d.js", "kapitel_innehall.js", "kapitel_fe.js")))
 html = html.replace("__LOGOF__", "data:image/png;base64," + b64(LOGO.with_name("logo_farg.png")))
 html = html.replace("__KARTA__", (RUT / "karta.json").read_text())
 html = html.replace("__LOGO__", "data:image/png;base64," + b64(LOGO))
@@ -64,7 +64,9 @@ html = html.replace("__BSD800__", b64(FONT / "big-shoulders-display-latin-800-no
 html = html.replace("__BSD800X__", b64(FONT / "big-shoulders-display-latin-ext-800-normal.woff2"))
 html = html.replace("__OS400__", b64(FONT / "OpenSans-Regular.ttf"))
 html = html.replace("__OS700__", b64(FONT / "OpenSans-Bold.ttf"))
-assert "__" not in html.replace("__proto__", ""), [l for l in html.split("\n") if "__" in l][:3]
+import re as _re
+assert not _re.search(r"__(?!THREE__)[A-Z_]+__", html), _re.findall(r"__[A-Z_]+__", html)[:3]
+html = html.replace("__THREE__", (HAR / "three.min.js").read_text())
 for tecken in ("—", "–"):
     assert tecken not in json.dumps(data, ensure_ascii=False), "tankstreck i texten"
 ut = RUT / "en-dag-pa-rutten.html"

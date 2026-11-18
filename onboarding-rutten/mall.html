@@ -297,7 +297,7 @@ __KAPITEL_CSS__
 
 <!-- KAPITEL I 3D -->
 <section id="kapitel" class="screen" aria-label="Kapitel">
-  <div class="stage3d"><div class="ankare"><div class="kam" id="kap-kam"><div class="svaj"><div class="g3" id="kap-varld"></div></div></div></div></div>
+  <div class="stage3d" id="kap-scen"><canvas id="kap-duk"></canvas><div id="kap-pins"></div></div>
   <div class="blixt" id="kap-blixt"></div>
   <div class="kap-topp"><img class="logo" src="__LOGO__" alt="Nanostone"><div class="kicker" id="kap-kicker"></div><div class="kap-prog" id="kap-prog"></div>
     <button class="ikonknapp" id="kap-stang" type="button" aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -402,6 +402,7 @@ __KAPITEL_CSS__
 </section>
 </div>
 
+<script>__THREE__</script>
 <script>
 "use strict";
 const DATA = __DATA__;
@@ -557,7 +558,7 @@ function kor(i, klart){ // kör till läge i (i = S.length betyder hemfärd)
   if(i===0){ A = vyFor(kKor, bbox(PTS,90), KY1); B = vyFor(kKor, bbox([till],140), KY1); kor = false; kKor.ritas.setAttribute("d",""); }
   else { d = hem ? K.hem : SEG[i-1]; A = vyFor(kKor, bbox([fran,till],140), KY3); B = vyFor(kKor, bbox([fran,till],105), KY3); kKor.matt.setAttribute("d", d); }
   const tidFran = i>0 ? S[i-1].tid : "06:05", tidTill = hem ? HEMMA : S[i].tid;
-  $("kor-fran").textContent = i===0 ? "Du utgår hemifrån" : hem ? "Rutten avslutad hos sista kunden · Hemfärd" : (i===1 ? "Rutten startar när du börjar köra · " : "") + `Läge ${i+1} av ${S.length} · ${S[i].tjanst}`;
+  $("kor-fran").textContent = i===0 ? "Du utgår hemifrån" : hem ? "Rutten avslutad hos sista kunden · Hemfärd" : (i>0 && K.ort[S[i-1].id]==="Hemma" ? "Rutten startar när du börjar köra · " : "") + `Läge ${i+1} av ${S.length} · ${S[i].tjanst}`;
   $("kor-ort").textContent = hem ? "Hemma" : K.ort[S[i].id];
   $("kor-km").textContent = kor ? `ca ${km(d)} km` : "Dagens rutt i Diroto";
   const m0 = minuter(tidFran), m1 = minuter(tidTill);
@@ -605,7 +606,7 @@ const T0 = minuter("06:00"), T1 = minuter("16:30");
 function pos(t){ return ((minuter(t)-T0)/(T1-T0)*100); }
 function byggRutt(){
   const r = $("rutt"); r.querySelectorAll(".stopp").forEach(e=>e.remove());
-  S.forEach((s,i)=>{ const d=document.createElement("div"); d.className="stopp"; d.style.left=pos(s.tid)+"%"; d.innerHTML=`<i>${s.tid}</i>`; d.dataset.i=i; r.appendChild(d); });
+  S.forEach((s,i)=>{ const d=document.createElement("div"); d.className="stopp"; d.style.left=pos(s.tid)+"%"; d.innerHTML= (i>0 && pos(s.tid)-pos(S[i-1].tid) < 2.2) ? "" : `<i>${s.tid}</i>`; d.dataset.i=i; r.appendChild(d); });
 }
 function ritaRutt(){
   document.querySelectorAll(".stopp").forEach(d=>{
