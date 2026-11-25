@@ -289,6 +289,47 @@ body:has(#korning.on) #korn,body:has(#slut.on) #korn,body:has(#kapitel.on) #korn
 .scen.in .lage{animation:upp .6s ease-out .45s both}.scen.in #alts{animation:upp .6s ease-out .6s both}
 @media (prefers-reduced-motion:reduce){#korn,#lacka.go,.scen.in .foto-info .klocka,.scen.in .foto-info .tjanst,.scen.in .rubrik,.scen.in .lage,.scen.in #alts,#start .start-titel .ord{animation:none!important;clip-path:none!important}#korning .band{transition:none}}
 @media print{#korn,#lacka,#ident{display:none!important}}
+/* Diskussionsläge */
+.diskruta,.altrubrik{display:none}
+.lagesval{display:flex;align-items:center;gap:8px;margin-top:14px;pointer-events:auto;font-size:.8em;color:var(--t3);font-weight:700;flex-wrap:wrap}
+.lagesval button{padding:.5em .9em;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 2px rgba(255,255,255,.2);color:var(--t2);font-weight:700}
+.lagesval button.on{background:var(--red);box-shadow:none;color:#fff}
+.tel .lagesval{display:none}
+body.disk .roster{display:none}
+body.disk #spel.fas-alt #alts{animation:upp .35s ease-out both}
+body.disk .visat .lage{display:none}
+body.disk .visat .rubrik{font-size:clamp(30px,3vw,64px)}
+body.disk .text .svar .panel{padding:14px 18px;font-size:.94em}
+body.disk .text .svar .panel h3{font-size:1.3em;margin-bottom:6px}
+body.disk .text .svar .panel ol li{margin:.2em 0}
+body.disk .visat .alt{padding-top:12px;padding-bottom:12px}
+body.disk .text{padding-bottom:96px}
+body.disk .visat .fe-box{display:none}
+body.disk .visat .alt{font-size:.92em}
+body.disk .visat .alt.vald:not(.ratt) .kons,body.disk .visat .alt.ratt .kons{font-size:.92em}
+body.disk .text .svar{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
+@media (max-height:860px){
+  .start-titel{font-size:clamp(56px,min(11vw,14.5vh),190px);margin:.1em 0 .08em}
+  .start-ingress{font-size:.92em}.val{margin-top:.9em}.lagesval,.delt,#start .extra{margin-top:8px}
+  .start-inner{padding-top:22px;padding-bottom:14px}
+  body.disk .visat .rubrik{font-size:clamp(26px,2.6vw,48px)}body.disk .text .svar{gap:12px;margin-top:12px}
+  body.disk .text .svar .panel{font-size:.86em;padding:10px 14px}
+}
+body.disk #spel.fas-lage .scen{grid-template-columns:minmax(0,58fr) minmax(0,42fr)}
+body.disk #spel.fas-lage .styr{left:58%}
+body.disk #spel.fas-lage #alts{display:none}
+body.disk #spel.fas-lage .diskruta{display:block;margin-top:1.4em;background:var(--n2);border-left:5px solid var(--red);padding:20px 24px;animation:upp .6s ease-out .5s both}
+.diskruta b{display:block;font-size:1.7em;margin-bottom:.35em}
+.diskruta ul{margin:0;padding:0;list-style:none;color:var(--t2);font-size:1.08em}
+.diskruta li{padding:.28em 0 .28em 1.5em;position:relative}.diskruta li::before{content:"";position:absolute;left:0;top:.85em;width:.8em;height:3px;background:var(--red)}
+body.disk #spel.fas-alt .altrubrik{display:block;margin:0 0 .7em;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.72em;color:var(--t3)}
+body.disk #spel.fas-lage .lage{font-size:1.12em}
+body.disk .visat .alt:not(.ratt):not(.vald){display:none}
+body.disk .text .svar{margin-top:18px}
+body.disk .visat .foto-info,body.disk .visat .nr{opacity:1}
+body.disk .vem span{display:none}
+#slut.disk .betyg{display:none}
+@media (min-width:900px){.tel #spel .scen{max-width:600px;margin:0 auto;width:100%}.tel #spel .styr{left:50%;right:auto;width:600px;max-width:100%;transform:translate(-50%,110%)}.tel .visat~.styr,.tel #spel.svarat .styr{transform:translateX(-50%)}}
 #morkt{position:fixed;inset:0;z-index:200;background:#000;display:none;place-items:center;cursor:none}
 #morkt.on{display:grid;animation:spotin .4s ease-out}#morkt .logo{height:clamp(22px,2.4vw,40px);opacity:.18}
 #hjalp{position:fixed;inset:0;z-index:150;display:none;place-items:center;background:rgba(3,8,13,.86);backdrop-filter:blur(6px)}
@@ -455,6 +496,7 @@ __KAPITEL_CSS__
         <button class="knapp sek" id="go-tel" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>Spela själv</button>
       </div>
       <button class="knapp sek hidden" id="fortsatt" type="button" style="margin-top:14px">Fortsätt där du var</button>
+      <div class="lagesval" id="lagesval" role="group" aria-label="Upplägg i grupp"><span>Upplägg i grupp:</span><button type="button" data-l="disk">Diskussion</button><button type="button" data-l="quiz">Quiz med poäng</button></div>
       <details class="delt" id="delt"><summary id="delt-rubrik">Lägg in deltagarnas namn</summary>
         <textarea id="delt-namn" placeholder="Erik, Sara, Jonas, Amir" aria-label="Deltagarnas namn"></textarea>
         <small>Tryck <kbd>H</kbd> för kortkommandon och klicker. Skriv förnamn med komma emellan. Då hälsas alla välkomna i öppningen, en strålkastare lottar vem som svarar i varje läge och dagen slutar med en prispall.</small>
@@ -475,10 +517,10 @@ __KAPITEL_CSS__
 <div id="korn" aria-hidden="true"></div><div id="lacka" aria-hidden="true"></div>
 <div id="morkt" aria-hidden="true"><img class="logo" src="__LOGO__" alt=""></div>
 <div id="hjalp" role="dialog" aria-label="Kortkommandon"><div class="hj-in"><h2 class="bsd">Kortkommandon</h2><dl>
-  <dt><kbd>→</kbd> <kbd>Mellanslag</kbd> <kbd>PgDn</kbd></dt><dd>Visa svaret, nästa stopp, hoppa över film</dd>
+  <dt><kbd>→</kbd> <kbd>Mellanslag</kbd> <kbd>PgDn</kbd></dt><dd>Nästa steg: tre sätt att göra, så gör vi, nästa stopp</dd>
   <dt><kbd>←</kbd> <kbd>PgUp</kbd></dt><dd>Tillbaka i bilkontrollen och huset</dd>
-  <dt><kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd></dt><dd>Gruppens svar</dd>
-  <dt><kbd>T</kbd></dt><dd>Tio sekunder att rösta, igen för att stoppa</dd>
+  <dt><kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd></dt><dd>Det gruppen väljer (behövs inte i diskussionsläget)</dd>
+  <dt><kbd>T</kbd></dt><dd>En minut att prata ihop sig (tio sekunder i quizläget), igen för att stoppa</dd>
   <dt><kbd>J</kbd> <kbd>N</kbd></dt><dd>Stämmer eller stämmer inte i snabbrundan</dd>
   <dt><kbd>.</kbd></dt><dd>Svart skärm medan du pratar (svarta knappen på klickern)</dd>
   <dt><kbd>M</kbd></dt><dd>Ljud av eller på</dd>
@@ -560,6 +602,8 @@ __KAPITEL_CSS__
       <div class="vem" id="vem"></div>
       <h2 class="rubrik bsd" id="rubrik"></h2>
       <p class="lage" id="lage"></p>
+      <div class="diskruta" id="diskruta"><b class="bsd">Prata ihop er</b><ul><li>Vad gör du först?</li><li>Vem behöver få veta?</li><li>Vad säger du till kunden?</li></ul></div>
+      <div class="altrubrik" id="altrubrik">Tre sätt att göra. Vilket väljer ni?</div>
       <div class="alts" id="alts" role="group" aria-label="Vad gör du?"></div>
       <div class="risk" id="risk">Stopp. Det här är ett säkerhetsfel. Du går aldrig upp på ett tak utan fallskydd.</div>
       <div class="svar">
@@ -706,7 +750,9 @@ const ILL = {
 
 let laget = "grupp";
 let st = null;
-function nytt(){ return {i:0, svar:Array(S.length).fill(null), visat:false, tid:0, kv:70, ku:70, valt:null, roster:[0,0,0], kap:{}, vem:null, po:{}, ko:[]}; }
+function lagesval(){ try{ return localStorage.getItem("rutten-lage") === "quiz" ? "quiz" : "disk"; }catch(e){ return "disk"; } }
+function DISK(){ return laget === "grupp" && lagesval() === "disk"; }
+function nytt(){ return {fas:"lage", i:0, svar:Array(S.length).fill(null), visat:false, tid:0, kv:70, ku:70, valt:null, roster:[0,0,0], kap:{}, vem:null, po:{}, ko:[]}; }
 /* ---------- Deltagare, strålkastare och prispall ---------- */
 function namnlista(){ return [...new Set(($("delt-namn").value||"").split(/[,;\n]+/).map(n=>n.trim().slice(0,18)).filter(Boolean))].slice(0,24); }
 function showLage(){ return laget==="grupp" && namnlista().length >= 2; }
@@ -738,9 +784,9 @@ let snabb = null;
 let nedT = 0;
 function stoppNed(){ cancelAnimationFrame(nedT); nedT = 0; $("nedrakning").className = ""; }
 function nedrakning(){
-  if(nedT){ stoppNed(); return; } const el = $("nedrakning"); $("foto").appendChild(el); const tal = $("ned-tal"), LANGD = 10000, t0 = performance.now(); let forra = 11; el.className = "on";
-  const steg = t => { const k = Math.max(0, 1-(t-t0)/LANGD), sek = Math.ceil(k*10); el.style.setProperty("--k", k);
-    if(sek !== forra){ forra = sek; tal.textContent = sek; el.classList.toggle("sista", sek<=3 && sek>0); if(sek>0) ljud.tick(); }
+  if(nedT){ stoppNed(); return; } const el = $("nedrakning"); $("foto").appendChild(el); const tal = $("ned-tal"), SEK = DISK() ? 60 : 10, LANGD = SEK*1000, t0 = performance.now(); let forra = SEK+1; el.className = "on"; el.querySelector("small").textContent = DISK() ? "Prata ihop er" : "Rösta nu";
+  const steg = t => { const k = Math.max(0, 1-(t-t0)/LANGD), sek = Math.ceil(k*SEK); el.style.setProperty("--k", k);
+    if(sek !== forra){ forra = sek; tal.textContent = sek; el.classList.toggle("sista", sek<=3 && sek>0); if(sek>0 && (SEK===10 || sek<=5)) ljud.tick(); }
     if(k <= 0){ tal.textContent = "Tiden!"; el.classList.add("slut"); el.classList.remove("sista"); ljud.gong(); nedT = 0; setTimeout(()=>{ if(!nedT) el.className = ""; }, 2200); return; }
     nedT = requestAnimationFrame(steg); };
   nedT = requestAnimationFrame(steg);
@@ -751,6 +797,8 @@ function scenIn(){ const sc = $("scen"); if(!sc || !$("spel").classList.contains
 function titel(){ const st0 = $("start"); st0.classList.remove("titel"); void st0.offsetWidth; requestAnimationFrame(()=>requestAnimationFrame(()=>st0.classList.add("titel"))); }
 if(document.readyState === "complete") titel(); else window.addEventListener("load", titel);
 function lacka(){ if(RM) return; const l = $("lacka"); l.classList.remove("go"); void l.offsetWidth; l.classList.add("go"); clearTimeout(lacka.t); lacka.t = setTimeout(()=>l.classList.remove("go"), 1400); }
+(function(){ const box = $("lagesval"), rita0 = () => box.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.l === lagesval()));
+  box.querySelectorAll("button").forEach(b => b.onclick = () => { try{ localStorage.setItem("rutten-lage", b.dataset.l); }catch(e){} rita0(); }); rita0(); })();
 let musT = 0; const musRor = () => { document.body.classList.remove("dold-mus"); clearTimeout(musT); musT = setTimeout(()=>{ if(laget==="grupp" || $("start").classList.contains("on")) document.body.classList.add("dold-mus"); }, 3000); };
 document.addEventListener("mousemove", musRor, {passive:true}); document.addEventListener("pointerdown", musRor, {passive:true});
 let vakt = null; async function hallVaken(){ try{ if("wakeLock" in navigator && !vakt && document.visibilityState==="visible"){ vakt = await navigator.wakeLock.request("screen"); vakt.addEventListener("release", ()=>{ vakt = null; }); } }catch(e){} }
@@ -782,8 +830,8 @@ function snabbrunda(klart){
     const steg = t => { if(!snabb || snabb.fas!=="fraga") return; const k = Math.max(0, 1-(t-t0)/LANGD); st0.style.transform = "scaleX("+k+")";
       const kvar = Math.ceil(k*7); if(kvar !== sek){ sek = kvar; if(kvar <= 3 && kvar > 0) ljud.tick(); } if(k <= 0){ svar(null); return; } snabb.raf = requestAnimationFrame(steg); };
     st0.style.transform = "scaleX(1)"; snabb.raf = requestAnimationFrame(steg); };
-  const svar = v => { if(!snabb || snabb.fas!=="fraga") return; stopp(); const q = SNABB[snabb.i], ok = v === q[1]; snabb.ok = ok; if(ok){ snabb.ratt++; if(snabb.vem) st.po[snabb.vem] = (st.po[snabb.vem]||0)+1; }
-    ok ? ljud.ratt() : ljud.fel(); $("sn-utfall").textContent = v===null ? "Tiden är ute" : ok ? (snabb.vem ? "Rätt svarat, +1 poäng" : "Rätt svarat") : "Fel svarat"; $("sn-fakta").textContent = (q[1] ? "Påståendet stämmer. " : "Påståendet stämmer inte. ")+q[2];
+  const svar = v => { if(!snabb || snabb.fas!=="fraga") return; stopp(); const q = SNABB[snabb.i], ok = v === q[1]; snabb.ok = ok; if(ok){ snabb.ratt++; if(snabb.vem && !DISK()) st.po[snabb.vem] = (st.po[snabb.vem]||0)+1; }
+    ok ? ljud.ratt() : ljud.fel(); $("sn-utfall").textContent = v===null ? "Tiden är ute" : ok ? (snabb.vem && !DISK() ? "Rätt svarat, +1 poäng" : "Rätt svarat") : "Fel svarat"; $("sn-fakta").textContent = (q[1] ? "Påståendet stämmer. " : "Påståendet stämmer inte. ")+q[2];
     $("sn-nasta").textContent = snabb.i === SNABB.length-1 ? "Se resultatet" : "Nästa påstående"; fas("dom"); };
   const slutet = () => { snabb.ok = null; $("sn-summa").textContent = snabb.ratt+" av "+SNABB.length; $("sn-slutrad").textContent = snabb.ratt === SNABB.length ? "Alla rätt. Lunchen är räddad." : snabb.ratt >= 3 ? "Bra jobbat. Reglerna kommer igen i slutet av dagen." : "Gå igenom reglerna en gång till i slutet av dagen."; fas("slut"); ljud.framme(); };
   const klar = () => { stopp(); el.className = ""; const k = snabb.klart; st.snabb = snabb.ratt; snabb = null; ritaVem(); spara(); k && k(); };
@@ -810,9 +858,9 @@ function spot(){
   spotT.push(setTimeout(slut, t+2100));
 }
 function ritaVem(){ const v = $("vem"); if(!showLage() || !st || !st.vem || st.i >= S.length){ v.classList.remove("on"); return; }
-  v.innerHTML = "<i></i><span></span>"; v.querySelector("i").textContent = st.vem + " svarar"; v.querySelector("span").textContent = (st.po[st.vem]||0) + " poäng"; v.classList.add("on"); }
+  v.innerHTML = "<i></i><span></span>"; v.querySelector("i").textContent = st.vem + (DISK() ? " börjar" : " svarar"); v.querySelector("span").textContent = (st.po[st.vem]||0) + " poäng"; v.classList.add("on"); }
 function pall(r){
-  const p = $("pall"), po = (st && st.po) || {}, ns = showLage() ? namnlista() : [];
+  const p = $("pall"), po = (st && st.po) || {}, ns = showLage() && !DISK() ? namnlista() : [];
   if(ns.length < 2){ p.classList.add("hidden"); return; }
   const lista = ns.map(n=>[n, po[n]||0]).sort((a,b)=>b[1]-a[1]);
   const rad = $("pall-rad"); rad.innerHTML = "";
@@ -1000,7 +1048,8 @@ function visa(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.t
 function starta(l, fortsatt){
   laget = l;
   document.body.classList.toggle("tel", l==="tel");
-  const sv=document.querySelector('.svar'); (l==="tel" ? $("text") : $("foto")).appendChild(sv);
+  document.body.classList.toggle("disk", DISK());
+  const sv=document.querySelector('.svar'); (l==="tel" || DISK() ? $("text") : $("foto")).appendChild(sv);
   st = (fortsatt && lagra.get("rutten-tel")) || nytt();
   hallVaken(); musRor(); byggRutt(); visa("spel"); rita(true);
   if(!fortsatt || st.i===0){ if(st.i===0) valkommen(); kor(st.i, () => { $("valk").classList.remove("on"); spot(); }); } else ritaVem();
@@ -1091,8 +1140,14 @@ function rita(ny){
   const fb = $("fe-svar"); const nyckel = visat && s.fe ? s.id : "";
   if(fb.dataset.n !== nyckel){ fb.dataset.n = nyckel; fb.innerHTML = ""; if(nyckel) foreEfter(fb, s.fe); }
   $("risk").classList.toggle("on", !!(visat && val && s.kons[val].risk));
-  const h=$("huvud");
-  if(!visat){
+  { const tx = $("text"); tx.style.fontSize = ""; if(DISK()){ requestAnimationFrame(() => { let k = 1; while(tx.scrollHeight > tx.clientHeight + 2 && k > .62){ k -= .03; tx.style.fontSize = k + "em"; } tx.scrollTop = 0; }); } }
+  const h=$("huvud"), disk = DISK(), fasLage = disk && !visat && st.fas !== "alt";
+  $("spel").classList.toggle("fas-lage", fasLage); $("spel").classList.toggle("fas-alt", disk && !visat && !fasLage);
+  if(disk && !visat){
+    h.disabled = false; h.style.opacity = 1;
+    h.textContent = fasLage ? "Visa tre sätt att göra" : "Visa hur vi gör";
+    $("hint").innerHTML = fasLage ? "Prata ihop er först. <kbd>T</kbd> ger en minut. <kbd>→</kbd> visar tre sätt att göra." : "Klicka på det ni väljer, eller gå direkt vidare med <kbd>→</kbd>.";
+  } else if(!visat){
     h.textContent = laget==="tel" ? "Välj ett alternativ" : (val ? "Visa svaret" : "Välj gruppens svar");
     h.disabled = !val; h.style.opacity = val?1:.45;
     $("hint").innerHTML = laget==="grupp" ? "Låt alla visa A, B eller C med handen. Räkna med <kbd>+</kbd>, eller tryck <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd>. <kbd>T</kbd> ger tio sekunder. <kbd>Mellanslag</kbd> visar svaret." : "";
@@ -1105,24 +1160,25 @@ function rita(ny){
 
 function valj(b){
   if(st.visat || visaSvar.igang) return;
+  if(DISK() && st.fas !== "alt") st.fas = "alt";
   st.valt = b;
   if(laget==="tel"){ visaSvar(); return; }
   rita(false);
 }
 function visaSvar(){
-  if(st.visat || !st.valt || visaSvar.igang) return;
+  if(st.visat || (!st.valt && !DISK()) || visaSvar.igang) return;
   if(laget==="grupp" && !RM && ljud.pa){ visaSvar.igang = true; stoppNed(); ljud.virvel(850); const h = $("huvud"); h.textContent = "Rätt svar är …"; h.classList.add("spanning");
     setTimeout(()=>{ visaSvar.igang = false; h.classList.remove("spanning"); visaSvarNu(); }, 850); return; }
   visaSvarNu();
 }
 function visaSvarNu(){
-  if(st.visat || !st.valt) return;
-  const s=S[st.i], k=s.kons[st.valt];
-  st.svar[st.i]=st.valt; st.visat=true; if(showLage() && st.vem){ st.po[st.vem] = (st.po[st.vem]||0) + (st.valt===s.ratt ? 1 : 0); }
+  if(st.visat || (!st.valt && !DISK())) return;
+  const s=S[st.i], k=st.valt ? s.kons[st.valt] : {};
+  st.svar[st.i]=st.valt; st.visat=true; if(showLage() && st.vem && !DISK()){ st.po[st.vem] = (st.po[st.vem]||0) + (st.valt===s.ratt ? 1 : 0); }
   const kt = (st.valt===s.ratt && (k.tid||0) < 0) ? 0 : (k.tid||0); // rätt val ger ingen försening
   st.tid += kt; st.kv = kl(st.kv + (k.kv||0)*8); st.ku = kl(st.ku + (k.ku||0)*8);
   const chip = (id, txt, neg) => { const m = $(id).closest(".mat"); m.querySelectorAll(".dchip").forEach(e=>e.remove()); const c = document.createElement("span"); c.className = "dchip"+(neg?" neg":""); c.textContent = txt; m.appendChild(c); setTimeout(()=>c.remove(), 1800); };
-  st.valt===s.ratt ? ljud.ratt() : ljud.fel();
+  !st.valt ? ljud.framme() : st.valt===s.ratt ? ljud.ratt() : ljud.fel();
   if(k.kv) chip("m-kv", (k.kv>0?"+":"−")+Math.abs(k.kv*8), k.kv<0);
   if(k.ku) chip("m-ku", (k.ku>0?"+":"−")+Math.abs(k.ku*8), k.ku<0);
   if(kt) chip("m-tid", (kt<0?"+":"−")+Math.abs(kt)+" min", kt<0);
@@ -1136,12 +1192,13 @@ function nasta(){
   if(efter && !st.kap[efter]){ st.kap[efter] = true; spara(); visaKapitel(efter, ()=>{ visa("spel"); nasta(); }); return; }
   if(S[st.i].id==="s05" && !st.kap.gag){ st.kap.gag = true; spara(); gag(()=>nasta()); return; }
   if(S[st.i].id==="s06" && !st.kap.snabb){ st.kap.snabb = true; spara(); snabbrunda(()=>nasta()); return; }
-  stoppNed(); st.i++; st.visat=false; st.valt=null; st.roster=[0,0,0]; $("vem").classList.remove("on"); spara();
+  stoppNed(); st.i++; st.fas="lage"; st.visat=false; st.valt=null; st.roster=[0,0,0]; $("vem").classList.remove("on"); spara();
   if(st.i >= S.length){ kor(S.length, ()=>{ if(!st.kap.bil){ st.kap.bil = true; spara(); visaKapitel("bil", ()=>rita(true)); } else rita(true); }); return; }
   rita(true); if(!SAMMA[st.i]) kor(st.i, spot); else spot();
 }
 function spara(){ if(laget==="tel") lagra.set("rutten-tel", st); }
-$("huvud").onclick = () => st.visat ? nasta() : visaSvar();
+function framat(){ if(st.visat){ nasta(); return; } if(DISK() && st.fas !== "alt"){ st.fas = "alt"; stoppNed(); try{ ljud.svep(); }catch(e){} rita(false); return; } visaSvar(); }
+$("huvud").onclick = framat;
 
 document.addEventListener("keydown", e=>{
   if(e.target.tagName==="TEXTAREA") return;
@@ -1155,7 +1212,7 @@ document.addEventListener("keydown", e=>{
   if(!$("spel").classList.contains("on")) return;
   const k=e.key.toUpperCase();
   if(["A","B","C"].includes(k)){ valj(k); }
-  else if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"){ if(e.target.closest&&e.target.closest(".alt")&&!st.visat) return; e.preventDefault(); st.visat?nasta():visaSvar(); }
+  else if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"){ if(e.target.closest&&e.target.closest(".alt")&&!st.visat) return; e.preventDefault(); framat(); }
 });
 
 /* ---------- Kod: svaren packade i bas 3, tecken utan förväxling ---------- */
@@ -1183,7 +1240,8 @@ function slut(){
   $("s-tid").textContent = st.tid>=0 ? "I tid" : "+"+(-st.tid)+" min";
   const rakna = (el, till, f) => { const t0 = performance.now(); const steg = t => { const q = Math.min(1,(t-t0)/1100), e = 1-Math.pow(1-q,3); el.textContent = f(Math.round(till*e)); if(q<1) requestAnimationFrame(steg); }; RM ? el.textContent = f(till) : requestAnimationFrame(steg); };
   rakna($("s-kv"), Math.round(st.kv), v=>v); rakna($("s-ku"), Math.round(st.ku), v=>v); rakna($("s-ratt"), r, v=>v+"/"+S.length);
-  $("slut-titel").textContent = r===S.length ? "Perfekt dag" : r>=S.length-2 ? "Bra jobbat" : r>=S.length-5 ? "Godkänd dag" : "Kör dagen igen";
+  $("slut").classList.toggle("disk", DISK());
+  $("slut-titel").textContent = DISK() ? "Bra jobbat" : r===S.length ? "Perfekt dag" : r>=S.length-2 ? "Bra jobbat" : r>=S.length-5 ? "Godkänd dag" : "Kör dagen igen";
   const reg=$("regler"); reg.innerHTML=""; DATA.regler.forEach(t=>{ const li=document.createElement("li"); li.textContent=t; reg.appendChild(li); });
   const db=$("dagbok"); db.innerHTML="";
   S.forEach((s,i)=>{ const ok=st.svar[i]===s.ratt; const tr=document.createElement("tr");
