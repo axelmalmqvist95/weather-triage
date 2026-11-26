@@ -7,8 +7,6 @@
 <title>En dag på rutten</title>
 <style>
 /* Typsnitt inbäddade, sidan fungerar utan nät. */
-@font-face{font-family:"BSD";font-weight:800;src:url(data:font/woff2;base64,__BSD800__) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:"BSD";font-weight:800;src:url(data:font/woff2;base64,__BSD800X__) format("woff2");unicode-range:U+0100-024F,U+0259,U+1E00-1EFF,U+2020,U+20A0-20AB,U+20AD-20CF,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:"OS";font-weight:400;src:url(data:font/ttf;base64,__OS400__) format("truetype")}
 @font-face{font-family:"OS";font-weight:700;src:url(data:font/ttf;base64,__OS700__) format("truetype")}
 
@@ -23,7 +21,7 @@
 html,body{margin:0;height:100%;background:var(--n1);color:var(--w);font-family:"OS",system-ui,sans-serif;font-size:var(--fs);line-height:1.45;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--w);outline-offset:3px}
-.bsd{font-family:"BSD","OS",sans-serif;font-weight:800;letter-spacing:.01em;line-height:.92;text-transform:uppercase}
+.bsd{font-family:"OS",sans-serif;font-weight:700;letter-spacing:-.018em;line-height:1.06;text-transform:none}
 .hidden{display:none!important}
 #app{position:fixed;inset:0;overflow:hidden}
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .45s ease}
@@ -53,7 +51,7 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .start-ingress{max-width:27em;color:var(--t2);font-size:1.05em;margin:0}
 .lagen{display:flex;gap:clamp(14px,2vw,30px);margin:1.4em 0 1.6em;flex-wrap:wrap}
 .lagen div{display:flex;flex-direction:column}
-.lagen b{font-family:"BSD";font-size:2.4em;line-height:1}
+.lagen b{font-family:"OS";font-size:2.4em;line-height:1}
 .lagen small{color:var(--t3);font-size:.62em;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
 .val{display:flex;gap:16px;flex-wrap:wrap;pointer-events:auto;margin-top:1.6em}
 #fortsatt{pointer-events:auto}
@@ -78,7 +76,7 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .kartbox path.klar{fill:none;stroke:var(--red);stroke-width:4;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .kartbox .ritas{fill:none;stroke:var(--red);stroke-width:4;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .kartbox .st circle{fill:var(--n1);stroke:#fff;stroke-width:2;vector-effect:non-scaling-stroke}
-.kartbox .st text{fill:#fff;font-family:"BSD","OS",sans-serif;font-weight:800;text-anchor:middle;dominant-baseline:central}
+.kartbox .st text{fill:#fff;font-family:"OS",sans-serif;font-weight:800;text-anchor:middle;dominant-baseline:central}
 .kartbox .st.klar circle{fill:var(--ok2);stroke:var(--ok2)}.kartbox .st.klar text{fill:var(--n0)}
 .kartbox .st.fel circle{fill:var(--red);stroke:var(--red)}
 .kartbox .st.nu circle{fill:#fff}.kartbox .st.nu text{fill:var(--n0)}
@@ -94,11 +92,11 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .kalla{position:absolute;right:14px;bottom:10px;font-size:10px;color:rgba(159,184,192,.6);letter-spacing:.04em;z-index:3}
 .ruttkort{position:absolute;right:clamp(16px,2.4vw,40px);top:50%;transform:translateY(-50%);z-index:3;background:rgba(6,17,27,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:14px 18px 12px;border-left:4px solid var(--red);min-width:260px}
 .ruttkort small{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);font-weight:700}
-.ruttkort b{display:block;font-family:"BSD";font-size:30px;line-height:1.05;margin:4px 0 2px}
+.ruttkort b{display:block;font-family:"OS";font-size:30px;line-height:1.05;margin:4px 0 2px}
 .ruttkort span{font-size:.62em;color:var(--t2)}
 .korlista{list-style:none;margin:14px 0 0;padding:0;font-size:.64em}
 .korlista li{display:flex;gap:8px;padding:3px 0;break-inside:avoid;color:var(--t2);white-space:nowrap}
-.korlista li b{font-family:"BSD";font-size:1.25em;margin:0;color:#fff;min-width:1.6em;line-height:1.2}
+.korlista li b{font-family:"OS";font-size:1.25em;margin:0;color:#fff;min-width:1.6em;line-height:1.2}
 #korning{position:fixed;inset:0;z-index:30;opacity:0;pointer-events:none;transition:opacity .45s ease}
 #korning.on{opacity:1;pointer-events:auto;cursor:pointer}
 #korning.iris{pointer-events:none}
@@ -114,7 +112,7 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 #k-kor .ritas{stroke-width:5}
 .tel #k-kor svg{transform:perspective(900px) rotateX(42deg) scale(1.7);transform-origin:50% 40%}
 .mat{position:relative}
-.dchip{position:absolute;right:0;top:-6px;font-family:"BSD","OS",sans-serif;font-weight:800;font-size:22px;line-height:1;padding:3px 7px;color:#06111b;background:var(--ok);pointer-events:none;animation:dchip 1.7s ease-out both}
+.dchip{position:absolute;right:0;top:-6px;font-family:"OS",sans-serif;font-weight:800;font-size:22px;line-height:1;padding:3px 7px;color:#06111b;background:var(--ok);pointer-events:none;animation:dchip 1.7s ease-out both}
 .dchip.neg{background:var(--red);color:#fff}
 @keyframes dchip{0%{opacity:0;transform:translateY(14px) scale(.7)}18%{opacity:1;transform:translateY(0) scale(1.15)}30%{transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-22px)}}
 #start.on .kicker,#start.on .start-titel,#start.on .start-ingress,#start.on .val,#start.on .extra,#start.on .ruttkort{animation:upp .8s cubic-bezier(.2,.7,.2,1) both}
@@ -124,7 +122,7 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .kor-info{position:absolute;left:clamp(18px,3vw,56px);bottom:clamp(18px,3.4vw,60px);z-index:3}
 .kor-info .kicker{margin-bottom:10px}
 .kor-tid{font-size:clamp(84px,10vw,200px);display:block}
-.kor-ort{display:block;font-family:"BSD";font-weight:800;text-transform:uppercase;font-size:clamp(28px,2.8vw,54px);color:var(--t2);margin-top:.1em;line-height:1}
+.kor-ort{display:block;font-family:"OS";font-weight:800;text-transform:uppercase;font-size:clamp(28px,2.8vw,54px);color:var(--t2);margin-top:.1em;line-height:1}
 .hoppa{position:absolute;right:clamp(16px,2.4vw,40px);bottom:clamp(16px,2.4vw,40px);z-index:3;color:var(--t3);font-size:.66em;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:10px 12px}
 .hoppa:hover{color:#fff}
 .minikarta{position:absolute;top:clamp(14px,1.8vw,28px);right:clamp(14px,1.8vw,28px);width:clamp(150px,13vw,240px);aspect-ratio:4/3;z-index:2;box-shadow:0 0 0 1px rgba(255,255,255,.18),0 10px 30px rgba(0,0,0,.4)}
@@ -151,7 +149,7 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .mat small{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--t3);font-weight:700;margin-bottom:5px}
 .mat .rad{height:6px;background:rgba(255,255,255,.12);position:relative;overflow:hidden}
 .mat .rad b{position:absolute;left:0;top:0;bottom:0;background:var(--ok2);transition:width .8s cubic-bezier(.4,0,.2,1),background .4s}
-.mat .tal{font-family:"BSD";font-size:22px;line-height:1;margin-top:5px;font-variant-numeric:tabular-nums}
+.mat .tal{font-family:"OS";font-size:22px;line-height:1;margin-top:5px;font-variant-numeric:tabular-nums}
 .mat.tid .tal{color:var(--w)}
 .ikonknapp{width:44px;height:44px;display:grid;place-items:center;color:var(--t3)}
 .ikonknapp:hover{color:var(--w)}
@@ -182,14 +180,14 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .alts{display:flex;flex-direction:column;gap:12px}
 .alt{position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:start;gap:16px;text-align:left;padding:16px 18px;background:var(--n3);box-shadow:inset 0 0 0 2px transparent;transition:background .2s,box-shadow .2s,opacity .4s,transform .2s;clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)}
 .alt:hover{background:var(--n4)}
-.alt .bok{font-family:"BSD";font-size:1.7em;line-height:1;width:1.25em;text-align:center;color:var(--t3);transition:color .2s}
+.alt .bok{font-family:"OS";font-size:1.7em;line-height:1;width:1.25em;text-align:center;color:var(--t3);transition:color .2s}
 .alt .txt{padding-top:.12em}
 .alt.vald{background:var(--n4);box-shadow:inset 0 0 0 2px var(--w)}
 .alt.vald .bok{color:var(--w)}
 .roster{display:flex;align-items:center;gap:4px;align-self:center}
 .roster button{width:36px;height:36px;display:grid;place-items:center;background:rgba(255,255,255,.07);font-weight:700;font-size:20px;line-height:1}
 .roster button:hover{background:rgba(255,255,255,.16)}
-.roster b{min-width:2ch;text-align:center;font-family:"BSD";font-size:1.5em;font-variant-numeric:tabular-nums}
+.roster b{min-width:2ch;text-align:center;font-family:"OS";font-size:1.5em;font-variant-numeric:tabular-nums}
 .alt .stapel{position:absolute;left:0;bottom:0;height:4px;background:var(--t3);width:0;transition:width .5s}
 .alt .kons{grid-column:2 / 4;display:none;color:var(--t2);font-size:.92em;border-top:1px solid rgba(255,255,255,.12);padding-top:10px;margin-top:2px}
 .visat .alt{cursor:default}
@@ -209,7 +207,7 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .visat .foto-info,.visat .nr{opacity:0;transition:opacity .3s}
 .panel{background:var(--n2);padding:20px 22px;border-left:5px solid var(--ok)}
 .panel.v{border-left-color:var(--red)}
-.panel h3{margin:0 0 10px;font-family:"BSD";font-weight:800;text-transform:uppercase;font-size:1.5em;letter-spacing:.02em;line-height:1}
+.panel h3{margin:0 0 10px;font-family:"OS";font-weight:800;text-transform:uppercase;font-size:1.5em;letter-spacing:.02em;line-height:1}
 .panel ol{margin:0;padding-left:1.2em;color:var(--t2)}
 .panel ol li{margin:.35em 0;padding-left:.2em}
 .panel p{margin:0;color:var(--t2)}
@@ -226,7 +224,7 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 .slut-titel{font-size:clamp(56px,8vw,150px);margin:.15em 0 .2em}
 .betyg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:10px 0 28px}
 .betyg div{background:var(--n2);padding:16px 18px}
-.betyg b{display:block;font-family:"BSD";font-size:clamp(40px,4vw,72px);line-height:1}
+.betyg b{display:block;font-family:"OS";font-size:clamp(40px,4vw,72px);line-height:1}
 .delt{margin-top:14px;max-width:34em;pointer-events:auto}
 .delt summary{cursor:pointer;color:var(--t2);font-weight:700;font-size:.82em;letter-spacing:.06em;list-style:none;display:inline-flex;align-items:center;gap:10px;padding:8px 0}
 .delt summary::-webkit-details-marker{display:none}.delt summary::before{content:"+";display:inline-grid;place-items:center;width:22px;height:22px;background:var(--n3);color:var(--w)}
@@ -239,7 +237,7 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
 #valk.on{display:block}
 #valk::before{content:"";position:absolute;inset:-18% -30% -22% -55%;z-index:-1;background:radial-gradient(ellipse at 70% 45%,rgba(6,17,27,.82) 0,rgba(6,17,27,.55) 45%,rgba(6,17,27,0) 72%)}
 #valk small{display:block;color:var(--t2);font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:clamp(11px,.9vw,16px);margin-bottom:.6em;opacity:0;animation:valkin .8s .4s ease-out forwards}
-#valk b{display:block;font-family:"BSD";font-weight:800;line-height:.95;font-size:clamp(34px,4.4vw,84px);text-transform:uppercase;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6);opacity:0;transform:translateX(40px);animation:valkin .7s cubic-bezier(.2,.8,.2,1) forwards}
+#valk b{display:block;font-family:"OS";font-weight:800;line-height:.95;font-size:clamp(34px,4.4vw,84px);text-transform:uppercase;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6);opacity:0;transform:translateX(40px);animation:valkin .7s cubic-bezier(.2,.8,.2,1) forwards}
 #valk b.liten{font-size:clamp(24px,2.8vw,54px)}
 @keyframes valkin{to{opacity:1;transform:none}}
 /* 1. Logga-intro */
@@ -342,7 +340,7 @@ body.dold-mus,body.dold-mus *{cursor:none!important}
 #nedrakning.on{display:grid}
 #nedrakning::before{content:"";position:absolute;inset:6%;border-radius:50%;background:rgba(6,17,27,.72)}
 #nedrakning i{position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--red) calc(var(--k,1)*360deg),rgba(255,255,255,.1) 0);-webkit-mask:radial-gradient(circle,transparent 62%,#000 63%);mask:radial-gradient(circle,transparent 62%,#000 63%)}
-#nedrakning b{position:relative;font-family:"BSD";font-weight:800;font-size:clamp(54px,5vw,96px);line-height:1;grid-area:1/1;margin-top:-.18em}
+#nedrakning b{position:relative;font-family:"OS";font-weight:800;font-size:clamp(54px,5vw,96px);line-height:1;grid-area:1/1;margin-top:-.18em}
 #nedrakning small{position:relative;grid-area:1/1;align-self:end;margin-bottom:22%;font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:clamp(9px,.7vw,13px);color:var(--t2)}
 #nedrakning.sista b{color:var(--red2);animation:spotpop .3s}
 #nedrakning.slut b{font-size:clamp(28px,2.4vw,46px)}
@@ -388,17 +386,17 @@ body.dold-mus,body.dold-mus *{cursor:none!important}
 #snabb.ok #sn-utfall{color:var(--ok)}#snabb.nej #sn-utfall{color:var(--red2)}
 #sn-fakta{display:block;color:var(--t2);font-size:clamp(16px,1.6vw,30px);margin-top:.4em}
 @media (prefers-reduced-motion:reduce){.sn-tel,#sn-utfall{animation:none}}
-#spot{position:absolute;inset:0;z-index:30;display:none;place-items:center;text-align:center;background:radial-gradient(ellipse at 50% 46%,rgba(20,49,74,.92) 0,rgba(6,17,27,.97) 46%,#03080d 100%);cursor:pointer}
+#spot{position:absolute;inset:0;z-index:30;display:none;place-items:center;text-align:center;background:radial-gradient(ellipse at 50% 46%,#14314a 0,#06111b 46%,#03080d 100%);cursor:pointer}
 #spot.on{display:grid;animation:spotin .25s ease-out}
 @keyframes spotin{from{opacity:0}}
 #spot .kon{position:absolute;left:50%;top:-10%;width:min(90vw,1100px);height:120%;transform:translateX(-50%);background:conic-gradient(from 180deg at 50% 0,transparent 162deg,rgba(255,255,255,.10) 172deg,rgba(255,255,255,.16) 180deg,rgba(255,255,255,.10) 188deg,transparent 198deg);pointer-events:none;animation:konsvep 1.5s ease-in-out}
 @keyframes konsvep{0%{transform:translateX(-50%) rotate(-16deg)}35%{transform:translateX(-50%) rotate(13deg)}70%{transform:translateX(-50%) rotate(-6deg)}100%{transform:translateX(-50%) rotate(0)}}
 #spot .in{position:relative}
 #spot small{display:block;color:var(--t3);font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:clamp(11px,1vw,18px)}
-#spot b{display:block;font-family:"BSD";font-weight:800;text-transform:uppercase;line-height:.9;font-size:clamp(70px,13vw,260px);margin:.12em 0 .1em;color:var(--t3);filter:blur(2px);transition:none}
+#spot b{display:block;font-family:"OS";font-weight:800;text-transform:uppercase;line-height:.9;font-size:clamp(70px,13vw,260px);margin:.12em 0 .1em;color:var(--t3);filter:blur(2px);transition:none}
 #spot.klar b{color:#fff;filter:none;animation:spotpop .5s cubic-bezier(.2,1.5,.4,1)}
 @keyframes spotpop{from{transform:scale(.82)}}
-#spot em{display:block;font-style:normal;font-family:"BSD";font-weight:800;text-transform:uppercase;font-size:clamp(26px,3.4vw,66px);color:var(--red);opacity:0}
+#spot em{display:block;font-style:normal;font-family:"OS";font-weight:800;text-transform:uppercase;font-size:clamp(26px,3.4vw,66px);color:var(--red);opacity:0}
 #spot.klar em{opacity:1;transition:opacity .3s .15s}
 .vem{display:none;align-items:center;gap:10px;margin:0 0 .5em;font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.68em;color:var(--t2)}
 .vem.on{display:inline-flex}.vem i{font-style:normal;background:var(--red);color:#fff;padding:.3em .7em}.vem span{color:var(--t3)}
@@ -410,7 +408,7 @@ body.dold-mus,body.dold-mus *{cursor:none!important}
 .pall-rad .p2{height:220px;animation-delay:.7s;order:1}.pall-rad .p3{height:160px;animation-delay:.3s;order:3}
 @keyframes pallupp{from{transform:scaleY(0);opacity:0}}
 .pall-rad small{font-weight:700;letter-spacing:.2em;font-size:.62em;color:rgba(255,255,255,.75)}
-.pall-rad b{font-family:"BSD";font-weight:800;text-transform:uppercase;line-height:.95;font-size:clamp(30px,3.4vw,64px);overflow-wrap:anywhere}
+.pall-rad b{font-family:"OS";font-weight:800;text-transform:uppercase;line-height:.95;font-size:clamp(30px,3.4vw,64px);overflow-wrap:anywhere}
 .pall-rad .manga b{font-size:clamp(20px,2.1vw,40px)}.pall-rad div{min-height:max-content}
 .pall-rad span{color:rgba(255,255,255,.85);font-weight:700}
 .pall-ovr{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px 22px;color:var(--t2)}.pall-ovr b{color:#fff}
@@ -421,17 +419,17 @@ body.dold-mus,body.dold-mus *{cursor:none!important}
 .tva{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:start}
 .regler{counter-reset:r;list-style:none;margin:0;padding:0}
 .regler li{counter-increment:r;position:relative;padding:12px 0 12px 54px;border-top:1px solid rgba(255,255,255,.1);color:var(--t2)}
-.regler li::before{content:counter(r,decimal-leading-zero);position:absolute;left:0;top:8px;font-family:"BSD";font-size:1.7em;color:var(--red)}
-.kod{font-family:"BSD";font-size:clamp(46px,7vw,96px);letter-spacing:.06em;background:var(--n2);padding:.25em .4em;display:inline-block;margin:.2em 0;border-left:6px solid var(--red)}
+.regler li::before{content:counter(r,decimal-leading-zero);position:absolute;left:0;top:8px;font-family:"OS";font-size:1.7em;color:var(--red)}
+.kod{font-family:"OS";font-size:clamp(46px,7vw,96px);letter-spacing:.06em;background:var(--n2);padding:.25em .4em;display:inline-block;margin:.2em 0;border-left:6px solid var(--red)}
 .dagbok{width:100%;border-collapse:collapse;font-size:.82em}
 .dagbok td{padding:8px 6px;border-top:1px solid rgba(255,255,255,.08);vertical-align:top}
-.dagbok td:first-child{font-family:"BSD";font-size:1.3em;color:var(--t3);width:3.2em}
+.dagbok td:first-child{font-family:"OS";font-size:1.3em;color:var(--t3);width:3.2em}
 .prick{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:-1px}
 textarea{width:100%;min-height:110px;background:var(--n2);color:var(--w);border:1px solid rgba(255,255,255,.2);padding:12px;font:inherit;font-size:.85em}
 .stat td:last-child{width:45%}
 .stat .r{height:10px;background:rgba(255,255,255,.1);position:relative}
 .stat .r b{position:absolute;left:0;top:0;bottom:0;background:var(--ok2)}
-h2.sek{font-family:"BSD";text-transform:uppercase;font-size:clamp(28px,2.6vw,46px);margin:0 0 10px;line-height:1}
+h2.sek{font-family:"OS";text-transform:uppercase;font-size:clamp(28px,2.6vw,46px);margin:0 0 10px;line-height:1}
 
 /* ---------- Telefon ---------- */
 .tel .topp{padding:10px 14px;gap:12px}
@@ -476,6 +474,36 @@ __KAPITEL_CSS__
 .fe-box{grid-column:1/-1}
 .fe-box:empty{display:none}
 .foto .svar{overflow-y:auto}
+
+/* ---- Nanostone-profil: Open Sans genomgående, rubriker i normal skrift ---- */
+.kor-ort,.panel h3,#valk b,#spot b,#spot em,.pall-rad b,h2.sek{text-transform:none!important;letter-spacing:-.01em}
+.start-titel{font-size:clamp(52px,7.4vw,132px);line-height:1.02;letter-spacing:-.03em}
+.kor-tid{font-size:clamp(64px,7vw,138px);letter-spacing:-.03em;line-height:1}
+.kor-ort{font-size:clamp(22px,2vw,38px)}
+.klocka{font-size:clamp(54px,5.8vw,116px);letter-spacing:-.03em;line-height:1}
+.rubrik{font-size:clamp(30px,2.9vw,58px);line-height:1.1}
+.slut-titel{font-size:clamp(44px,5.4vw,104px);letter-spacing:-.03em}
+.panel h3{font-size:1.15em;letter-spacing:0}
+h2.sek{font-size:clamp(22px,1.8vw,34px)}
+.diskruta b{font-size:1.35em}
+#spot b{font-size:clamp(56px,8.6vw,176px);letter-spacing:-.03em;line-height:1}
+#spot em{font-size:clamp(22px,2.4vw,46px)}
+#valk b{font-size:clamp(28px,3.2vw,62px);letter-spacing:-.02em;line-height:1.08}
+#valk b.liten{font-size:clamp(20px,2.1vw,40px)}
+.sn-ring b,.sn-slut b{font-size:clamp(48px,6.6vw,132px);letter-spacing:-.03em}
+#sn-text{font-size:clamp(28px,3.4vw,68px);line-height:1.12}
+#sn-utfall{font-size:clamp(30px,3.4vw,64px)}
+.pall-rad b{font-size:clamp(24px,2.4vw,46px)}
+.hj-in h2{font-size:clamp(28px,2.4vw,44px)}
+.alt .bok{font-size:1.35em}
+.mat .tal{font-size:19px}
+.betyg b{font-size:clamp(32px,3vw,56px)}
+.gag-stampel{text-transform:uppercase;font-size:clamp(38px,6.4vw,128px);letter-spacing:.02em}
+.start-ingress{margin-top:1.1em}
+@media (max-width:760px){.start-skugga{background:linear-gradient(180deg,rgba(6,17,27,.6) 0,rgba(6,17,27,.94) 22%,rgba(6,17,27,.97) 100%)}}
+.tel .klocka{font-size:52px}.tel .rubrik{font-size:32px}.tel .start-titel{font-size:54px}
+/* Mätarna har ingen funktion i diskussionsläget */
+body.disk #spel .matare{visibility:hidden}
 </style>
 </head>
 <body>
@@ -677,6 +705,7 @@ function forbered(nyck, b64){ B64[nyck] = b64; if(!VIDEO[nyck]) VIDEO[nyck] = Pr
   .then(b => URL.createObjectURL(b.type ? b : new Blob([b], {type:"video/mp4"}))); return VIDEO[nyck]; }
 // Spelar en film tåligt: tyst och inbäddad (krav på mobil), nytt försök vid nästa tryck, och reservväg om blob-adressen inte går att spela.
 function filmfel(v, orsak){
+  if(laget !== "tel") return;
   const e = v.error, kod = "F:" + (v.dataset.k||"?") + " " + orsak + " E" + (e ? e.code : 0) + " N" + v.networkState + " R" + v.readyState + " " + String(v.currentSrc||v.src||"").slice(0,4) + (v.dataset.reserv ? "+d" : "") + (RM ? " RM" : "");
   let d = document.getElementById("diag"); if(!d){ d = document.createElement("div"); d.id = "diag"; d.style.cssText = "position:fixed;left:6px;bottom:4px;z-index:300;font:700 9px/1.2 monospace;color:#fff;opacity:.55;pointer-events:none;max-width:96vw;white-space:nowrap;overflow:hidden"; document.body.appendChild(d); }
   d.textContent = kod; try{ console.warn("film", kod); }catch(x){}
@@ -689,7 +718,7 @@ function spela(v, fel){
   let p; try{ p = v.play(); }catch(e){}
   if(p && p.catch) p.catch(e => { if(e && e.name === "NotAllowedError"){ nekad = true; const igen = () => { document.removeEventListener("pointerdown", igen, true); document.removeEventListener("keydown", igen, true); let q; try{ q = v.play(); }catch(x){} q && q.catch && q.catch(()=>{}); };
       document.addEventListener("pointerdown", igen, true); document.addEventListener("keydown", igen, true); } });
-  setTimeout(() => { if(v._nr !== nr || !v.isConnected) return; if(v.currentTime > 0.05 && !v.error) return; filmfel(v, nekad ? "NEKAD" : v.error ? "FEL" : "STILLA"); if(v._fel){ const f = v._fel; v._fel = null; f(); } }, 2600);
+  setTimeout(() => { if(v._nr !== nr || !v.isConnected || !v.getClientRects().length) return; if(v.currentTime > 0.05 && !v.error) return; filmfel(v, nekad ? "NEKAD" : v.error ? "FEL" : "STILLA"); if(v._fel){ const f = v._fel; v._fel = null; f(); } }, 2600);
 }
 function koppla(el, nyck, b64, sen){ if(el.dataset.k === nyck){ sen && sen(); return; } el.dataset.k = nyck; forbered(nyck, b64).then(u => { if(el.dataset.k !== nyck) return; el.src = u; el.load(); sen && sen(); }); }
 const K = __KARTA__;
@@ -1078,8 +1107,11 @@ const T0 = minuter("06:00"), T1 = minuter("16:30");
 function pos(t){ return ((minuter(t)-T0)/(T1-T0)*100); }
 function byggRutt(){
   const r = $("rutt"); r.querySelectorAll(".stopp").forEach(e=>e.remove());
-  S.forEach((s,i)=>{ const d=document.createElement("div"); d.className="stopp"; d.style.left=pos(s.tid)+"%"; d.innerHTML= (i>0 && pos(s.tid)-pos(S[i-1].tid) < 2.2) ? "" : `<i>${s.tid}</i>`; d.dataset.i=i; r.appendChild(d); });
+  S.forEach((s,i)=>{ const d=document.createElement("div"); d.className="stopp"; d.style.left=pos(s.tid)+"%"; d.innerHTML=`<i>${s.tid}</i>`; d.dataset.i=i; r.appendChild(d); });
+  requestAnimationFrame(rensaEtiketter);
 }
+function rensaEtiketter(){ let hoger = -1e9; document.querySelectorAll("#rutt .stopp i").forEach(e => { e.style.visibility = ""; const b = e.getBoundingClientRect(); if(!b.width) return; if(b.left < hoger + 8){ e.style.visibility = "hidden"; } else hoger = b.right; }); }
+window.addEventListener("resize", () => requestAnimationFrame(rensaEtiketter));
 function ritaRutt(){
   document.querySelectorAll(".stopp").forEach(d=>{
     const i=+d.dataset.i, sv=st.svar[i];
@@ -1245,7 +1277,7 @@ function slut(){
   const reg=$("regler"); reg.innerHTML=""; DATA.regler.forEach(t=>{ const li=document.createElement("li"); li.textContent=t; reg.appendChild(li); });
   const db=$("dagbok"); db.innerHTML="";
   S.forEach((s,i)=>{ const ok=st.svar[i]===s.ratt; const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${s.tid}</td><td><span class="prick" style="background:${ok?"var(--ok)":"var(--red)"}"></span>${s.rubrik}${ok?"":` <span style="color:var(--t3)">· rätt: ${s.ratt}</span>`}</td>`; db.appendChild(tr); });
+    tr.innerHTML = DISK() ? `<td>${s.tid}</td><td><span class="prick" style="background:var(--ok2)"></span>${s.rubrik}</td>` : `<td>${s.tid}</td><td><span class="prick" style="background:${ok?"var(--ok)":"var(--red)"}"></span>${s.rubrik}${ok?"":` <span style="color:var(--t3)">· rätt: ${s.ratt}</span>`}</td>`; db.appendChild(tr); });
   $("kodruta").classList.toggle("hidden", laget!=="tel");
   $("lasin").classList.toggle("hidden", laget!=="grupp");
   if(laget==="tel"){ $("kod").textContent = kodFor(st.svar); lagra.set("rutten-tel", st); }

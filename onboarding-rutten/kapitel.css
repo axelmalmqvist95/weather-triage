@@ -19,7 +19,7 @@
 .f2{position:absolute}
 .mark{position:absolute;width:0;height:0;transform-style:preserve-3d;transition:opacity .4s}
 .pin{position:absolute;left:-19px;top:-46px;width:38px;height:38px;border-radius:50%;background:var(--n1);border:2px solid #fff;color:#fff;
-  display:grid;place-items:center;font-family:"BSD","OS",sans-serif;font-weight:800;font-size:19px;box-shadow:0 6px 18px rgba(0,0,0,.45);transition:all .35s}
+  display:grid;place-items:center;font-family:"OS",sans-serif;font-weight:800;font-size:19px;box-shadow:0 6px 18px rgba(0,0,0,.45);transition:all .35s}
 .pin::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:10px;margin-left:-1px;background:#fff}
 .pin svg{width:20px;height:20px}
 .mark.on .pin{background:var(--red);border-color:var(--red);transform:scale(1.25)}
@@ -39,7 +39,7 @@
   background:rgba(6,17,27,.84);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-left:5px solid var(--red)}
 .kap-in{flex:1;overflow-y:auto;padding:24px 26px 10px}
 .kap-steg{font-size:.62em;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);font-weight:700}
-.kap-rubrik{font-family:"BSD","OS",sans-serif;font-weight:800;text-transform:uppercase;font-size:clamp(34px,2.9vw,58px);line-height:.95;margin:.25em 0 .4em;text-wrap:balance}
+.kap-rubrik{font-family:"OS",sans-serif;font-weight:700;text-transform:none;letter-spacing:-.018em;font-size:clamp(26px,2.2vw,44px);line-height:1.08;margin:.25em 0 .4em;text-wrap:balance}
 .kap-text{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;color:var(--t2);font-size:.95em}
 .kap-text li{position:relative;padding-left:22px}
 .kap-text li::before{content:"";position:absolute;left:0;top:.62em;width:10px;height:3px;background:var(--red)}
@@ -49,7 +49,7 @@
 .kap-kort small{display:block;font-size:.6em;letter-spacing:.18em;text-transform:uppercase;color:var(--t3);font-weight:700;margin-bottom:4px}
 .kap-fraga{margin-top:16px;display:flex;flex-direction:column;gap:8px}
 .kap-fraga button{text-align:left;padding:12px 14px;background:var(--n3);font-size:.9em;display:flex;gap:12px}
-.kap-fraga button b{font-family:"BSD";font-size:1.4em;line-height:1;color:var(--t3)}
+.kap-fraga button b{font-family:"OS";font-size:1.4em;line-height:1;color:var(--t3)}
 .kap-fraga button:hover{background:var(--n4)}
 .kap-fraga button.r{background:rgba(98,195,164,.18);box-shadow:inset 0 0 0 2px var(--ok)}
 .kap-fraga button.f{background:rgba(229,47,25,.16);box-shadow:inset 0 0 0 2px var(--red)}
@@ -87,11 +87,11 @@
 .matare3 .bage{position:absolute;inset:18px 18px auto;height:130px;border-radius:130px 130px 0 0;border:3px solid rgba(255,255,255,.15);border-bottom:0}
 .matare3 .nal{position:absolute;left:50%;bottom:30px;width:4px;height:100px;margin-left:-2px;background:var(--red);transform-origin:50% 100%;transform:rotate(-40deg);border-radius:2px;box-shadow:0 0 10px rgba(229,47,25,.8);transition:transform 1.4s cubic-bezier(.3,1.4,.5,1)}
 .instrument.on .nal{transform:rotate(18deg)}
-.matare3 .km{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);font-family:"BSD";font-size:30px;letter-spacing:.06em;background:#0b141c;padding:2px 10px;border:1px solid #2c3e4f;font-variant-numeric:tabular-nums}
+.matare3 .km{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);font-family:"OS";font-size:30px;letter-spacing:.06em;background:#0b141c;padding:2px 10px;border:1px solid #2c3e4f;font-variant-numeric:tabular-nums}
 .monster3{width:320px;padding:18px;background:rgba(6,17,27,.92);border:1px solid rgba(255,255,255,.15);display:grid;grid-template-columns:120px 1fr;gap:16px;align-items:center}
 .monster3 .dack{width:120px;height:120px;border-radius:50%;background:repeating-conic-gradient(#20262c 0 7deg,#11161b 7deg 14deg);position:relative;box-shadow:inset 0 0 0 16px #0b0e11}
 .monster3 .dack::after{content:"";position:absolute;inset:34px;border-radius:50%;background:radial-gradient(#9aa7b1,#55636e)}
-.monster3 .mm{font-family:"BSD";font-size:54px;line-height:1}
+.monster3 .mm{font-family:"OS";font-size:54px;line-height:1}
 .monster3 small{display:block;color:var(--t3);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
 .monster3 .grans{margin-top:8px;font-size:12px;color:var(--t2)}
 
@@ -150,19 +150,19 @@
 .remsa{position:absolute;left:calc(clamp(16px,2.4vw,40px) + clamp(190px,14vw,250px) + 18px);bottom:clamp(16px,2.4vw,40px);z-index:5;display:flex;gap:8px;pointer-events:none}
 .remsa figure{margin:0;position:relative;width:clamp(64px,5.4vw,104px);aspect-ratio:4/3;background:#0b141c;box-shadow:0 0 0 2px #fff,0 8px 22px rgba(0,0,0,.5);animation:remsa .55s cubic-bezier(.2,1.4,.4,1) both}
 .remsa img{width:100%;height:100%;object-fit:cover;display:block}
-.remsa figcaption{position:absolute;left:4px;top:3px;font-family:"BSD","OS",sans-serif;font-weight:800;font-size:15px;line-height:1;background:var(--ok);color:#06111b;padding:2px 5px}
+.remsa figcaption{position:absolute;left:4px;top:3px;font-family:"OS",sans-serif;font-weight:800;font-size:15px;line-height:1;background:var(--ok);color:#06111b;padding:2px 5px}
 @keyframes remsa{from{opacity:0;transform:translateY(-120px) scale(2.2) rotate(-6deg)}to{opacity:1;transform:none}}
 .skarm .vy.tagen{padding:0}.skarm .vy.tagen img{width:100%;height:100%;object-fit:cover;image-rendering:auto}
 .skick{position:absolute;left:clamp(16px,2.4vw,40px);top:84px;z-index:4;background:rgba(6,17,27,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:12px 16px 14px;border-left:4px solid var(--ok);min-width:190px}
 .skick small{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);font-weight:700}
-.skick b{font-family:"BSD","OS",sans-serif;font-size:56px;line-height:1;font-variant-numeric:tabular-nums}.skick span{color:var(--t3);font-weight:700;margin-left:4px}
+.skick b{font-family:"OS",sans-serif;font-size:56px;line-height:1;font-variant-numeric:tabular-nums}.skick span{color:var(--t3);font-weight:700;margin-left:4px}
 .skickrad{height:5px;background:rgba(255,255,255,.14);margin-top:8px}.skickrad i{display:block;height:100%;width:0;background:var(--ok)}
 #kapitel.smal .remsa,#kapitel.smal .sokare{display:none}
 #kapitel.smal .skick{top:64px;padding:8px 12px;min-width:0}#kapitel.smal .skick b{font-size:34px}
 
 #kap-film{transition:transform 2.4s cubic-bezier(.4,0,.2,1)}
 .skarm .tips{font-size:10.5px;line-height:1.3;color:#5b6773}.skarm .bd h4{font-size:12.5px;line-height:1.2}
-.skarm .kn{background:#e19b10;color:#1d2833}.skarm .kn.ok{background:#1f8a4c;color:#fff}
+.skarm .kn{background:var(--red);color:#fff}.skarm .kn.ok{background:#1f8a4c;color:#fff}
 #kap-fe{margin-top:14px}#kap-fe:empty{display:none}
 
 .kapfoto{position:absolute;left:9%;top:15%;width:52%;margin:0;z-index:4;pointer-events:none;opacity:0;transform:scale(.86) rotate(-2deg);transition:opacity .45s ease,transform .6s cubic-bezier(.2,1.2,.4,1);box-shadow:0 0 0 6px #fff,0 30px 80px rgba(0,0,0,.6)}
