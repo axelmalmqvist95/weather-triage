@@ -1040,7 +1040,7 @@ function kor(i, klart){ // kör till läge i (i = S.length betyder hemfärd)
   const villa = S[i] && S[i].id === "s07", film = (i===0 || hem || villa), fv = $("kor-film"); ov.classList.toggle("film", film);
   if(film){ const nyck = villa ? "villa" : i===0 ? "gry" : "sol"; fv.classList.remove("hidden");
     koppla(fv, nyck, villa ? VILLAFILM : i===0 ? GRYFILM : SOLFILM, () => { try{ fv.currentTime = 0; }catch(e){} spela(fv, () => { if(irisNr === jag) ov.classList.remove("film"); }); }); } else { fv.pause(); fv.classList.add("hidden"); }
-  const tyst = (kor || film) ? ljud.motor((film ? 7400 : T)+500) : null;
+  const tyst = null;
   const mid = [(fran[0]+till[0])/2, (fran[1]+till[1])/2];
   let klar = false;
   const stang = () => { ov.style.transition = "none"; ov.classList.remove("on","iris"); ov.style.webkitMaskImage = ov.style.maskImage = ""; void ov.offsetWidth; ov.style.transition = ""; ov.setAttribute("aria-hidden","true"); };

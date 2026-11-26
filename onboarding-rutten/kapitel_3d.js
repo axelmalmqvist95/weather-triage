@@ -202,7 +202,7 @@ function visaKapitel(id, klart){
   $("kapitel").classList.toggle("smal", kapitelSmal()); $("kapitel").classList.toggle("filmlage", film); $("kapitel").classList.toggle("fotolage", foto);
   $("mobil").classList.toggle("hidden", id!=="bil"); $("kap-remsa").innerHTML = ""; $("kap-foto").classList.remove("on"); $("kap-sokare").classList.remove("on","tagen"); $("kap-skick").classList.toggle("hidden", !film);
   visa("kapitel");
-  if(!film && id==="bil") spelaIntro(); else ljud.motor && !film && ljud.motor(2400, .5);
+  if(!film && id==="bil") spelaIntro();
   if(!film && !foto){ storlek(); R3.nu = null; const m0 = kamMal(k.steg[0]); const start = { p:m0.p.clone().sub(m0.t).multiplyScalar(1.6).add(m0.t), t:m0.t.clone() }; R3.nu = { p:start.p.clone(), t:start.t.clone() }; kamTill(m0); }
   kapSteg(0, true);
 }
@@ -266,7 +266,7 @@ koppla($("kap-intro"), "intro", BILINFILM); koppla($("kap-film"), "hus", HUSFILM
 function spelaIntro(){
   const v = $("kap-intro");
   $("kapitel").classList.add("intro"); v.classList.remove("hidden","ut");
-  koppla(v, "intro", BILINFILM, () => { try{ v.currentTime = 0; }catch(e){} spela(v, () => slutIntro()); }); ljud.motor(7600, .7);
+  koppla(v, "intro", BILINFILM, () => { try{ v.currentTime = 0; }catch(e){} spela(v, () => slutIntro()); });
 }
 function slutIntro(){ const v = $("kap-intro"); if(v.classList.contains("hidden")) return; v.classList.add("ut"); $("kapitel").classList.remove("intro"); setTimeout(()=>{ v.pause(); v.classList.add("hidden"); }, 900); }
 $("kap-intro").addEventListener("ended", slutIntro);
