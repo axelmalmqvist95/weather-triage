@@ -1,0 +1,1324 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a1b2a">
+<title>En dag på rutten</title>
+<style>
+/* Typsnitt inbäddade, sidan fungerar utan nät. */
+@font-face{font-family:"OS";font-weight:400;src:url(data:font/ttf;base64,__OS400__) format("truetype")}
+@font-face{font-family:"OS";font-weight:700;src:url(data:font/ttf;base64,__OS700__) format("truetype")}
+
+/* Färger: samma som välkomstfilmen. */
+:root{
+  --n0:#06111b;--n1:#0a1b2a;--n2:#0f263a;--n3:#14314a;--n4:#1b3f5d;--n5:#24506f;
+  --red:#e52f19;--red2:#ff5a40;--ok:#62c3a4;--ok2:#86aeb0;--w:#fff;--t2:#d2dee3;--t3:#9fb8c0;
+  --fs:clamp(16px,1.15vw + 6px,26px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--n1);color:var(--w);font-family:"OS",system-ui,sans-serif;font-size:var(--fs);line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--w);outline-offset:3px}
+.bsd{font-family:"OS",sans-serif;font-weight:700;letter-spacing:-.018em;line-height:1.06;text-transform:none}
+.hidden{display:none!important}
+#app{position:fixed;inset:0;overflow:hidden}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .45s ease}
+.screen.on{opacity:1;pointer-events:auto}
+
+/* Bakgrundens struktur, svag diagonal. */
+.grain{position:absolute;inset:0;pointer-events:none;background:
+  radial-gradient(120% 80% at 85% -10%,rgba(84,140,145,.18),transparent 60%),
+  radial-gradient(90% 70% at -10% 110%,rgba(229,47,25,.10),transparent 55%),
+  repeating-linear-gradient(115deg,rgba(255,255,255,.018) 0 2px,transparent 2px 9px)}
+
+/* ---------- Startskärm ---------- */
+#start{background:var(--n0)}
+.wipe{position:absolute;inset:0;overflow:hidden}
+.wipe img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.wipe .efter{clip-path:inset(0 0 0 var(--x,50%))}
+.wipe .linje{position:absolute;top:0;bottom:0;left:var(--x,50%);width:3px;background:var(--w);box-shadow:0 0 24px rgba(255,255,255,.6)}
+.wipe .lbl{position:absolute;top:22px;font-size:.62em;letter-spacing:.2em;text-transform:uppercase;font-weight:700;padding:6px 10px;background:rgba(6,17,27,.6)}
+.wipe .lbl.f{left:calc(var(--x,50%) - 90px)}.wipe .lbl.e{right:22px}
+.start-skugga{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(6,17,27,.97) 0%,rgba(6,17,27,.9) 30%,rgba(6,17,27,.35) 48%,rgba(6,17,27,0) 62%)}
+.start-inner{position:relative;z-index:2;pointer-events:none;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:clamp(20px,4vw,64px);max-width:min(1100px,100%)}
+.logo{height:clamp(26px,2.6vw,44px);width:auto;display:block}
+.kicker{font-size:.7em;letter-spacing:.24em;text-transform:uppercase;color:var(--t3);font-weight:700;display:flex;align-items:center;gap:12px}
+.kicker::before{content:"";width:34px;height:3px;background:var(--red)}
+.start-titel{font-size:clamp(64px,11vw,190px);margin:.18em 0 .12em;line-height:1.12}
+.start-titel span{color:var(--red)}
+.start-ingress{max-width:27em;color:var(--t2);font-size:1.05em;margin:0}
+.lagen{display:flex;gap:clamp(14px,2vw,30px);margin:1.4em 0 1.6em;flex-wrap:wrap}
+.lagen div{display:flex;flex-direction:column}
+.lagen b{font-family:"OS";font-size:2.4em;line-height:1}
+.lagen small{color:var(--t3);font-size:.62em;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.val{display:flex;gap:16px;flex-wrap:wrap;pointer-events:auto;margin-top:1.6em}
+#fortsatt{pointer-events:auto}
+.knapp{white-space:nowrap;display:inline-flex;align-items:center;gap:14px;padding:.85em 1.3em;min-height:56px;font-weight:700;background:var(--red);color:var(--w);clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%);transition:transform .15s ease,background .15s}
+.knapp:hover{background:var(--red2)}.knapp:active{transform:translateY(1px)}
+.knapp.sek{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 2px rgba(255,255,255,.28)}
+.knapp.sek:hover{background:rgba(255,255,255,.15)}
+.knapp svg{width:1.2em;height:1.2em}
+.fot{color:var(--t3);font-size:.6em;letter-spacing:.06em}
+
+/* ---------- Karta ---------- */
+.kartbox{position:absolute;inset:0;overflow:hidden;background:#07131f}
+.kartbox svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.kartbox .kom{fill:none;stroke:rgba(134,174,176,.16);stroke-width:1;vector-effect:non-scaling-stroke}
+.kartbox .kust{fill:none;stroke:rgba(134,174,176,.42);stroke-width:1.2;vector-effect:non-scaling-stroke}
+.kartbox .vag{fill:none;stroke:rgba(210,222,227,.22);stroke-width:1.4;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.kartbox .vag.stor{stroke:rgba(210,222,227,.34);stroke-width:2.2}
+.kartbox .ort{fill:#c8d6dc;font-family:"OS",sans-serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;paint-order:stroke;stroke:#07131f;stroke-width:3px;stroke-linejoin:round}
+.kartbox .ort.s0{fill:#6f8d99;font-weight:400}
+.kartbox .vatten text{fill:#3e6278;font-family:"OS",sans-serif;font-style:italic;letter-spacing:.3em}
+.kartbox .bas{fill:none;stroke:rgba(255,255,255,.55);stroke-width:2;stroke-dasharray:2 7;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.kartbox path.klar{fill:none;stroke:var(--red);stroke-width:4;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.kartbox .ritas{fill:none;stroke:var(--red);stroke-width:4;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.kartbox .st circle{fill:var(--n1);stroke:#fff;stroke-width:2;vector-effect:non-scaling-stroke}
+.kartbox .st text{fill:#fff;font-family:"OS",sans-serif;font-weight:800;text-anchor:middle;dominant-baseline:central}
+.kartbox .st.klar circle{fill:var(--ok2);stroke:var(--ok2)}.kartbox .st.klar text{fill:var(--n0)}
+.kartbox .st.fel circle{fill:var(--red);stroke:var(--red)}
+.kartbox .st.nu circle{fill:#fff}.kartbox .st.nu text{fill:var(--n0)}
+.kartbox .st{opacity:0;transition:opacity .4s}.kartbox .st.syns{opacity:1}
+.kartbox .st.dubbel{display:none}
+.kartbox .hus{fill:#fff}.kartbox .st.nu .hus,.kartbox .st.klar .hus{fill:var(--n0)}
+.kartbox .bil .kaross{fill:#f4f7f9}.kartbox .bil .ruta{fill:#1b3f5d}.kartbox .bil .hjul{fill:#0a1b2a}.kartbox .bil .rand{fill:var(--red)}
+.kartbox .bil .skugga{fill:rgba(0,0,0,.45)}.kartbox .bil .ljus{fill:#ffe9a8}.kartbox .bil .ljuskon{fill:url(#ljusgrad)}
+.kor-km{display:block;margin-top:.5em;font-size:.72em;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--t3)}
+.puls{fill:none;stroke:#fff;stroke-width:2;vector-effect:non-scaling-stroke;animation:puls 1.8s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes puls{from{opacity:.9;transform:scale(1)}to{opacity:0;transform:scale(3.2)}}
+.vinjett{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 60% 50%,transparent 55%,rgba(7,19,31,.9) 100%)}
+.kalla{position:absolute;right:14px;bottom:10px;font-size:10px;color:rgba(159,184,192,.6);letter-spacing:.04em;z-index:3}
+.ruttkort{position:absolute;right:clamp(16px,2.4vw,40px);top:50%;transform:translateY(-50%);z-index:3;background:rgba(6,17,27,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:14px 18px 12px;border-left:4px solid var(--red);min-width:260px}
+.ruttkort small{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);font-weight:700}
+.ruttkort b{display:block;font-family:"OS";font-size:30px;line-height:1.05;margin:4px 0 2px}
+.ruttkort span{font-size:.62em;color:var(--t2)}
+.korlista{list-style:none;margin:14px 0 0;padding:0;font-size:.64em}
+.korlista li{display:flex;gap:8px;padding:3px 0;break-inside:avoid;color:var(--t2);white-space:nowrap}
+.korlista li b{font-family:"OS";font-size:1.25em;margin:0;color:#fff;min-width:1.6em;line-height:1.2}
+#korning{position:fixed;inset:0;z-index:30;opacity:0;pointer-events:none;transition:opacity .45s ease}
+#korning.on{opacity:1;pointer-events:auto;cursor:pointer}
+#korning.iris{pointer-events:none}
+#kor-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;opacity:0;transition:opacity .6s ease}
+#korning.film #kor-film{opacity:1}
+#korning.film #k-kor{visibility:hidden}
+#korning.film .kor-info{will-change:auto}
+#korning.film::before{background:linear-gradient(90deg,rgba(4,11,18,.85) 0%,rgba(4,11,18,.35) 40%,rgba(4,11,18,0) 65%),linear-gradient(0deg,rgba(4,11,18,.7),transparent 40%)}
+/* Körningen ses snett uppifrån, som i en navigator. */
+#k-kor{background:linear-gradient(180deg,#040b12 0%,#0a1b2a 30%,#07131f 100%)}
+#k-kor svg{transform:perspective(1300px) rotateX(50deg) scale(1.9);transform-origin:58% 60%;will-change:transform}
+#korning::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,#040b12 0%,rgba(4,11,18,.85) 16%,rgba(4,11,18,0) 44%),linear-gradient(90deg,rgba(4,11,18,.8) 0%,rgba(4,11,18,0) 42%)}
+#k-kor .ritas{stroke-width:5}
+.tel #k-kor svg{transform:perspective(900px) rotateX(42deg) scale(1.7);transform-origin:50% 40%}
+.mat{position:relative}
+.dchip{position:absolute;right:0;top:-6px;font-family:"OS",sans-serif;font-weight:800;font-size:22px;line-height:1;padding:3px 7px;color:#06111b;background:var(--ok);pointer-events:none;animation:dchip 1.7s ease-out both}
+.dchip.neg{background:var(--red);color:#fff}
+@keyframes dchip{0%{opacity:0;transform:translateY(14px) scale(.7)}18%{opacity:1;transform:translateY(0) scale(1.15)}30%{transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-22px)}}
+#start.on .kicker,#start.on .start-titel,#start.on .start-ingress,#start.on .val,#start.on .extra,#start.on .ruttkort{animation:upp .8s cubic-bezier(.2,.7,.2,1) both}
+#start.on .start-titel{animation-delay:.12s}#start.on .start-ingress{animation-delay:.3s}#start.on .val{animation-delay:.45s}#start.on .extra{animation-delay:.58s}
+#start.on .ruttkort{animation-name:uppkort;animation-delay:.7s}
+@keyframes uppkort{from{opacity:0;transform:translateY(calc(-50% + 16px))}to{opacity:1;transform:translateY(-50%)}}
+.kor-info{position:absolute;left:clamp(18px,3vw,56px);bottom:clamp(18px,3.4vw,60px);z-index:3}
+.kor-info .kicker{margin-bottom:10px}
+.kor-tid{font-size:clamp(84px,10vw,200px);display:block}
+.kor-ort{display:block;font-family:"OS";font-weight:800;text-transform:uppercase;font-size:clamp(28px,2.8vw,54px);color:var(--t2);margin-top:.1em;line-height:1}
+.hoppa{position:absolute;right:clamp(16px,2.4vw,40px);bottom:clamp(16px,2.4vw,40px);z-index:3;color:var(--t3);font-size:.66em;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:10px 12px}
+.hoppa:hover{color:#fff}
+.minikarta{position:absolute;top:clamp(14px,1.8vw,28px);right:clamp(14px,1.8vw,28px);width:clamp(150px,13vw,240px);aspect-ratio:4/3;z-index:2;box-shadow:0 0 0 1px rgba(255,255,255,.18),0 10px 30px rgba(0,0,0,.4)}
+.minikarta .kartbox{position:absolute;inset:0}
+.minikarta .vinjett{display:none}
+.slutkarta{position:relative;height:clamp(260px,28vw,420px);margin:0 0 18px;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+.tel .minikarta{display:none}
+.tel .ruttkort{display:none}
+
+/* ---------- Spel ---------- */
+#spel{background:var(--n1)}
+.topp{position:relative;z-index:5;display:flex;align-items:center;gap:clamp(12px,2vw,32px);padding:14px clamp(16px,2.4vw,40px);background:linear-gradient(var(--n0),rgba(6,17,27,.92));border-bottom:1px solid rgba(255,255,255,.07)}
+.topp .logo{height:clamp(20px,1.7vw,30px)}
+.rutt{flex:1;position:relative;height:40px;min-width:0}
+.rutt .bana{position:absolute;left:0;right:0;top:19px;height:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 8px,transparent 8px 14px)}
+.rutt .kord{position:absolute;left:0;top:18px;height:4px;background:var(--red);width:0;transition:width .9s cubic-bezier(.6,0,.2,1)}
+.stopp{position:absolute;top:12px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--n1);box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);transition:all .4s}
+.stopp.klar{background:var(--ok2);box-shadow:none}.stopp.fel{background:var(--red);box-shadow:none}
+.stopp.nu{background:var(--w);box-shadow:0 0 0 6px rgba(255,255,255,.18)}
+.stopp i{position:absolute;top:22px;left:50%;transform:translateX(-50%);font-style:normal;font-size:11px;color:var(--t3);white-space:nowrap;font-weight:700;letter-spacing:.04em}
+.bil{position:absolute;top:6px;width:30px;height:28px;margin-left:-15px;transition:left .9s cubic-bezier(.6,0,.2,1);color:var(--w)}
+.matare{display:flex;gap:clamp(10px,1.4vw,22px)}
+.mat{min-width:clamp(86px,8vw,140px)}
+.mat small{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--t3);font-weight:700;margin-bottom:5px}
+.mat .rad{height:6px;background:rgba(255,255,255,.12);position:relative;overflow:hidden}
+.mat .rad b{position:absolute;left:0;top:0;bottom:0;background:var(--ok2);transition:width .8s cubic-bezier(.4,0,.2,1),background .4s}
+.mat .tal{font-family:"OS";font-size:22px;line-height:1;margin-top:5px;font-variant-numeric:tabular-nums}
+.mat.tid .tal{color:var(--w)}
+.ikonknapp{width:44px;height:44px;display:grid;place-items:center;color:var(--t3)}
+.ikonknapp:hover{color:var(--w)}
+.ljudknapp .kryss{display:none}.ljudknapp.av .vag{display:none}.ljudknapp.av .kryss{display:inline}
+.ikonknapp svg{width:22px;height:22px}
+
+.scen{flex:1;display:grid;grid-template-columns:minmax(0,40fr) minmax(0,60fr);min-height:0;position:relative}
+.foto{position:relative;overflow:hidden;background:var(--n0)}
+.foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(1.06);transition:transform 9s ease-out,opacity .5s}
+.scen.in .foto img{transform:scale(1)}
+.foto video.lagesfilm{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .7s ease}
+.foto video.lagesfilm.on{opacity:1}
+.slut-bg{position:absolute;left:0;right:0;top:0;height:min(86vh,900px);overflow:hidden;pointer-events:none}
+.slut-bg video{width:100%;height:100%;object-fit:cover;opacity:.5}
+.slut-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,17,27,0) 0,rgba(6,17,27,0) 35%,#06111b 100%),linear-gradient(90deg,rgba(6,17,27,.86) 0,rgba(6,17,27,.5) 55%,rgba(6,17,27,.25) 100%)}
+@media print{.slut-bg{display:none}}
+.foto::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,17,27,.55) 0%,transparent 30%,transparent 55%,rgba(6,17,27,.92) 100%)}
+.foto .ill{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(80% 60% at 50% 40%,var(--n4),var(--n0))}
+.foto .ill svg{width:62%;height:auto;max-height:70%}
+.foto-info{position:absolute;left:clamp(16px,2.4vw,40px);right:clamp(16px,2.4vw,40px);bottom:clamp(16px,2.6vw,44px);z-index:2}
+.klocka{font-size:clamp(70px,8.4vw,170px);color:var(--w);display:block}
+.tjanst{display:inline-block;margin-top:.6em;padding:.35em .7em;background:var(--red);font-weight:700;font-size:.72em;letter-spacing:.12em;text-transform:uppercase}
+.nr{position:absolute;top:clamp(16px,2vw,32px);left:clamp(16px,2.4vw,40px);z-index:2;font-size:.66em;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--t2)}
+
+.text{position:relative;overflow-y:auto;padding:clamp(20px,3vw,56px) clamp(18px,3.4vw,64px) 120px;scrollbar-width:thin}
+.rubrik{font-size:clamp(40px,4.4vw,92px);margin:0 0 .28em}
+.lage{color:var(--t2);margin:0 0 1.1em;max-width:40em;font-size:1.04em}
+.alts{display:flex;flex-direction:column;gap:12px}
+.alt{position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:start;gap:16px;text-align:left;padding:16px 18px;background:var(--n3);box-shadow:inset 0 0 0 2px transparent;transition:background .2s,box-shadow .2s,opacity .4s,transform .2s;clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)}
+.alt:hover{background:var(--n4)}
+.alt .bok{font-family:"OS";font-size:1.7em;line-height:1;width:1.25em;text-align:center;color:var(--t3);transition:color .2s}
+.alt .txt{padding-top:.12em}
+.alt.vald{background:var(--n4);box-shadow:inset 0 0 0 2px var(--w)}
+.alt.vald .bok{color:var(--w)}
+.roster{display:flex;align-items:center;gap:4px;align-self:center}
+.roster button{width:36px;height:36px;display:grid;place-items:center;background:rgba(255,255,255,.07);font-weight:700;font-size:20px;line-height:1}
+.roster button:hover{background:rgba(255,255,255,.16)}
+.roster b{min-width:2ch;text-align:center;font-family:"OS";font-size:1.5em;font-variant-numeric:tabular-nums}
+.alt .stapel{position:absolute;left:0;bottom:0;height:4px;background:var(--t3);width:0;transition:width .5s}
+.alt .kons{grid-column:2 / 4;display:none;color:var(--t2);font-size:.92em;border-top:1px solid rgba(255,255,255,.12);padding-top:10px;margin-top:2px}
+.visat .alt{cursor:default}
+.visat .alt .kons{display:block}
+.visat .alt.ratt{background:rgba(98,195,164,.16);box-shadow:inset 0 0 0 2px var(--ok)}
+.visat .alt.ratt .bok{color:var(--ok)}
+.visat .alt.vald:not(.ratt){background:rgba(229,47,25,.14);box-shadow:inset 0 0 0 2px var(--red)}
+.visat .alt.vald:not(.ratt) .bok{color:var(--red2)}
+.visat .alt:not(.ratt):not(.vald){opacity:.62}
+.tagg{display:inline-block;font-size:.62em;letter-spacing:.16em;text-transform:uppercase;font-weight:700;padding:3px 7px;margin-left:10px;vertical-align:.2em}
+.tagg.ok{background:var(--ok);color:var(--n0)}.tagg.no{background:var(--red)}
+.svar{display:none;margin-top:26px;display:none;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:22px}
+.visat .svar{display:grid;animation:upp .5s ease both .15s}
+@keyframes upp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.foto .svar{position:absolute;inset:0;z-index:3;padding:clamp(20px,2.6vw,48px);background:rgba(6,17,27,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);grid-template-columns:1fr;align-content:center;margin:0;gap:18px}
+.foto .svar .panel{background:rgba(20,49,74,.7)}
+.visat .foto-info,.visat .nr{opacity:0;transition:opacity .3s}
+.panel{background:var(--n2);padding:20px 22px;border-left:5px solid var(--ok)}
+.panel.v{border-left-color:var(--red)}
+.panel h3{margin:0 0 10px;font-family:"OS";font-weight:800;text-transform:uppercase;font-size:1.5em;letter-spacing:.02em;line-height:1}
+.panel ol{margin:0;padding-left:1.2em;color:var(--t2)}
+.panel ol li{margin:.35em 0;padding-left:.2em}
+.panel p{margin:0;color:var(--t2)}
+.risk{display:none;margin-top:14px;padding:12px 14px;background:var(--red);font-weight:700}
+.visat .risk.on{display:block}
+
+.styr{position:absolute;left:40%;right:0;bottom:0;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px clamp(18px,3.4vw,64px) calc(16px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--n1) 40%)}
+.hint{color:var(--t3);font-size:.68em}
+.hint kbd{font-family:inherit;font-weight:700;color:var(--t2);padding:1px 6px;border:1px solid rgba(255,255,255,.25);margin:0 2px}
+
+/* ---------- Slut ---------- */
+#slut{background:var(--n0);overflow-y:auto}
+.slut-in{position:relative;padding:clamp(22px,4vw,64px);max-width:1280px;margin:0 auto;width:100%}
+.slut-titel{font-size:clamp(56px,8vw,150px);margin:.15em 0 .2em}
+.betyg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:10px 0 28px}
+.betyg div{background:var(--n2);padding:16px 18px}
+.betyg b{display:block;font-family:"OS";font-size:clamp(40px,4vw,72px);line-height:1}
+.delt{margin-top:14px;max-width:34em;pointer-events:auto}
+.delt summary{cursor:pointer;color:var(--t2);font-weight:700;font-size:.82em;letter-spacing:.06em;list-style:none;display:inline-flex;align-items:center;gap:10px;padding:8px 0}
+.delt summary::-webkit-details-marker{display:none}.delt summary::before{content:"+";display:inline-grid;place-items:center;width:22px;height:22px;background:var(--n3);color:var(--w)}
+.delt[open] summary::before{content:"−"}
+.delt textarea{width:100%;min-height:74px;background:var(--n2);border:2px solid var(--n4);color:var(--w);font:400 .9em "OS",sans-serif;padding:10px 12px;resize:vertical}
+.delt textarea:focus{outline:none;border-color:var(--red)}.delt small{color:var(--t3);display:block;margin-top:6px}
+.tel .delt{display:none}
+#start:has(.delt[open]) .start-ingress{display:none}
+#valk{position:absolute;right:clamp(24px,5vw,90px);top:clamp(24px,7vh,90px);z-index:5;text-align:right;pointer-events:none;display:none}
+#valk.on{display:block}
+#valk::before{content:"";position:absolute;inset:-18% -30% -22% -55%;z-index:-1;background:radial-gradient(ellipse at 70% 45%,rgba(6,17,27,.82) 0,rgba(6,17,27,.55) 45%,rgba(6,17,27,0) 72%)}
+#valk small{display:block;color:var(--t2);font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:clamp(11px,.9vw,16px);margin-bottom:.6em;opacity:0;animation:valkin .8s .4s ease-out forwards}
+#valk b{display:block;font-family:"OS";font-weight:800;line-height:.95;font-size:clamp(34px,4.4vw,84px);text-transform:uppercase;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6);opacity:0;transform:translateX(40px);animation:valkin .7s cubic-bezier(.2,.8,.2,1) forwards}
+#valk b.liten{font-size:clamp(24px,2.8vw,54px)}
+@keyframes valkin{to{opacity:1;transform:none}}
+/* 1. Logga-intro */
+#ident{position:fixed;inset:0;z-index:180;background:#000;display:none;place-items:center;overflow:hidden;cursor:pointer}
+#ident.on{display:grid}
+#ident i{position:absolute;left:50%;top:50%;width:46vmin;height:9vmin;background:var(--red);transform-origin:center;opacity:0}
+#ident.on .s1{animation:idstreck 1.1s cubic-bezier(.7,0,.2,1) .05s both;--r:-58deg;--x:-160vmax}
+#ident.on .s2{animation:idstreck 1.1s cubic-bezier(.7,0,.2,1) .2s both;--r:-58deg;--x:160vmax;background:#ff5a40}
+#ident.on .s3{animation:idstreck 1.1s cubic-bezier(.7,0,.2,1) .35s both;--r:-58deg;--x:-160vmax;background:#b8200f}
+@keyframes idstreck{0%{opacity:1;transform:translate(-50%,-50%) rotate(var(--r)) translateX(var(--x)) scaleX(2.4)}55%{opacity:1;transform:translate(-50%,-50%) rotate(var(--r)) translateX(0) scaleX(1)}80%{opacity:1;transform:translate(-50%,-50%) rotate(var(--r)) translateX(0) scaleX(.15)}100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--r)) translateX(0) scaleX(0)}}
+#ident img{position:relative;height:clamp(40px,7vmin,96px);opacity:0}
+#ident.on img{animation:idlogo 1.6s cubic-bezier(.2,.8,.2,1) 1.05s both}
+@keyframes idlogo{0%{opacity:0;transform:scale(1.25);filter:blur(14px)}35%{opacity:1;filter:blur(0)}80%{opacity:1;transform:scale(1)}100%{opacity:1;transform:scale(.98)}}
+.id-rad{position:absolute;left:50%;top:calc(50% + clamp(36px,6vmin,80px));height:3px;width:min(34vw,360px);background:var(--red);transform:translateX(-50%) scaleX(0)}
+#ident.on .id-rad{animation:idrad .9s cubic-bezier(.7,0,.2,1) 1.5s both}
+@keyframes idrad{to{transform:translateX(-50%) scaleX(1)}}
+#ident.ut{animation:idut .5s ease-in forwards}
+@keyframes idut{to{opacity:0}}
+/* 2. Titelsekvens */
+.start-titel .ord{display:inline-block;font:inherit}
+#start:not(.titel) .start-titel .ord{clip-path:inset(0 0 100% 0)}
+#start.on .start-titel{animation:none}
+#start.on.titel .start-titel .ord{animation:ordin .75s cubic-bezier(.2,.8,.2,1) both}
+#start.on.titel .start-titel .ord:nth-of-type(1){animation-delay:.25s}#start.on.titel .start-titel .ord:nth-of-type(2){animation-delay:.45s}#start.on.titel .start-titel .ord:nth-of-type(3){animation-delay:.75s}
+#start.on.titel .start-titel span.ord{animation:ordin .9s cubic-bezier(.2,.8,.2,1) 1.05s both,ordglod 2.4s ease-out 1.6s both}
+@keyframes ordin{from{clip-path:inset(0 0 100% 0);transform:translateY(.35em)}to{clip-path:inset(-10% -5% -10% -5%);transform:none}}
+@keyframes ordglod{0%{text-shadow:0 0 0 rgba(229,47,25,0)}30%{text-shadow:0 0 60px rgba(229,47,25,.65)}100%{text-shadow:0 0 0 rgba(229,47,25,0)}}
+/* 3. Filmisk finish */
+#korn{position:fixed;inset:0;z-index:170;pointer-events:none;opacity:.035;background-size:180px 180px}
+body:has(#korning.on) #korn,body:has(#slut.on) #korn,body:has(#kapitel.on) #korn,body:has(#ident.on) #korn{display:none}
+.tel #korn{display:none}
+@keyframes korn{0%{transform:translate(0,0)}25%{transform:translate(-23px,14px)}50%{transform:translate(17px,-21px)}75%{transform:translate(-11px,-9px)}100%{transform:translate(0,0)}}
+#lacka{position:fixed;left:-60vw;top:-30vh;width:160vw;height:160vh;z-index:60;pointer-events:none;opacity:0;mix-blend-mode:screen;background:radial-gradient(closest-side at 30% 40%,rgba(255,120,50,.5),rgba(255,90,40,.18) 55%,rgba(255,90,40,0) 100%),radial-gradient(closest-side at 38% 75%,rgba(229,47,25,.38),rgba(229,47,25,0) 100%)}
+#lacka{display:none}#lacka.go{display:block;animation:lacka 1.3s ease-out forwards}
+@keyframes lacka{0%{opacity:0;transform:translateX(-12vw)}25%{opacity:.9}100%{opacity:0;transform:translateX(40vw)}}
+#korning .band{position:absolute;left:0;right:0;height:clamp(28px,7.5vh,90px);background:#000;z-index:4;transform:scaleY(0);transition:transform .7s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+#korning .band.ov{top:0;transform-origin:top}#korning .band.ne{bottom:0;transform-origin:bottom}
+#korning.on .band{transform:scaleY(1)}
+.tel #korning .band{display:none}
+/* 4. Rubriker i TV-stil */
+.scen.in .foto-info .klocka{animation:tvklocka .7s cubic-bezier(.2,.8,.2,1) .15s both}
+.scen.in .foto-info .tjanst{animation:tvband .6s cubic-bezier(.7,0,.2,1) .45s both}
+@keyframes tvklocka{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}
+@keyframes tvband{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.scen.in .rubrik{animation:tvrubrik .7s cubic-bezier(.2,.8,.2,1) .2s both}
+@keyframes tvrubrik{from{opacity:0;clip-path:inset(0 0 100% 0);transform:translateY(.3em)}to{opacity:1;clip-path:inset(-10% -2% -10% -2%);transform:none}}
+.scen.in .lage{animation:upp .6s ease-out .45s both}.scen.in #alts{animation:upp .6s ease-out .6s both}
+@media (prefers-reduced-motion:reduce){#korn,#lacka.go,.scen.in .foto-info .klocka,.scen.in .foto-info .tjanst,.scen.in .rubrik,.scen.in .lage,.scen.in #alts,#start .start-titel .ord{animation:none!important;clip-path:none!important}#korning .band{transition:none}}
+@media print{#korn,#lacka,#ident{display:none!important}}
+/* Diskussionsläge */
+.diskruta,.altrubrik{display:none}
+.lagesval{display:flex;align-items:center;gap:8px;margin-top:14px;pointer-events:auto;font-size:.8em;color:var(--t3);font-weight:700;flex-wrap:wrap}
+.lagesval button{padding:.5em .9em;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 2px rgba(255,255,255,.2);color:var(--t2);font-weight:700}
+.lagesval button.on{background:var(--red);box-shadow:none;color:#fff}
+.tel .lagesval{display:none}
+body.disk .roster{display:none}
+body.disk #spel.fas-alt #alts{animation:upp .35s ease-out both}
+body.disk .visat .lage{display:none}
+body.disk .visat .rubrik{font-size:clamp(30px,3vw,64px)}
+body.disk .text .svar .panel{padding:14px 18px;font-size:.94em}
+body.disk .text .svar .panel h3{font-size:1.3em;margin-bottom:6px}
+body.disk .text .svar .panel ol li{margin:.2em 0}
+body.disk .visat .alt{padding-top:12px;padding-bottom:12px}
+body.disk .text{padding-bottom:96px}
+body.disk .visat .fe-box{display:none}
+body.disk .visat .alt{font-size:.92em}
+body.disk .visat .alt.vald:not(.ratt) .kons,body.disk .visat .alt.ratt .kons{font-size:.92em}
+body.disk .text .svar{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
+@media (max-height:860px){
+  .start-titel{font-size:clamp(56px,min(11vw,14.5vh),190px);margin:.1em 0 .08em}
+  .start-ingress{font-size:.92em}.val{margin-top:.9em}.lagesval,.delt,#start .extra{margin-top:8px}
+  .start-inner{padding-top:22px;padding-bottom:14px}
+  body.disk .visat .rubrik{font-size:clamp(26px,2.6vw,48px)}body.disk .text .svar{gap:12px;margin-top:12px}
+  body.disk .text .svar .panel{font-size:.86em;padding:10px 14px}
+}
+body.disk #spel.fas-lage .scen{grid-template-columns:minmax(0,58fr) minmax(0,42fr)}
+body.disk #spel.fas-lage .styr{left:58%}
+body.disk #spel.fas-lage #alts{display:none}
+body.disk #spel.fas-lage .diskruta{display:block;margin-top:1.4em;background:var(--n2);border-left:5px solid var(--red);padding:20px 24px;animation:upp .6s ease-out .5s both}
+.diskruta b{display:block;font-size:1.7em;margin-bottom:.35em}
+.diskruta ul{margin:0;padding:0;list-style:none;color:var(--t2);font-size:1.08em}
+.diskruta li{padding:.28em 0 .28em 1.5em;position:relative}.diskruta li::before{content:"";position:absolute;left:0;top:.85em;width:.8em;height:3px;background:var(--red)}
+body.disk #spel.fas-alt .altrubrik{display:block;margin:0 0 .7em;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.72em;color:var(--t3)}
+body.disk #spel.fas-lage .lage{font-size:1.12em}
+body.disk .visat .alt:not(.ratt):not(.vald){display:none}
+body.disk .text .svar{margin-top:18px}
+body.disk .visat .foto-info,body.disk .visat .nr{opacity:1}
+body.disk .vem span{display:none}
+#slut.disk .betyg{display:none}
+@media (min-width:900px){.tel #spel .scen{max-width:600px;margin:0 auto;width:100%}.tel #spel .styr{left:50%;right:auto;width:600px;max-width:100%;transform:translate(-50%,110%)}.tel .visat~.styr,.tel #spel.svarat .styr{transform:translateX(-50%)}}
+#morkt{position:fixed;inset:0;z-index:200;background:#000;display:none;place-items:center;cursor:none}
+#morkt.on{display:grid;animation:spotin .4s ease-out}#morkt .logo{height:clamp(22px,2.4vw,40px);opacity:.18}
+#hjalp{position:fixed;inset:0;z-index:150;display:none;place-items:center;background:rgba(3,8,13,.86);backdrop-filter:blur(6px)}
+#hjalp.on{display:grid}.hj-in{background:var(--n2);padding:clamp(22px,3vw,48px);max-width:980px;width:calc(100% - 32px);border-left:4px solid var(--red)}
+.hj-in h2{font-size:clamp(34px,3.4vw,60px);margin:0 0 .5em}.hj-in dl{display:grid;grid-template-columns:max-content 1fr;gap:12px 22px;margin:0;align-items:center}
+.hj-in dt{white-space:nowrap}.hj-in dd{margin:0;color:var(--t2)}.hj-in p{color:var(--t3);font-size:.85em;margin:1.4em 0 0}
+.hj-in kbd,.delt kbd{font:700 .78em "OS",sans-serif;border:1px solid rgba(255,255,255,.4);padding:.15em .5em;background:rgba(255,255,255,.06)}
+body.dold-mus,body.dold-mus *{cursor:none!important}
+#nedrakning{position:absolute;right:clamp(16px,1.6vw,30px);bottom:clamp(16px,2vw,34px);z-index:6;width:clamp(120px,10vw,190px);aspect-ratio:1;display:none;place-items:center;text-align:center;pointer-events:none}
+#nedrakning.on{display:grid}
+#nedrakning::before{content:"";position:absolute;inset:6%;border-radius:50%;background:rgba(6,17,27,.72)}
+#nedrakning i{position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--red) calc(var(--k,1)*360deg),rgba(255,255,255,.1) 0);-webkit-mask:radial-gradient(circle,transparent 62%,#000 63%);mask:radial-gradient(circle,transparent 62%,#000 63%)}
+#nedrakning b{position:relative;font-family:"OS";font-weight:800;font-size:clamp(54px,5vw,96px);line-height:1;grid-area:1/1;margin-top:-.18em}
+#nedrakning small{position:relative;grid-area:1/1;align-self:end;margin-bottom:22%;font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:clamp(9px,.7vw,13px);color:var(--t2)}
+#nedrakning.sista b{color:var(--red2);animation:spotpop .3s}
+#nedrakning.slut b{font-size:clamp(28px,2.4vw,46px)}
+.tel #nedrakning{display:none!important}
+#huvud.spanning{animation:pulsknapp .85s ease-in-out}
+@keyframes pulsknapp{0%,100%{transform:none}50%{transform:scale(1.05)}}
+#gag{position:absolute;inset:0;z-index:32;display:none;background:#03080d;overflow:hidden;cursor:pointer}
+#gag.on{display:block;animation:spotin .3s ease-out}
+.gag-bak{position:absolute;left:-6%;top:-6%;width:112%;height:112%;object-fit:cover;filter:blur(26px) brightness(.42) saturate(1.1)}.tel .gag-bak{display:none}
+#gag.stilla video{display:none}#gag.stilla .gag-bak{filter:none;left:0;top:0;width:100%;height:100%;object-fit:contain;display:block}
+#gag video{box-shadow:0 0 80px rgba(0,0,0,.7);position:absolute;left:50%;top:0;height:100%;transform:translateX(-50%);max-width:100%;object-fit:contain}
+.gag-skugga{position:absolute;inset:0;pointer-events:none;background:linear-gradient(0deg,rgba(3,8,13,.92) 0,rgba(3,8,13,0) 38%),linear-gradient(180deg,rgba(3,8,13,.7) 0,rgba(3,8,13,0) 18%)}
+.gag-kicker{position:absolute;left:0;right:0;top:clamp(18px,3.4vh,44px);text-align:center;color:var(--t2);font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:clamp(11px,1vw,18px);padding:0 16px}
+.gag-stampel{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) rotate(-9deg) scale(3);opacity:0;color:var(--red2);border:clamp(5px,.7vw,12px) solid var(--red2);padding:.08em .3em .02em;font-size:clamp(46px,9vw,180px);white-space:nowrap;background:rgba(3,8,13,.35);text-shadow:0 4px 0 rgba(0,0,0,.35)}
+#gag.stamplad .gag-stampel{animation:stampel .38s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes stampel{0%{opacity:0;transform:translate(-50%,-50%) rotate(-9deg) scale(3)}60%{opacity:1;transform:translate(-50%,-50%) rotate(-9deg) scale(.94)}100%{opacity:1;transform:translate(-50%,-50%) rotate(-9deg) scale(1)}}
+#gag.stamplad video{animation:skak .35s linear}
+@keyframes skak{0%,100%{translate:0 0}25%{translate:-10px 0}50%{translate:8px 0}75%{translate:-4px 0}}
+.gag-regel{position:absolute;left:0;right:0;bottom:clamp(86px,13vh,150px);text-align:center;margin:0;padding:0 20px;font-size:clamp(17px,1.9vw,36px);font-weight:700;opacity:0;transition:opacity .5s .9s}
+#gag-vidare{position:absolute;left:50%;bottom:clamp(18px,3.4vh,44px);transform:translateX(-50%);opacity:0;transition:opacity .5s 1.3s}
+#gag.stamplad .gag-regel,#gag.stamplad #gag-vidare{opacity:1}
+#snabb{position:absolute;inset:0;z-index:31;box-sizing:border-box;display:none;place-items:center;text-align:center;padding:clamp(18px,4vw,70px);background:radial-gradient(ellipse at 50% 40%,#3a0f09 0,#14080a 45%,#03080d 100%);overflow:auto}
+#snabb.on{display:grid;grid-template-columns:minmax(0,1fr);animation:spotin .25s ease-out}
+#snabb>div{display:none;max-width:1200px;width:100%;min-width:0;justify-self:center}#snabb.f-ring .sn-ring,#snabb.f-fraga .sn-fraga,#snabb.f-dom .sn-fraga,#snabb.f-slut .sn-slut{display:block}
+#snabb small{display:block;color:var(--t2);font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:clamp(11px,1vw,18px)}
+#snabb p{color:var(--t2);font-size:clamp(16px,1.5vw,28px);margin:.4em 0 1.2em}
+.sn-ring b,.sn-slut b{display:block;font-size:clamp(60px,10vw,200px);margin:.12em 0 .05em}
+.sn-tel{width:clamp(90px,10vw,170px);height:clamp(90px,10vw,170px);margin:0 auto 1.2em;border-radius:50%;background:var(--red);display:grid;place-items:center;color:#fff;animation:snskak 1s ease-in-out infinite;box-shadow:0 0 0 0 rgba(229,47,25,.7)}
+.sn-tel svg{width:52%}
+@keyframes snskak{0%,100%{transform:rotate(0);box-shadow:0 0 0 0 rgba(229,47,25,.6)}10%,30%{transform:rotate(-13deg)}20%,40%{transform:rotate(13deg)}50%{transform:rotate(0)}70%{box-shadow:0 0 0 46px rgba(229,47,25,0)}}
+.sn-topp{display:flex;justify-content:center;align-items:center;gap:14px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:clamp(12px,1.05vw,20px);color:var(--t2)}
+.sn-topp i{font-style:normal;background:var(--red);color:#fff;padding:.3em .8em;letter-spacing:.14em}.sn-topp i:empty{display:none}
+.sn-tid{height:8px;background:rgba(255,255,255,.12);margin:18px auto 0;max-width:900px;overflow:hidden}.sn-tid b{display:block;height:100%;width:100%;background:var(--red2);transform-origin:left}
+#sn-text{font-size:clamp(34px,5.2vw,104px);margin:.45em 0 .5em;line-height:1}
+.sn-knappar{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+.sn-knappar .knapp{min-width:min(38vw,300px);justify-content:center;font-size:clamp(20px,2vw,38px);min-height:clamp(64px,7vw,110px)}
+.sn-knappar kbd,#snabb kbd{font:700 .5em "OS",sans-serif;border:1px solid rgba(255,255,255,.5);padding:.15em .5em;margin-left:.4em;opacity:.8}
+.sn-r{background:#1f8a4c}.sn-f{background:var(--red)}
+.tel #snabb kbd{display:none}
+.sn-dom,#sn-nasta{display:none}
+#snabb.f-dom .sn-dom{display:block;margin:0 auto 1.2em;max-width:900px}#snabb.f-dom #sn-nasta{display:inline-flex}#snabb.f-dom .sn-knappar,#snabb.f-dom .sn-tid{display:none}
+#sn-utfall{display:block;font-size:clamp(40px,5vw,96px);animation:spotpop .45s cubic-bezier(.2,1.5,.4,1)}
+#snabb.ok #sn-utfall{color:var(--ok)}#snabb.nej #sn-utfall{color:var(--red2)}
+#sn-fakta{display:block;color:var(--t2);font-size:clamp(16px,1.6vw,30px);margin-top:.4em}
+@media (prefers-reduced-motion:reduce){.sn-tel,#sn-utfall{animation:none}}
+#spot{position:absolute;inset:0;z-index:30;display:none;place-items:center;text-align:center;background:radial-gradient(ellipse at 50% 46%,#14314a 0,#06111b 46%,#03080d 100%);cursor:pointer}
+#spot.on{display:grid;animation:spotin .25s ease-out}
+@keyframes spotin{from{opacity:0}}
+#spot .kon{position:absolute;left:50%;top:-10%;width:min(90vw,1100px);height:120%;transform:translateX(-50%);background:conic-gradient(from 180deg at 50% 0,transparent 162deg,rgba(255,255,255,.10) 172deg,rgba(255,255,255,.16) 180deg,rgba(255,255,255,.10) 188deg,transparent 198deg);pointer-events:none;animation:konsvep 1.5s ease-in-out}
+@keyframes konsvep{0%{transform:translateX(-50%) rotate(-16deg)}35%{transform:translateX(-50%) rotate(13deg)}70%{transform:translateX(-50%) rotate(-6deg)}100%{transform:translateX(-50%) rotate(0)}}
+#spot .in{position:relative}
+#spot small{display:block;color:var(--t3);font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:clamp(11px,1vw,18px)}
+#spot b{display:block;font-family:"OS";font-weight:800;text-transform:uppercase;line-height:.9;font-size:clamp(70px,13vw,260px);margin:.12em 0 .1em;color:var(--t3);filter:blur(2px);transition:none}
+#spot.klar b{color:#fff;filter:none;animation:spotpop .5s cubic-bezier(.2,1.5,.4,1)}
+@keyframes spotpop{from{transform:scale(.82)}}
+#spot em{display:block;font-style:normal;font-family:"OS";font-weight:800;text-transform:uppercase;font-size:clamp(26px,3.4vw,66px);color:var(--red);opacity:0}
+#spot.klar em{opacity:1;transition:opacity .3s .15s}
+.vem{display:none;align-items:center;gap:10px;margin:0 0 .5em;font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.68em;color:var(--t2)}
+.vem.on{display:inline-flex}.vem i{font-style:normal;background:var(--red);color:#fff;padding:.3em .7em}.vem span{color:var(--t3)}
+.pall{margin:0 0 34px}
+.pall-rad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end;max-width:900px;min-height:300px}
+.pall-rad:has(.p1:only-child){grid-template-columns:minmax(0,1fr)}.pall-rad .p1:only-child{height:auto;min-height:300px}
+.pall-rad div{background:var(--n2);padding:16px 18px 18px;display:flex;flex-direction:column;justify-content:flex-end;transform-origin:bottom;animation:pallupp .9s cubic-bezier(.2,.8,.2,1) both}
+.pall-rad .p1{height:300px;background:linear-gradient(180deg,#e52f19,#8f1c0e);animation-delay:1.2s;order:2}
+.pall-rad .p2{height:220px;animation-delay:.7s;order:1}.pall-rad .p3{height:160px;animation-delay:.3s;order:3}
+@keyframes pallupp{from{transform:scaleY(0);opacity:0}}
+.pall-rad small{font-weight:700;letter-spacing:.2em;font-size:.62em;color:rgba(255,255,255,.75)}
+.pall-rad b{font-family:"OS";font-weight:800;text-transform:uppercase;line-height:.95;font-size:clamp(30px,3.4vw,64px);overflow-wrap:anywhere}
+.pall-rad .manga b{font-size:clamp(20px,2.1vw,40px)}.pall-rad div{min-height:max-content}
+.pall-rad span{color:rgba(255,255,255,.85);font-weight:700}
+.pall-ovr{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px 22px;color:var(--t2)}.pall-ovr b{color:#fff}
+@media (prefers-reduced-motion:reduce){#valk small,#valk b,.pall-rad div,#spot .kon,#spot.klar b{animation:none;opacity:1;transform:none}}
+#konfetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40}
+@media print{#konfetti{display:none!important}}
+.betyg small{color:var(--t3);font-size:.62em;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+.tva{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:start}
+.regler{counter-reset:r;list-style:none;margin:0;padding:0}
+.regler li{counter-increment:r;position:relative;padding:12px 0 12px 54px;border-top:1px solid rgba(255,255,255,.1);color:var(--t2)}
+.regler li::before{content:counter(r,decimal-leading-zero);position:absolute;left:0;top:8px;font-family:"OS";font-size:1.7em;color:var(--red)}
+.kod{font-family:"OS";font-size:clamp(46px,7vw,96px);letter-spacing:.06em;background:var(--n2);padding:.25em .4em;display:inline-block;margin:.2em 0;border-left:6px solid var(--red)}
+.dagbok{width:100%;border-collapse:collapse;font-size:.82em}
+.dagbok td{padding:8px 6px;border-top:1px solid rgba(255,255,255,.08);vertical-align:top}
+.dagbok td:first-child{font-family:"OS";font-size:1.3em;color:var(--t3);width:3.2em}
+.prick{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:-1px}
+textarea{width:100%;min-height:110px;background:var(--n2);color:var(--w);border:1px solid rgba(255,255,255,.2);padding:12px;font:inherit;font-size:.85em}
+.stat td:last-child{width:45%}
+.stat .r{height:10px;background:rgba(255,255,255,.1);position:relative}
+.stat .r b{position:absolute;left:0;top:0;bottom:0;background:var(--ok2)}
+h2.sek{font-family:"OS";text-transform:uppercase;font-size:clamp(28px,2.6vw,46px);margin:0 0 10px;line-height:1}
+
+/* ---------- Telefon ---------- */
+.tel .topp{padding:10px 14px;gap:12px}
+.tel .topp .logo{display:none}
+.tel .rutt{height:30px}
+.tel .stopp{display:none}
+.tel .styr{transform:translateY(110%);transition:transform .35s ease}.tel .visat~.styr,.tel #spel.svarat .styr{transform:none}
+.tel .alt{gap:12px;padding:14px 14px}.tel .alt .bok{width:1em}
+.tel .rutt .bana{top:18px}.tel .rutt .kord{top:17px}
+.tel .bil{width:22px;height:20px;margin-left:-11px;top:4px}
+.tel .matare{gap:10px}.tel .mat{min-width:58px}.tel .mat .tal{font-size:17px}.tel .mat small{font-size:8.5px;letter-spacing:.1em}
+.tel .scen{display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
+.tel .foto{touch-action:pan-y;isolation:isolate}.tel .foto video,.tel .foto img{pointer-events:none}
+.tel .scen.in .rubrik,.tel .scen.in .lage,.tel .scen.in #alts,.tel .scen.in .foto-info .klocka,.tel .scen.in .foto-info .tjanst{animation:none}
+.tel .foto{height:30vh;min-height:190px}
+.tel .klocka{font-size:68px}
+.tel .text{overflow:visible;padding:20px 16px 110px}
+.tel .rubrik{font-size:44px}
+.tel .roster{display:none}
+.tel .alt{grid-template-columns:auto 1fr}
+.tel .alt .kons{grid-column:2}
+.tel .svar{grid-template-columns:1fr}
+.tel .styr{left:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.tel .hint{display:none}
+.tel .betyg{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tel .tva{grid-template-columns:1fr}
+.tel .styr .knapp{width:100%;justify-content:center}
+@media (max-width:760px){
+  .ruttkort{display:none}
+  #k-start .ort,.kartbox .ort.s1,.kartbox .ort.s0,.kartbox .vatten{display:none}
+  .start-skugga{background:linear-gradient(180deg,rgba(6,17,27,0) 0%,rgba(6,17,27,.05) 26%,rgba(6,17,27,.95) 37%,rgba(6,17,27,1) 50%)}
+  .start-inner{justify-content:flex-end;gap:18px}
+  .start-inner>header{position:absolute;top:20px;left:20px}
+  .start-titel{font-size:76px}
+  .val .knapp{width:100%;justify-content:center}
+  .fot{display:none}
+  .wipe .lbl{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media print{#start,#spel,.ikonknapp,.styr,#kodruta{display:none!important}#slut{position:static;opacity:1}body{background:#fff;color:#000}}
+__KAPITEL_CSS__
+.fe-box{grid-column:1/-1}
+.fe-box:empty{display:none}
+.foto .svar{overflow-y:auto}
+
+/* ---- Nanostone-profil: Open Sans genomgående, rubriker i normal skrift ---- */
+.kor-ort,.panel h3,#valk b,#spot b,#spot em,.pall-rad b,h2.sek{text-transform:none!important;letter-spacing:-.01em}
+.start-titel{font-size:clamp(52px,7.4vw,132px);line-height:1.02;letter-spacing:-.03em}
+.kor-tid{font-size:clamp(64px,7vw,138px);letter-spacing:-.03em;line-height:1}
+.kor-ort{font-size:clamp(22px,2vw,38px)}
+.klocka{font-size:clamp(54px,5.8vw,116px);letter-spacing:-.03em;line-height:1}
+.rubrik{font-size:clamp(30px,2.9vw,58px);line-height:1.1}
+.slut-titel{font-size:clamp(44px,5.4vw,104px);letter-spacing:-.03em}
+.panel h3{font-size:1.15em;letter-spacing:0}
+h2.sek{font-size:clamp(22px,1.8vw,34px)}
+.diskruta b{font-size:1.35em}
+#spot b{font-size:clamp(56px,8.6vw,176px);letter-spacing:-.03em;line-height:1}
+#spot em{font-size:clamp(22px,2.4vw,46px)}
+#valk b{font-size:clamp(28px,3.2vw,62px);letter-spacing:-.02em;line-height:1.08}
+#valk b.liten{font-size:clamp(20px,2.1vw,40px)}
+.sn-ring b,.sn-slut b{font-size:clamp(48px,6.6vw,132px);letter-spacing:-.03em}
+#sn-text{font-size:clamp(28px,3.4vw,68px);line-height:1.12}
+#sn-utfall{font-size:clamp(30px,3.4vw,64px)}
+.pall-rad b{font-size:clamp(24px,2.4vw,46px)}
+.hj-in h2{font-size:clamp(28px,2.4vw,44px)}
+.alt .bok{font-size:1.35em}
+.mat .tal{font-size:19px}
+.betyg b{font-size:clamp(32px,3vw,56px)}
+.gag-stampel{text-transform:uppercase;font-size:clamp(38px,6.4vw,128px);letter-spacing:.02em}
+.start-ingress{margin-top:1.1em}
+@media (max-width:760px){.start-skugga{background:linear-gradient(180deg,rgba(6,17,27,.6) 0,rgba(6,17,27,.94) 22%,rgba(6,17,27,.97) 100%)}}
+.tel .klocka{font-size:52px}.tel .rubrik{font-size:32px}.tel .start-titel{font-size:54px}
+/* Mätarna har ingen funktion i diskussionsläget */
+body.disk #spel .matare{visibility:hidden}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- START -->
+<section id="start" class="screen on" aria-label="Start">
+  <div class="kartbox" id="k-start"></div>
+  <div class="start-skugga"></div>
+  <div class="start-inner">
+    <header><img class="logo" src="__LOGO__" alt="Nanostone"></header>
+    <div>
+      <div class="kicker">Onboarding · Drift</div>
+      <h1 class="start-titel bsd"><b class="ord">En</b> <b class="ord">dag</b><br><b class="ord">på</b> <span class="ord">rutten</span></h1>
+      <p class="start-ingress">Från morgonen hemma till sista bilden i Diroto. Första kunden klockan sju. Under dagen dyker det upp lägen som alla operatörer råkar ut för. Välj vad du gör, och se vad som händer.</p>
+      <div class="val">
+        <button class="knapp" id="go-grupp" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="13" rx="1"/><path d="M8 21h8M12 17v4"/></svg>Spela i grupp på storskärm</button>
+        <button class="knapp sek" id="go-tel" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>Spela själv</button>
+      </div>
+      <button class="knapp sek hidden" id="fortsatt" type="button" style="margin-top:14px">Fortsätt där du var</button>
+      <div class="lagesval" id="lagesval" role="group" aria-label="Upplägg i grupp"><span>Upplägg i grupp:</span><button type="button" data-l="disk">Diskussion</button><button type="button" data-l="quiz">Quiz med poäng</button></div>
+      <details class="delt" id="delt"><summary id="delt-rubrik">Lägg in deltagarnas namn</summary>
+        <textarea id="delt-namn" placeholder="Erik, Sara, Jonas, Amir" aria-label="Deltagarnas namn"></textarea>
+        <small>Tryck <kbd>H</kbd> för kortkommandon och klicker. Skriv förnamn med komma emellan. Då hälsas alla välkomna i öppningen, en strålkastare lottar vem som svarar i varje läge och dagen slutar med en prispall.</small>
+      </details>
+      <div class="extra">
+        <button class="knapp sek" id="go-bil" type="button">Bilkontrollen</button>
+        <button class="knapp sek" id="go-hus" type="button">Se hela huset</button>
+        <button class="knapp sek" id="go-fe" type="button">Före och efter</button>
+      </div>
+    </div>
+    <div class="fot">Nanostone AB · Fungerar utan nät och utan inloggning · Tryck F för helskärm<br>Karta: Lantmäteriet, OpenStreetMaps bidragsgivare, Natural Earth</div>
+  </div>
+  <div class="ruttkort" id="ruttkort"><small>Dagens rutt · Södra Skåne</small><b id="rk-rubrik"></b><span id="rk-sub"></span><ol class="korlista" id="korlista"></ol></div>
+</section>
+
+<!-- KÖRNING MELLAN STOPP -->
+<div id="ident" aria-hidden="true"><i class="s1"></i><i class="s2"></i><i class="s3"></i><img src="__LOGO__" alt=""><span class="id-rad"></span></div>
+<div id="korn" aria-hidden="true"></div><div id="lacka" aria-hidden="true"></div>
+<div id="morkt" aria-hidden="true"><img class="logo" src="__LOGO__" alt=""></div>
+<div id="hjalp" role="dialog" aria-label="Kortkommandon"><div class="hj-in"><h2 class="bsd">Kortkommandon</h2><dl>
+  <dt><kbd>→</kbd> <kbd>Mellanslag</kbd> <kbd>PgDn</kbd></dt><dd>Nästa steg: tre sätt att göra, så gör vi, nästa stopp</dd>
+  <dt><kbd>←</kbd> <kbd>PgUp</kbd></dt><dd>Tillbaka i bilkontrollen och huset</dd>
+  <dt><kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd></dt><dd>Det gruppen väljer (behövs inte i diskussionsläget)</dd>
+  <dt><kbd>T</kbd></dt><dd>En minut att prata ihop sig (tio sekunder i quizläget), igen för att stoppa</dd>
+  <dt><kbd>J</kbd> <kbd>N</kbd></dt><dd>Stämmer eller stämmer inte i snabbrundan</dd>
+  <dt><kbd>.</kbd></dt><dd>Svart skärm medan du pratar (svarta knappen på klickern)</dd>
+  <dt><kbd>M</kbd></dt><dd>Ljud av eller på</dd>
+  <dt><kbd>F</kbd></dt><dd>Helskärm</dd>
+  <dt><kbd>H</kbd></dt><dd>Visa eller dölj den här rutan</dd>
+</dl><p>Klickerns pilar fungerar som piltangenterna. Muspekaren göms efter tre sekunder.</p></div></div>
+<div id="korning" aria-hidden="true">
+  <div class="band ov" aria-hidden="true"></div><div class="band ne" aria-hidden="true"></div><div class="kartbox" id="k-kor"></div><video id="kor-film" class="hidden" muted playsinline preload="auto"></video>
+  <div class="kor-info"><div class="kicker" id="kor-fran"></div><span class="kor-tid bsd" id="kor-tid"></span><span class="kor-ort" id="kor-ort"></span><span class="kor-km" id="kor-km"></span></div>
+  <div id="valk"></div>
+  <button class="hoppa" id="hoppa" type="button">Hoppa fram</button>
+</div>
+
+<!-- KAPITEL I 3D -->
+<section id="kapitel" class="screen" aria-label="Kapitel">
+  <div class="stage3d" id="kap-scen"><canvas id="kap-duk"></canvas><div id="kap-bilder" class="hidden"><img alt=""><img alt=""><div class="kap-bildskugga"></div><div id="kap-bildtext"></div><em class="kap-vis">Visualisering</em></div><video id="kap-intro" class="hidden" muted playsinline preload="auto"></video><video id="kap-film" class="hidden" muted playsinline preload="auto"></video><div class="kap-filmskugga"></div><div id="kap-pins"></div><div class="sokare" id="kap-sokare"><i></i><i></i><i></i><i></i><b>Ta bild</b></div><div class="skick hidden" id="kap-skick"><small>Husets skick</small><b id="kap-skicktal">0</b><span>/100</span><div class="skickrad"><i id="kap-skickrad"></i></div></div><div class="remsa" id="kap-remsa"></div><figure class="kapfoto" id="kap-foto"></figure><span class="kap-filmtag hidden" id="kap-filmtag">Visualisering · exempelhus</span></div>
+  <div class="blixt" id="kap-blixt"></div>
+  <div class="kap-topp"><img class="logo" src="__LOGO__" alt="Nanostone"><div class="kicker" id="kap-kicker"></div><div class="kap-prog" id="kap-prog"></div>
+    <button class="ikonknapp ljudknapp" type="button" aria-label="Ljud av eller på"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="vag" d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/><path class="kryss" d="M16 9l5 6M21 9l-5 6"/></svg></button><button class="ikonknapp" id="kap-stang" type="button" aria-label="Stäng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="instrument" id="inst-matare"><div class="matare3"><div class="bage"></div><div class="nal"></div><div class="km">148 230</div></div></div>
+  <div class="instrument" id="inst-monster"><div class="monster3"><div class="dack"></div><div><small>Mönsterdjup</small><div class="mm"><span id="mm-varde">4,2</span> mm</div><div class="grans" id="mm-grans"></div></div></div></div>
+  <div class="mobil" id="mobil"><div class="skarm" id="skarm"></div></div>
+  <div class="kap-panel">
+    <div class="kap-in" id="kap-in"><div class="kap-steg" id="kap-steg"></div><h2 class="kap-rubrik" id="kap-rubrik"></h2><ul class="kap-text" id="kap-text"></ul><div class="kap-kort" id="kap-kort"></div><div id="kap-fe"></div><div class="kap-fraga" id="kap-fraga"></div></div>
+    <div class="kap-nav"><button class="knapp sek" id="kap-bak" type="button">Tillbaka</button><button class="knapp" id="kap-fram" type="button">Nästa</button></div>
+  </div>
+  <h1 class="hidden" id="kap-titel"></h1>
+</section>
+
+<!-- FÖRE OCH EFTER -->
+<section id="galleriskarm" class="screen" aria-label="Före och efter" style="overflow-y:auto">
+  <div class="grain"></div>
+  <div class="slut-in">
+    <header style="display:flex;justify-content:space-between;align-items:center"><img class="logo" src="__LOGO__" alt="Nanostone"><button class="ikonknapp" id="hem3" type="button" aria-label="Till start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></button></header>
+    <div class="kicker" style="margin-top:28px">Riktiga jobb från våra operatörer</div>
+    <h1 class="slut-titel bsd">Före och efter</h1>
+    <div class="galleri" id="galleri-a"><div id="gal-stor-a"></div><div class="gal-val" id="gal-val-a"></div></div>
+  </div>
+</section>
+
+<!-- SPEL -->
+<section id="spel" class="screen" aria-label="Rutten">
+  <div class="topp">
+    <img class="logo" src="__LOGO__" alt="Nanostone">
+    <div class="rutt" id="rutt" aria-hidden="true"><div class="bana"></div><div class="kord" id="kord"></div>
+      <svg class="bil" id="bil" viewBox="0 0 32 28" fill="currentColor"><path d="M3 9h17v10H3z" opacity=".95"/><path d="M20 12h6l3 4v3h-9z"/><circle cx="8" cy="21" r="3" fill="#06111b" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="21" r="3" fill="#06111b" stroke="currentColor" stroke-width="2"/><rect x="3" y="7" width="17" height="2" fill="#e52f19"/></svg>
+    </div>
+    <div class="matare">
+      <div class="mat tid"><small>Tidsplan</small><div class="tal" id="m-tid">I tid</div></div>
+      <div class="mat"><small>Kvalitet</small><div class="rad"><b id="m-kv"></b></div><div class="tal" id="m-kvt">70</div></div>
+      <div class="mat"><small>Kund</small><div class="rad"><b id="m-ku"></b></div><div class="tal" id="m-kut">70</div></div>
+    </div>
+<button class="ikonknapp ljudknapp" type="button" aria-label="Ljud av eller på"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="vag" d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/><path class="kryss" d="M16 9l5 6M21 9l-5 6"/></svg></button>
+    <button class="ikonknapp" id="hem" type="button" aria-label="Till start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></button>
+  </div>
+  <div id="gag"><img class="gag-bak" id="gag-bak" alt=""><video id="gag-film" muted playsinline></video><div class="gag-skugga"></div>
+    <small class="gag-kicker">Ingen hemma, inget vatten. Men det finns en pool …</small>
+    <div class="gag-stampel bsd" id="gag-stampel">Så gör vi inte</div>
+    <p class="gag-regel" id="gag-regel">Poolen är kundens. Ring numret i Diroto, och sedan närmast ansvarig.</p>
+    <button class="knapp" id="gag-vidare" type="button">Tillbaka till rutten</button></div>
+  <div id="nedrakning" aria-live="polite"><b id="ned-tal"></b><small>Rösta nu</small><i id="ned-bage"></i></div>
+  <div id="snabb" aria-live="polite">
+    <div class="sn-ring" id="sn-ring"><div class="sn-tel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg></div>
+      <small>12:05 · Lunch · Inkommande samtal</small><b class="bsd">Kontoret ringer</b><p>Snabbrundan: fem påståenden, sju sekunder var. Stämmer det eller inte?</p><button class="knapp" id="sn-svara" type="button">Svara</button></div>
+    <div class="sn-fraga" id="sn-fraga"><div class="sn-topp"><span id="sn-nr"></span><i id="sn-vem"></i></div><div class="sn-tid"><b id="sn-stapel"></b></div>
+      <h2 class="bsd" id="sn-text"></h2><div class="sn-dom" id="sn-dom"><b class="bsd" id="sn-utfall"></b><span id="sn-fakta"></span></div>
+      <div class="sn-knappar" id="sn-knappar"><button class="knapp sn-r" id="sn-ratt" type="button">Stämmer <kbd>J</kbd></button><button class="knapp sn-f" id="sn-fel" type="button">Stämmer inte <kbd>N</kbd></button></div>
+      <button class="knapp" id="sn-nasta" type="button">Nästa</button></div>
+    <div class="sn-slut" id="sn-slut"><small>Snabbrundan</small><b class="bsd" id="sn-summa"></b><p id="sn-slutrad"></p><button class="knapp" id="sn-klar" type="button">Tillbaka till rutten</button></div>
+  </div>
+  <div id="spot"><div class="kon"></div><div class="in"><small id="spot-lage"></small><b id="spot-namn"></b><em>Vad gör du?</em></div></div>
+  <div class="scen" id="scen">
+    <div class="foto" id="foto">
+      <span class="nr" id="nr"></span>
+      <div class="minikarta"><div class="kartbox" id="k-mini"></div></div>
+      <div class="foto-info"><span class="klocka bsd" id="klocka"></span><span class="tjanst" id="tjanst"></span></div>
+    </div>
+    <div class="text" id="text">
+      <div class="vem" id="vem"></div>
+      <h2 class="rubrik bsd" id="rubrik"></h2>
+      <p class="lage" id="lage"></p>
+      <div class="diskruta" id="diskruta"><b class="bsd">Prata ihop er</b><ul><li>Vad gör du först?</li><li>Vem behöver få veta?</li><li>Vad säger du till kunden?</li></ul></div>
+      <div class="altrubrik" id="altrubrik">Tre sätt att göra. Vilket väljer ni?</div>
+      <div class="alts" id="alts" role="group" aria-label="Vad gör du?"></div>
+      <div class="risk" id="risk">Stopp. Det här är ett säkerhetsfel. Du går aldrig upp på ett tak utan fallskydd.</div>
+      <div class="svar">
+        <div class="fe-box" id="fe-svar"></div>
+        <div class="panel"><h3>Så gör vi</h3><ol id="gor"></ol></div>
+        <div class="panel v"><h3>Varför</h3><p id="varfor"></p></div>
+      </div>
+    </div>
+  </div>
+  <div class="styr">
+    <span class="hint" id="hint"></span>
+    <button class="knapp" id="huvud" type="button">Visa svaret</button>
+  </div>
+</section>
+
+<!-- SLUT -->
+<section id="slut" class="screen" aria-label="Dagens resultat">
+  <div class="slut-bg"><video id="slut-film" muted loop playsinline></video></div>
+  <div class="grain"></div>
+  <div class="slut-in">
+    <header style="display:flex;justify-content:space-between;align-items:center"><img class="logo" src="__LOGO__" alt="Nanostone"><button class="ikonknapp" id="hem2" type="button" aria-label="Till start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></button></header>
+    <div class="kicker" style="margin-top:28px">16:25 · Hemma · Dagen är slut</div>
+    <h1 class="slut-titel bsd" id="slut-titel">Bra jobbat</h1>
+    <div class="betyg">
+      <div><b id="s-ratt"></b><small>rätt val</small></div>
+      <div><b id="s-tid"></b><small>tidsplan</small></div>
+      <div><b id="s-kv"></b><small>kvalitet</small></div>
+      <div><b id="s-ku"></b><small>kund</small></div>
+    </div>
+    <div id="pall" class="pall hidden"><h2 class="sek">Dagens operatör</h2><div class="pall-rad" id="pall-rad"></div><ol class="pall-ovr" id="pall-ovr"></ol></div>
+    <canvas id="konfetti" aria-hidden="true"></canvas>
+    <div id="kodruta" class="hidden" style="margin-bottom:28px">
+      <h2 class="sek">Din kod</h2>
+      <p style="color:var(--t2);margin:0">Visa koden för den som håller i utbildningen.</p>
+      <div class="kod" id="kod"></div>
+    </div>
+    <div style="margin:0 0 30px">
+      <h2 class="sek">Så här blir det</h2>
+      <div class="galleri"><div id="gal-stor"></div><div class="gal-val" id="gal-val"></div></div>
+    </div>
+    <div class="tva">
+      <div><h2 class="sek">Dagens regler</h2><ol class="regler" id="regler"></ol></div>
+      <div><h2 class="sek">Din dag</h2><div class="slutkarta"><div class="kartbox" id="k-slut"></div></div><table class="dagbok" id="dagbok"></table></div>
+    </div>
+    <div id="lasin" class="hidden" style="margin-top:36px">
+      <h2 class="sek">Läs in deltagarnas koder</h2>
+      <p style="color:var(--t2);margin:0 0 10px">Skriv in koderna från telefonerna, en per rad eller med mellanslag. Tabellen visar vilka lägen gruppen behöver gå igenom igen.</p>
+      <textarea id="koder" placeholder="T.ex. 4K2P-7"></textarea>
+      <table class="dagbok stat" id="stat" style="margin-top:16px"></table>
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:36px">
+      <button class="knapp" id="igen" type="button">Kör dagen igen</button>
+      <button class="knapp sek" id="slut-bil" type="button">Bilkontrollen</button>
+      <button class="knapp sek" id="slut-hus" type="button">Se hela huset</button>
+      <button class="knapp sek" id="skriv" type="button">Skriv ut reglerna</button>
+    </div>
+  </div>
+</section>
+</div>
+
+<script>
+"use strict";
+const DATA = __DATA__;
+const BILDER = __BILDER__;
+const SOLFILM = "__SOLFILM__", VILLAFILM = "__VILLAFILM__", GRYFILM = "__GRYFILM__", LAGESFILM = { s01:["regn","__REGNFILM__"], s15:["tvatt","__TVATTFILM__"], s07:["skum","__SKUMFILM__"], s11:["rann","__RANNFILM__"] }, POOLFILM = "__POOLFILM__"; const filmUrl2 = {}; let korUrl = null;
+/* Videorna packas upp en gång, asynkront, direkt när sidan laddats. Aldrig under uppspelning. */
+const VIDEO = {};
+const B64 = {};
+function forbered(nyck, b64){ B64[nyck] = b64; if(!VIDEO[nyck]) VIDEO[nyck] = Promise.resolve().then(() => fetch("data:video/mp4;base64," + b64)).then(r => r.blob()).then(b => b && b.size ? b : Promise.reject(new Error("tom")))
+  .catch(() => { const bin = atob(b64), u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i); return new Blob([u], {type:"video/mp4"}); })
+  .then(b => URL.createObjectURL(b.type ? b : new Blob([b], {type:"video/mp4"}))); return VIDEO[nyck]; }
+// Spelar en film tåligt: tyst och inbäddad (krav på mobil), nytt försök vid nästa tryck, och reservväg om blob-adressen inte går att spela.
+function filmfel(v, orsak){
+  if(laget !== "tel") return;
+  const e = v.error, kod = "F:" + (v.dataset.k||"?") + " " + orsak + " E" + (e ? e.code : 0) + " N" + v.networkState + " R" + v.readyState + " " + String(v.currentSrc||v.src||"").slice(0,4) + (v.dataset.reserv ? "+d" : "") + (RM ? " RM" : "");
+  let d = document.getElementById("diag"); if(!d){ d = document.createElement("div"); d.id = "diag"; d.style.cssText = "position:fixed;left:6px;bottom:4px;z-index:300;font:700 9px/1.2 monospace;color:#fff;opacity:.55;pointer-events:none;max-width:96vw;white-space:nowrap;overflow:hidden"; document.body.appendChild(d); }
+  d.textContent = kod; try{ console.warn("film", kod); }catch(x){}
+}
+function spela(v, fel){
+  v.muted = true; v.defaultMuted = true; v.setAttribute("muted",""); v.setAttribute("playsinline",""); v.setAttribute("webkit-playsinline","");
+  const nr = (v._nr = (v._nr||0) + 1); let nekad = false;
+  if(!v.dataset.vakt){ v.dataset.vakt = "1"; v.addEventListener("error", () => { const k = v.dataset.k; if(k && B64[k] && v.dataset.reserv !== k){ v.dataset.reserv = k; v.src = "data:video/mp4;base64," + B64[k]; v.load(); spela(v, v._fel); } }); }
+  v._fel = fel;
+  let p; try{ p = v.play(); }catch(e){}
+  if(p && p.catch) p.catch(e => { if(e && e.name === "NotAllowedError"){ nekad = true; const igen = () => { document.removeEventListener("pointerdown", igen, true); document.removeEventListener("keydown", igen, true); let q; try{ q = v.play(); }catch(x){} q && q.catch && q.catch(()=>{}); };
+      document.addEventListener("pointerdown", igen, true); document.addEventListener("keydown", igen, true); } });
+  setTimeout(() => { if(v._nr !== nr || !v.isConnected || !v.getClientRects().length) return; if(v.currentTime > 0.05 && !v.error) return; filmfel(v, nekad ? "NEKAD" : v.error ? "FEL" : "STILLA"); if(v._fel){ const f = v._fel; v._fel = null; f(); } }, 2600);
+}
+function koppla(el, nyck, b64, sen){ if(el.dataset.k === nyck){ sen && sen(); return; } el.dataset.k = nyck; forbered(nyck, b64).then(u => { if(el.dataset.k !== nyck) return; el.src = u; el.load(); sen && sen(); }); }
+const K = __KARTA__;
+const FE = __FE__;
+const S = DATA.situationer;
+const $ = id => document.getElementById(id);
+const L = ["A","B","C"];
+/* Ljud, syntetiserat i webbläsaren. Startar först efter ett klick. */
+const ljud = (() => {
+  let ac = null, pa = true; try{ pa = localStorage.getItem("rutten-ljud") !== "av"; }catch(e){}
+  const ctx = () => { if(!pa) return null; try{ ac = ac || new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==="suspended") ac.resume(); return ac; }catch(e){ return null; } };
+  const ton = (f, t0, d, typ, v) => { const a = ctx(); if(!a) return; const o = a.createOscillator(), g = a.createGain(); o.type = typ||"sine"; o.frequency.value = f;
+    g.gain.setValueAtTime(0, a.currentTime+t0); g.gain.linearRampToValueAtTime(v||.12, a.currentTime+t0+.015); g.gain.exponentialRampToValueAtTime(.0001, a.currentTime+t0+d); o.connect(g).connect(a.destination); o.start(a.currentTime+t0); o.stop(a.currentTime+t0+d+.05); };
+  const brus = (d, f, v) => { const a = ctx(); if(!a) return; const n = a.createBuffer(1, a.sampleRate*d, a.sampleRate), ch = n.getChannelData(0); for(let i=0;i<ch.length;i++) ch[i] = (Math.random()*2-1)*Math.pow(1-i/ch.length,2);
+    const s = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(); s.buffer = n; fl.type = "bandpass"; fl.frequency.value = f; g.gain.value = v; s.connect(fl).connect(g).connect(a.destination); s.start(); };
+  return {
+    get pa(){ return pa; },
+    vaxla(){ pa = !pa; try{ localStorage.setItem("rutten-ljud", pa ? "pa" : "av"); }catch(e){} if(!pa && ac) ac.suspend(); return pa; },
+    ratt(){ ton(660,0,.18,"triangle"); ton(880,.11,.22,"triangle"); ton(1320,.22,.4,"triangle",.09); },
+    fel(){ ton(196,0,.3,"sawtooth",.07); ton(147,.16,.45,"sawtooth",.07); },
+    klick(){ brus(.07,3200,.5); setTimeout(()=>brus(.05,1800,.35), 70); },
+    tick(){ ton(1100,0,.05,"square",.03); },
+    virvel(ms){ const a = ctx(); if(!a) return; const d = (ms||850)/1000, n = a.createBuffer(1, a.sampleRate*d, a.sampleRate), ch = n.getChannelData(0);
+      for(let i=0;i<ch.length;i++){ const t = i/a.sampleRate, slag = (t*26)%1; ch[i] = (Math.random()*2-1) * Math.exp(-slag*9) * (.35 + .65*t/d); }
+      const src = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(); src.buffer = n; fl.type = "bandpass"; fl.frequency.value = 1800; fl.Q.value = .7; g.gain.value = .55; src.connect(fl).connect(g).connect(a.destination); src.start(); },
+    svep(){ const a = ctx(); if(!a) return; const d = .55, n = a.createBuffer(1, a.sampleRate*d, a.sampleRate), ch = n.getChannelData(0); for(let i=0;i<ch.length;i++){ const x = i/ch.length; ch[i] = (Math.random()*2-1)*Math.sin(Math.PI*x); }
+      const src = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime; src.buffer = n; fl.type = "bandpass"; fl.Q.value = 1.4;
+      fl.frequency.setValueAtTime(380, t); fl.frequency.exponentialRampToValueAtTime(2600, t+d); g.gain.value = .16; src.connect(fl).connect(g).connect(a.destination); src.start(); },
+    slag(){ const a = ctx(); if(!a) return; const t = a.currentTime;
+      const o = a.createOscillator(), g = a.createGain(); o.type = "sine"; o.frequency.setValueAtTime(110, t+.95); o.frequency.exponentialRampToValueAtTime(38, t+2.1); g.gain.setValueAtTime(0, t+.95); g.gain.linearRampToValueAtTime(.32, t+1.0); g.gain.exponentialRampToValueAtTime(.0001, t+2.4); o.connect(g).connect(a.destination); o.start(t+.95); o.stop(t+2.5);
+      [0,.15,.3].forEach(d=>{ const n = a.createBuffer(1, a.sampleRate*.35, a.sampleRate), ch = n.getChannelData(0); for(let i=0;i<ch.length;i++){ const x=i/ch.length; ch[i]=(Math.random()*2-1)*Math.sin(Math.PI*x)*x; }
+        const sr = a.createBufferSource(), fl = a.createBiquadFilter(), gg = a.createGain(); sr.buffer = n; fl.type = "bandpass"; fl.frequency.setValueAtTime(600, t+d); fl.frequency.exponentialRampToValueAtTime(3800, t+d+.35); gg.gain.value = .13; sr.connect(fl).connect(gg).connect(a.destination); sr.start(t+d); });
+      ton(1568, 1.0, 1.4, "sine", .035); ton(2093, 1.05, 1.2, "sine", .025); },
+    gong(){ ton(392,0,1.1,"sine",.11); ton(523,0,1.1,"sine",.09); ton(784,.02,.8,"triangle",.04); },
+    plask(){ brus(1.1, 1500, .45); setTimeout(()=>brus(.8, 700, .3), 90); },
+    stampel(){ ton(62,0,.4,"sine",.34); ton(45,.02,.5,"sine",.25); brus(.14, 800, .7); },
+    ring(){ [0,.09,.18,.27,.5,.59,.68,.77].forEach((t,i)=>ton(i%2?1175:1397,t,.09,"sine",.09)); },
+    framme(){ ton(784,0,.16,"sine",.1); ton(1047,.12,.3,"sine",.1); },
+    motor(ms, niva){ const a = ctx(); if(!a) return; const d = ms/1000, o = a.createOscillator(), o2 = a.createOscillator(), fl = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime;
+      o.type = "sawtooth"; o2.type = "square"; fl.type = "lowpass"; fl.frequency.value = 260; const v = .05*(niva||1);
+      o.frequency.setValueAtTime(52,t); o.frequency.linearRampToValueAtTime(96,t+d*.35); o.frequency.linearRampToValueAtTime(84,t+d*.8); o.frequency.linearRampToValueAtTime(48,t+d);
+      o2.frequency.setValueAtTime(26,t); o2.frequency.linearRampToValueAtTime(48,t+d*.35); o2.frequency.linearRampToValueAtTime(24,t+d);
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(v,t+.25); g.gain.setValueAtTime(v,t+d-.5); g.gain.linearRampToValueAtTime(0,t+d);
+      o.connect(fl); o2.connect(fl); fl.connect(g).connect(a.destination); o.start(t); o2.start(t); o.stop(t+d+.05); o2.stop(t+d+.05); return () => { try{ g.gain.cancelScheduledValues(a.currentTime); g.gain.linearRampToValueAtTime(0, a.currentTime+.15); }catch(e){} }; }
+  };
+})();
+const lagra = {
+  get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},
+  del(k){try{localStorage.removeItem(k)}catch(e){}}
+};
+
+/* Illustrationer för lägen utan foto. */
+const ILL = {
+  klocka:`<svg viewBox="0 0 200 200" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><circle cx="100" cy="92" r="62" stroke-opacity=".9"/><path d="M100 52v40l26 16" stroke="#e52f19" stroke-width="7"/><path d="M78 22h44M100 22v8"/><path d="M30 178c30-14 60 6 90-6s40-20 60-8" stroke-dasharray="6 9" stroke-opacity=".5"/><circle cx="30" cy="178" r="6" fill="#fff"/><circle cx="178" cy="164" r="6" fill="#e52f19" stroke="#e52f19"/></svg>`,
+  stege:`<svg viewBox="0 0 200 200" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M28 104L100 40l72 64" stroke-opacity=".9"/><path d="M44 92v86h112V92" stroke-opacity=".9"/><path d="M36 100h128" stroke="#86aeb0" stroke-width="6"/><path d="M60 178l26-92M92 178l26-92" stroke="#e52f19"/><path d="M66 158h28M71 138h28M77 118h28M82 100h28" stroke="#e52f19"/><path d="M112 60l10-12 10 12" stroke-opacity=".35"/><path d="M14 182h172" stroke-opacity=".4"/></svg>`
+};
+
+let laget = "grupp";
+let st = null;
+function lagesval(){ try{ return localStorage.getItem("rutten-lage") === "quiz" ? "quiz" : "disk"; }catch(e){ return "disk"; } }
+function DISK(){ return laget === "grupp" && lagesval() === "disk"; }
+function nytt(){ return {fas:"lage", i:0, svar:Array(S.length).fill(null), visat:false, tid:0, kv:70, ku:70, valt:null, roster:[0,0,0], kap:{}, vem:null, po:{}, ko:[]}; }
+/* ---------- Deltagare, strålkastare och prispall ---------- */
+function namnlista(){ return [...new Set(($("delt-namn").value||"").split(/[,;\n]+/).map(n=>n.trim().slice(0,18)).filter(Boolean))].slice(0,24); }
+function showLage(){ return laget==="grupp" && namnlista().length >= 2; }
+(function(){ const f = $("delt-namn"); try{ f.value = localStorage.getItem("rutten-deltagare") || ""; }catch(e){}
+  const upp = () => { const n = namnlista().length; $("delt-rubrik").textContent = n ? "Deltagare: "+n+" namn" : "Lägg in deltagarnas namn"; };
+  f.oninput = () => { try{ localStorage.setItem("rutten-deltagare", f.value); }catch(e){} upp(); }; upp(); })();
+function valkommen(){ const v = $("valk"); if(!showLage()){ v.classList.remove("on"); v.innerHTML = ""; return; }
+  const ns = namnlista(), liten = ns.length > 6;
+  v.innerHTML = "<small>Välkommen till Nanostone</small>" + ns.map((n,i)=>`<b class="${liten?"liten":""}" style="animation-delay:${(.9+i*(liten?.22:.38)).toFixed(2)}s"></b>`).join("");
+  v.querySelectorAll("b").forEach((b,i)=>b.textContent = ns[i]); v.classList.add("on"); }
+const SNABB = [
+  ["Du får ge kunden rabatt själv om jobbet drog ut på tiden.", false, "Rabatt avgörs alltid av kontoret. Ring kundtjänst."],
+  ["Algbehandling går att göra i duggregn.", true, "Ja, men bedöm på plats om behandlingen regnar bort."],
+  ["Ytan är 25 m² större än ordern. Du ringer kundtjänst innan du fortsätter.", true, "Över 20 m² extra ska kundtjänst ge kunden besked om priset först."],
+  ["Du stämplar in i NUBA när du sätter dig i bilen på morgonen.", false, "Diroto startar du i bilen. NUBA stämplar du hos första kunden, eller efter en timmes körning."],
+  ["En operativ rödmarkering kan du göra själv, bara du ringer ansvarig efteråt.", false, "Ansvarig ska alltid godkänna först, och alla lösningar ska vara prövade."],
+];
+let gagKlar = null;
+function gag(klart){
+  const el = $("gag"), v = $("gag-film"); let tid = []; if(!$("gag-bak").src && BILDER["altan-pool"]) $("gag-bak").src = BILDER["altan-pool"]; el.className = "on";
+  const slut = () => { tid.forEach(clearTimeout); try{ v.pause(); }catch(e){} el.className = ""; gagKlar = null; klart && klart(); };
+  const stampla = () => { if(el.classList.contains("stamplad")) return; el.classList.add("stamplad"); ljud.stampel(); };
+  gagKlar = () => { if(!el.classList.contains("stamplad")){ stampla(); return; } slut(); };
+  el.onclick = () => gagKlar && gagKlar();
+  forbered("pool", POOLFILM).then(u => { if(!gagKlar) return; if(v.dataset.k !== "pool"){ v.dataset.k = "pool"; v.src = u; } try{ v.currentTime = 0; }catch(e){} spela(v, () => el.classList.add("stilla"));
+    tid.push(setTimeout(()=>{ if(gagKlar) ljud.plask(); }, 2450)); tid.push(setTimeout(()=>{ if(gagKlar) stampla(); }, 3300)); });
+}
+let snabb = null;
+let nedT = 0;
+function stoppNed(){ cancelAnimationFrame(nedT); nedT = 0; $("nedrakning").className = ""; }
+function nedrakning(){
+  if(nedT){ stoppNed(); return; } const el = $("nedrakning"); $("foto").appendChild(el); const tal = $("ned-tal"), SEK = DISK() ? 60 : 10, LANGD = SEK*1000, t0 = performance.now(); let forra = SEK+1; el.className = "on"; el.querySelector("small").textContent = DISK() ? "Prata ihop er" : "Rösta nu";
+  const steg = t => { const k = Math.max(0, 1-(t-t0)/LANGD), sek = Math.ceil(k*SEK); el.style.setProperty("--k", k);
+    if(sek !== forra){ forra = sek; tal.textContent = sek; el.classList.toggle("sista", sek<=3 && sek>0); if(sek>0 && (SEK===10 || sek<=5)) ljud.tick(); }
+    if(k <= 0){ tal.textContent = "Tiden!"; el.classList.add("slut"); el.classList.remove("sista"); ljud.gong(); nedT = 0; setTimeout(()=>{ if(!nedT) el.className = ""; }, 2200); return; }
+    nedT = requestAnimationFrame(steg); };
+  nedT = requestAnimationFrame(steg);
+}
+(function(){ try{ const c = document.createElement("canvas"); c.width = c.height = 180; const x = c.getContext("2d"), d = x.createImageData(180,180);
+  for(let i=0;i<d.data.length;i+=4){ const v = Math.random()*255|0; d.data[i]=d.data[i+1]=d.data[i+2]=v; d.data[i+3]=255; } x.putImageData(d,0,0); $("korn").style.backgroundImage = "url("+c.toDataURL("image/png")+")"; }catch(e){} })();
+function scenIn(){ const sc = $("scen"); if(!sc || !$("spel").classList.contains("on")) return; sc.classList.remove("in"); void sc.offsetWidth; sc.classList.add("in"); if(laget==="grupp"){ try{ ljud.svep(); }catch(e){} lacka(); } }
+function titel(){ const st0 = $("start"); st0.classList.remove("titel"); void st0.offsetWidth; requestAnimationFrame(()=>requestAnimationFrame(()=>st0.classList.add("titel"))); }
+if(document.readyState === "complete") titel(); else window.addEventListener("load", titel);
+function lacka(){ if(RM) return; const l = $("lacka"); l.classList.remove("go"); void l.offsetWidth; l.classList.add("go"); clearTimeout(lacka.t); lacka.t = setTimeout(()=>l.classList.remove("go"), 1400); }
+(function(){ const box = $("lagesval"), rita0 = () => box.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.l === lagesval()));
+  box.querySelectorAll("button").forEach(b => b.onclick = () => { try{ localStorage.setItem("rutten-lage", b.dataset.l); }catch(e){} rita0(); }); rita0(); })();
+let musT = 0; const musRor = () => { document.body.classList.remove("dold-mus"); clearTimeout(musT); musT = setTimeout(()=>{ if(laget==="grupp" || $("start").classList.contains("on")) document.body.classList.add("dold-mus"); }, 3000); };
+document.addEventListener("mousemove", musRor, {passive:true}); document.addEventListener("pointerdown", musRor, {passive:true});
+let vakt = null; async function hallVaken(){ try{ if("wakeLock" in navigator && !vakt && document.visibilityState==="visible"){ vakt = await navigator.wakeLock.request("screen"); vakt.addEventListener("release", ()=>{ vakt = null; }); } }catch(e){} }
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible" && $("start").classList.contains("on")===false) hallVaken(); });
+$("hjalp").onclick = () => $("hjalp").classList.remove("on");
+document.addEventListener("keydown", e => {
+  if(e.target && (e.target.tagName==="TEXTAREA" || e.target.tagName==="INPUT")) return;
+  const m = {PageDown:"ArrowRight", PageUp:"ArrowLeft"}[e.key];
+  if(identSlut && $("ident").classList.contains("on") && (m || e.key===" " || e.key==="Enter" || e.key==="ArrowRight")){ e.preventDefault(); e.stopImmediatePropagation(); identSlut(); return; }
+  if(m){ e.preventDefault(); e.stopImmediatePropagation(); document.dispatchEvent(new KeyboardEvent("keydown", {key:m, bubbles:true})); return; }
+  if(e.key==="." || e.key==="b" && e.ctrlKey){ e.preventDefault(); e.stopImmediatePropagation(); $("morkt").classList.toggle("on"); return; }
+  if($("morkt").classList.contains("on")){ e.preventDefault(); e.stopImmediatePropagation(); $("morkt").classList.remove("on"); return; }
+  const k = e.key.toLowerCase();
+  if(k==="h" || e.key==="?"){ e.preventDefault(); e.stopImmediatePropagation(); $("hjalp").classList.toggle("on"); return; }
+  if($("hjalp").classList.contains("on") && e.key==="Escape"){ e.stopImmediatePropagation(); $("hjalp").classList.remove("on"); return; }
+  if(k==="m"){ e.stopImmediatePropagation(); document.querySelector(".ljudknapp")?.click(); return; }
+  if(k==="t" && laget==="grupp" && $("spel").classList.contains("on") && st && !st.visat && !snabb && !spotKlar){ e.stopImmediatePropagation(); nedrakning(); return; }
+}, true);
+$("morkt").onclick = () => $("morkt").classList.remove("on");
+function snabbrunda(klart){
+  const el = $("snabb"), ns = showLage() ? namnlista().slice().sort(()=>Math.random()-.5) : [];
+  snabb = { i:-1, ratt:0, fas:"ring", klart, ns, t:0, raf:0, ringT:0 };
+  const fas = f => { snabb.fas = f; el.className = "on f-"+f + (snabb.ok===true?" ok":snabb.ok===false?" nej":""); };
+  const stopp = () => { cancelAnimationFrame(snabb.raf); clearInterval(snabb.ringT); };
+  const fraga = () => { snabb.i++; snabb.ok = null; if(snabb.i >= SNABB.length){ slutet(); return; }
+    const q = SNABB[snabb.i], vem = snabb.ns.length ? snabb.ns[snabb.i % snabb.ns.length] : ""; snabb.vem = vem;
+    $("sn-nr").textContent = "Påstående "+(snabb.i+1)+" av "+SNABB.length; $("sn-vem").textContent = vem; $("sn-text").textContent = q[0]; fas("fraga");
+    const t0 = performance.now(), LANGD = 7000; let sek = 7; const st0 = $("sn-stapel");
+    const steg = t => { if(!snabb || snabb.fas!=="fraga") return; const k = Math.max(0, 1-(t-t0)/LANGD); st0.style.transform = "scaleX("+k+")";
+      const kvar = Math.ceil(k*7); if(kvar !== sek){ sek = kvar; if(kvar <= 3 && kvar > 0) ljud.tick(); } if(k <= 0){ svar(null); return; } snabb.raf = requestAnimationFrame(steg); };
+    st0.style.transform = "scaleX(1)"; snabb.raf = requestAnimationFrame(steg); };
+  const svar = v => { if(!snabb || snabb.fas!=="fraga") return; stopp(); const q = SNABB[snabb.i], ok = v === q[1]; snabb.ok = ok; if(ok){ snabb.ratt++; if(snabb.vem && !DISK()) st.po[snabb.vem] = (st.po[snabb.vem]||0)+1; }
+    ok ? ljud.ratt() : ljud.fel(); $("sn-utfall").textContent = v===null ? "Tiden är ute" : ok ? (snabb.vem && !DISK() ? "Rätt svarat, +1 poäng" : "Rätt svarat") : "Fel svarat"; $("sn-fakta").textContent = (q[1] ? "Påståendet stämmer. " : "Påståendet stämmer inte. ")+q[2];
+    $("sn-nasta").textContent = snabb.i === SNABB.length-1 ? "Se resultatet" : "Nästa påstående"; fas("dom"); };
+  const slutet = () => { snabb.ok = null; $("sn-summa").textContent = snabb.ratt+" av "+SNABB.length; $("sn-slutrad").textContent = snabb.ratt === SNABB.length ? "Alla rätt. Lunchen är räddad." : snabb.ratt >= 3 ? "Bra jobbat. Reglerna kommer igen i slutet av dagen." : "Gå igenom reglerna en gång till i slutet av dagen."; fas("slut"); ljud.framme(); };
+  const klar = () => { stopp(); el.className = ""; const k = snabb.klart; st.snabb = snabb.ratt; snabb = null; ritaVem(); spara(); k && k(); };
+  snabb.fram = () => { if(snabb.fas==="ring"){ stopp(); fraga(); } else if(snabb.fas==="dom") fraga(); else if(snabb.fas==="slut") klar(); };
+  snabb.svar = svar;
+  $("sn-svara").onclick = $("sn-nasta").onclick = $("sn-klar").onclick = () => snabb && snabb.fram();
+  $("sn-ratt").onclick = () => snabb && svar(true); $("sn-fel").onclick = () => snabb && svar(false);
+  fas("ring"); ljud.ring(); snabb.ringT = setInterval(()=>{ if(snabb && snabb.fas==="ring") ljud.ring(); }, 1700);
+}
+let spotT = [], spotKlar = null;
+function spot(){
+  if(!showLage() || st.i >= S.length || st.visat){ ritaVem(); scenIn(); return; }
+  const ns = namnlista(); st.ko = (st.ko||[]).filter(n=>ns.includes(n));
+  if(!st.ko.length){ st.ko = ns.slice(); for(let i=st.ko.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [st.ko[i],st.ko[j]] = [st.ko[j],st.ko[i]]; } if(st.ko.length>1 && st.ko[0]===st.vem) st.ko.push(st.ko.shift()); }
+  const vald = st.ko.shift(); st.vem = vald; ritaVem();
+  const el = $("spot"), nm = $("spot-namn"), s = S[st.i]; $("spot-lage").textContent = "Läge "+(st.i+1)+" av "+S.length+" · "+s.tid+" · "+s.rubrik;
+  el.classList.remove("klar"); el.classList.add("on"); spotT.forEach(clearTimeout); spotT = [];
+  const slut = () => { spotT.forEach(clearTimeout); spotT = []; el.classList.remove("on","klar"); spotKlar = null; scenIn(); };
+  spotKlar = slut; el.onclick = slut;
+  if(RM){ nm.textContent = vald; el.classList.add("klar"); spotT.push(setTimeout(slut, 1800)); return; }
+  let t = 0; const varv = 16;
+  for(let k=0;k<varv;k++){ t += 55 + k*k*1.1; spotT.push(setTimeout(()=>{ nm.textContent = ns[(k*7+st.i) % ns.length]; ljud.tick(); }, t)); }
+  spotT.push(setTimeout(()=>{ nm.textContent = vald; el.classList.add("klar"); ljud.framme(); }, t+150));
+  spotT.push(setTimeout(slut, t+2100));
+}
+function ritaVem(){ const v = $("vem"); if(!showLage() || !st || !st.vem || st.i >= S.length){ v.classList.remove("on"); return; }
+  v.innerHTML = "<i></i><span></span>"; v.querySelector("i").textContent = st.vem + (DISK() ? " börjar" : " svarar"); v.querySelector("span").textContent = (st.po[st.vem]||0) + " poäng"; v.classList.add("on"); }
+function pall(r){
+  const p = $("pall"), po = (st && st.po) || {}, ns = showLage() && !DISK() ? namnlista() : [];
+  if(ns.length < 2){ p.classList.add("hidden"); return; }
+  const lista = ns.map(n=>[n, po[n]||0]).sort((a,b)=>b[1]-a[1]);
+  const rad = $("pall-rad"); rad.innerHTML = "";
+  const grupper = []; lista.forEach(([n,v])=>{ const g = grupper[grupper.length-1]; if(g && g.v === v) g.ns.push(n); else grupper.push({v, ns:[n]}); });
+  grupper.slice(0,3).forEach((g,i)=>{ const d = document.createElement("div"); d.className = "p"+(i+1)+(g.ns.length>2?" manga":""); d.innerHTML = "<small></small><span></span>";
+    d.querySelector("small").textContent = (g.ns.length>1 ? "DELAD " : "") + ["1:A PLATS","2:A PLATS","3:E PLATS"][i];
+    g.ns.forEach(n=>{ const b = document.createElement("b"); b.textContent = n; d.insertBefore(b, d.querySelector("span")); });
+    d.querySelector("span").textContent = g.v + " poäng" + (g.ns.length>1 ? " var" : ""); rad.appendChild(d); });
+  const ovr = $("pall-ovr"); ovr.innerHTML = ""; grupper.slice(3).forEach(g=>g.ns.forEach(n=>{ const li = document.createElement("li"); li.innerHTML = "<b></b> "; li.querySelector("b").textContent = n; li.append(g.v+" p"); ovr.appendChild(li); }));
+  p.classList.remove("hidden"); if(!RM) setTimeout(()=>{ if($("slut").classList.contains("on")) konfetti(200); }, 1900);
+}
+const KAP_EFTER = {s09:"hus"};
+
+/* ---------- Karta ---------- */
+const NS = "http://www.w3.org/2000/svg";
+const PTS = S.map(x => K.stopp[x.id]);
+const SAMMA = PTS.map((p,i)=> i>0 && p[0]===PTS[i-1][0] && p[1]===PTS[i-1][1]);
+function seg(i){ // Catmull-Rom mellan stopp i och i+1, som kubisk bezier
+  const p0=PTS[Math.max(0,i-1)], p1=PTS[i], p2=PTS[i+1], p3=PTS[Math.min(PTS.length-1,i+2)];
+  const c1=[p1[0]+(p2[0]-p0[0])/6, p1[1]+(p2[1]-p0[1])/6], c2=[p2[0]-(p3[0]-p1[0])/6, p2[1]-(p3[1]-p1[1])/6];
+  return `M${p1[0]},${p1[1]}C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0]},${p2[1]}`;
+}
+const SEG = K.seg; // byggs i kartbygg.py, följer land
+let kartNr = 0;
+function nyKarta(box, opt={}){
+  const id = "k"+(++kartNr);
+  const svg = document.createElementNS(NS,"svg");
+  svg.setAttribute("preserveAspectRatio","xMidYMid meet");
+  const orter = K.orter.map(o=>`<text class="ort s${o.s}" data-fs="${[11,13,15,22][o.s]}" data-x="${o.x}" data-y="${o.y}" data-dx="${o.dx}" data-dy="${o.dy}" x="${o.x}" y="${o.y}" text-anchor="${o.a}" dominant-baseline="middle">${o.n}</text>`).join("");
+  const vatten = K.vatten.map(o=>`<text data-fs="15" x="${o.x}" y="${o.y}" text-anchor="middle">${o.n.toUpperCase()}</text>`).join("");
+  const vagar = K.vag.map(v=>`<path class="vag ${v.typ==="Major Highway"?"stor":""}" d="${v.d}"/>`).join("");
+  svg.innerHTML = `<defs><clipPath id="${id}c"><path d="${K.land}"/></clipPath>
+    <radialGradient id="${id}g" cx="62%" cy="42%" r="75%"><stop offset="0" stop-color="#18405f"/><stop offset="1" stop-color="#0f2a40"/></radialGradient>
+    <linearGradient id="ljusgrad" x1="0" x2="1"><stop offset="0" stop-color="rgba(255,233,168,.55)"/><stop offset="1" stop-color="rgba(255,233,168,0)"/></linearGradient>
+    <pattern id="${id}p" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 0v6" stroke="rgba(255,255,255,.03)" stroke-width="1.5"/></pattern></defs>
+    <path d="${K.land}" fill="url(#${id}g)"/><path d="${K.land}" fill="url(#${id}p)"/>
+    <g clip-path="url(#${id}c)"><path class="kom" d="${K.kom}"/>${vagar}</g>
+    <path class="kust" d="${K.land}"/>
+    <g class="vatten">${vatten}</g>${opt.orter===false?"":`<g>${orter}</g>`}
+    <g class="ruttg"><path class="bas" d="${SEG.join("")}${K.hem}"/>${SEG.map((d,i)=>`<path class="klar" data-i="${i}" d="${d}" style="opacity:0"/>`).join("")}<path class="ritas" d=""/><path class="matt" d="" style="fill:none;stroke:none"/></g>
+    <g class="stg">${PTS.map((p,i)=>`<g class="st${SAMMA[i]?" dubbel":""}" data-i="${i}" transform="translate(${p[0]} ${p[1]})"><circle data-r="${i?11:13}" r="11"/>${i?`<text data-fs="13">${i+1}</text>`:`<g data-sk="1"><path class="hus" d="M0,-7.5L7.5,-1V7H2.5V2.5h-5V7H-7.5V-1Z"/></g>`}</g>`).join("")}</g>
+    <g class="bil" style="display:none"><g class="bilrot"><g class="bilflip"><g data-sk="1.5">
+      <ellipse class="skugga" cx="0" cy="2.5" rx="17" ry="7"/>
+      <path class="ljuskon" d="M15,-3L48,-13V13L15,3Z"/>
+      <rect class="kaross" x="-16" y="-7" width="23" height="14" rx="2"/><path class="kaross" d="M7,-7h4.5l4.5,4v10h-9z"/>
+      <path class="ruta" d="M9,-5h2.2l3.2,3V4.5H9z"/><rect class="rand" x="-16" y="-1.2" width="23" height="2.4"/>
+      <rect class="hjul" x="-12" y="-9" width="6" height="2.6" rx="1"/><rect class="hjul" x="4" y="-9" width="6" height="2.6" rx="1"/>
+      <rect class="hjul" x="-12" y="6.4" width="6" height="2.6" rx="1"/><rect class="hjul" x="4" y="6.4" width="6" height="2.6" rx="1"/>
+      <rect class="ljus" x="15.2" y="-5.5" width="1.6" height="2.4" rx=".6"/><rect class="ljus" x="15.2" y="3.1" width="1.6" height="2.4" rx=".6"/>
+    </g></g></g></g>
+    <g class="puck" style="display:none"><circle class="puls" data-r="9" r="9"/><circle data-r="8" r="8" fill="#fff"/><circle data-r="4" r="4" fill="#e52f19"/></g>`;
+  box.innerHTML = ""; box.appendChild(svg);
+  const v = document.createElement("div"); v.className="vinjett"; box.appendChild(v);
+  const k = {sk: opt.skala, box, svg, bil: svg.querySelector(".bil"), bilrot: svg.querySelector(".bilrot"), bilflip: svg.querySelector(".bilflip"), vb:[0,0,K.vb[0],K.vb[1]], puck: svg.querySelector(".puck"), ritas: svg.querySelector(".ritas"), matt: svg.querySelector(".matt"),
+    klar:[...svg.querySelectorAll("path.klar")], st:[...svg.querySelectorAll(".st")], skal:[...svg.querySelectorAll("[data-fs],[data-r],[data-sk]")]};
+  return k;
+}
+function satVy(k, b){
+  k.vb = b; k.svg.setAttribute("viewBox", b.map(v=>v.toFixed(2)).join(" "));
+  const r = k.box.getBoundingClientRect(); const z = b[2] / Math.max(1, r.width); // användarenheter per pixel
+  const f = z*(k.sk || (window.innerWidth<760 ? .66 : 1.25));
+  for(const e of k.skal){ const d=e.dataset; if(d.fs) e.setAttribute("font-size", (d.fs*f).toFixed(2)); if(d.r) e.setAttribute("r", (d.r*f).toFixed(2));
+    if(d.sk) e.setAttribute("transform", `scale(${(f*d.sk).toFixed(3)})`);
+    if(d.dx!=null){ e.setAttribute("x", (+d.x + d.dx*f).toFixed(1)); e.setAttribute("y", (+d.y + d.dy*f).toFixed(1)); } }
+  k.z = z;
+}
+// Vy som lägger rektangeln rb (kartenheter) i en del av rutan (andelar av bredd och höjd).
+function vyFor(k, rb, yta=[0,0,1,1]){
+  const r = k.box.getBoundingClientRect(), ew = r.width||1600, eh = r.height||900;
+  const ax=yta[0]*ew, ay=yta[1]*eh, aw=(yta[2]-yta[0])*ew, ah=(yta[3]-yta[1])*eh;
+  const s = Math.min(aw/rb[2], ah/rb[3]);
+  return [rb[0]-(ax+(aw-rb[2]*s)/2)/s, rb[1]-(ay+(ah-rb[3]*s)/2)/s, ew/s, eh/s];
+}
+function bbox(pts, pad){ const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]); const x0=Math.min(...xs)-pad, y0=Math.min(...ys)-pad; return [x0, y0, Math.max(...xs)+pad-x0, Math.max(...ys)+pad-y0]; }
+function bil(k, p, ang){
+  k.puck.style.display="none"; k.bil.style.display="";
+  const a = ang!=null ? ang : (k.ang||0); k.bilrot.setAttribute("transform", `translate(${p[0]} ${p[1]}) rotate(${a.toFixed(1)})`);
+  k.bilflip.setAttribute("transform", Math.cos(a*Math.PI/180) < 0 ? "scale(1,-1)" : "");
+}
+function puck(k, p){ if(k.bil) k.bil.style.display="none";  k.puck.style.display=""; const s = (k.z||1)*1.25; k.puck.setAttribute("transform", `translate(${p[0]} ${p[1]})`); }
+function stoppStatus(k, nu){
+  k.st.forEach((g,i)=>{ const sv = st ? st.svar[i] : null;
+    g.classList.add("syns");
+    g.classList.toggle("nu", i===nu); g.classList.toggle("klar", sv!=null && sv===S[i].ratt); g.classList.toggle("fel", sv!=null && sv!==S[i].ratt); });
+  k.klar.forEach((p,i)=>{ p.style.opacity = (nu!=null && i < nu) ? 1 : 0; });
+}
+function delbana(k, f){ // ritar banan i k.matt fram till andel f, returnerar punkten
+  const m = k.matt, L = m.getTotalLength(), n = Math.max(2, Math.ceil(80*f)); let d = "";
+  for(let j=0;j<=n;j++){ const q = m.getPointAtLength(L*f*j/n); d += (j?"L":"M")+q.x.toFixed(1)+","+q.y.toFixed(1); }
+  k.ritas.setAttribute("d", f>0 ? d : ""); const q = m.getPointAtLength(L*f);
+  const a = m.getPointAtLength(Math.max(0, L*f-3)), b = m.getPointAtLength(Math.min(L, L*f+3));
+  if(Math.hypot(b.x-a.x, b.y-a.y) > .01) k.ang = Math.atan2(b.y-a.y, b.x-a.x)*180/Math.PI;
+  return [q.x,q.y];
+}
+const ease = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+const lerp = (a,b,t) => a.map((v,i)=>v+(b[i]-v)*t);
+const RM = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+/* Startkartan: rutten ritas upp. */
+const HEMMA = "16:25";
+const kStart = nyKarta($("k-start"));
+function langd(d){ const p=document.createElementNS(NS,"path"); p.setAttribute("d", d); kStart.svg.appendChild(p); const l=p.getTotalLength(); p.remove(); return l; }
+const ruttLangd = langd(SEG.join("")+K.hem);
+const km = d => Math.max(1, Math.round(langd(d) / K.kmper));
+$("rk-rubrik").textContent = `${S.length} lägen · ca ${Math.round(ruttLangd / K.kmper / 5)*5} km`;
+$("rk-sub").textContent = `Hemifrån ${S[0].tid} · hemma ${HEMMA} · ${new Set(S.slice(1).map(x=>K.ort[x.id]).filter(o=>!o.startsWith("E"))).size} orter`;
+S.forEach((x,i)=>{ const li=document.createElement("li"); li.innerHTML=`<b>${i?i+1:"⌂"}</b>${x.tid} ${K.ort[x.id]}`; $("korlista").appendChild(li); });
+{ const li=document.createElement("li"); li.innerHTML=`<b>⌂</b>${HEMMA} Hemma`; $("korlista").appendChild(li); }
+function startVy(){
+  const tel = window.matchMedia("(max-width:760px)").matches;
+  satVy(kStart, vyFor(kStart, bbox(PTS, 70), tel ? [.08,.08,.92,.27] : [.5,.07,.8,.93]));
+}
+let startAnim = 0;
+function spelaStart(){ try{ titel(); }catch(e){}
+  startVy(); cancelAnimationFrame(startAnim);
+  kStart.matt.setAttribute("d", SEG.join("")+K.hem); kStart.ritas.setAttribute("d","");
+  kStart.st.forEach(g=>g.classList.remove("syns","nu","klar","fel")); kStart.klar.forEach(p=>p.style.opacity=0);
+  const t0 = performance.now(), T = RM ? 1 : 3400;
+  const steg = t => { const f = Math.min(1,(t-t0)/T), e = ease(f);
+    bil(kStart, delbana(kStart, e));
+    kStart.st.forEach((g,i)=>{ if(i===0 || e*(PTS.length-1) >= i-0.05) g.classList.add("syns"); });
+    if(f<1) startAnim = requestAnimationFrame(steg); else bil(kStart, [PTS[0][0]+kStart.z*30, PTS[0][1]+kStart.z*12], -20); };
+  startAnim = requestAnimationFrame(steg);
+}
+window.addEventListener("resize", ()=>{ if($("start").classList.contains("on")) startVy(); });
+spelaStart();
+{ const sparat = lagra.get("rutten-tel"); if(sparat && sparat.i>0 && sparat.i<S.length) $("fortsatt").classList.remove("hidden"); }
+
+/* Körning mellan två stopp. */
+const kKor = nyKarta($("k-kor"));
+const kMini = nyKarta($("k-mini"), {skala:.72});
+let korKlar = null, korAnim = 0, irisNr = 0;
+function kor(i, klart){ // kör till läge i (i = S.length betyder hemfärd)
+  const tel = laget==="tel", KY1 = tel?[.08,.06,.92,.58]:[.36,.04,.98,.96], KY3 = tel?[.06,.06,.94,.6]:[.32,.06,.98,.94];
+  const ov = $("korning"); const jag = ++irisNr; ov.classList.remove("iris"); ov.style.webkitMaskImage = ov.style.maskImage = ""; ov.classList.add("on"); ov.setAttribute("aria-hidden","false");
+  const hem = i>=S.length, fran = i>0 ? PTS[i-1] : PTS[0], till = hem ? PTS[0] : PTS[i];
+  stoppStatus(kKor, hem ? null : i);
+  kKor.klar.forEach((p,j)=>p.style.opacity = (hem || j < i-1) ? 1 : 0);
+  let A, B, kor = true, d = "";
+  if(i===0){ A = vyFor(kKor, bbox(PTS,90), KY1); B = vyFor(kKor, bbox([till],140), KY1); kor = false; kKor.ritas.setAttribute("d",""); }
+  else { d = hem ? K.hem : SEG[i-1]; A = vyFor(kKor, bbox([fran,till],140), KY3); B = vyFor(kKor, bbox([fran,till],105), KY3); kKor.matt.setAttribute("d", d); }
+  const tidFran = i>0 ? S[i-1].tid : "06:05", tidTill = hem ? HEMMA : S[i].tid;
+  $("kor-fran").textContent = i===0 ? "Du utgår hemifrån" : hem ? "Rutten avslutad hos sista kunden · Hemfärd" : (i>0 && K.ort[S[i-1].id]==="Hemma" ? "Rutten startar i Diroto när du börjar köra · " : "") + `Läge ${i+1} av ${S.length} · ${S[i].tjanst}`;
+  $("kor-ort").textContent = hem ? "Hemma" : K.ort[S[i].id];
+  const kmTot = kor ? km(d) : 0; $("kor-km").textContent = kor ? "0 km" : "Dagens rutt i Diroto";
+  const m0 = minuter(tidFran), m1 = minuter(tidTill);
+  const arFilm = (i===0 || i>=S.length || (S[i] && S[i].id==="s07")), T = arFilm ? 7200 : (tel ? 2200 : 3200), t0 = performance.now();
+  const villa = S[i] && S[i].id === "s07", film = (i===0 || hem || villa), fv = $("kor-film"); ov.classList.toggle("film", film);
+  if(film){ const nyck = villa ? "villa" : i===0 ? "gry" : "sol"; fv.classList.remove("hidden");
+    koppla(fv, nyck, villa ? VILLAFILM : i===0 ? GRYFILM : SOLFILM, () => { try{ fv.currentTime = 0; }catch(e){} spela(fv, () => { if(irisNr === jag) ov.classList.remove("film"); }); }); } else { fv.pause(); fv.classList.add("hidden"); }
+  const tyst = null;
+  const mid = [(fran[0]+till[0])/2, (fran[1]+till[1])/2];
+  let klar = false;
+  const stang = () => { ov.style.transition = "none"; ov.classList.remove("on","iris"); ov.style.webkitMaskImage = ov.style.maskImage = ""; void ov.offsetWidth; ov.style.transition = ""; ov.setAttribute("aria-hidden","true"); };
+  const fardig = () => { if(klar) return; klar = true; cancelAnimationFrame(korAnim); korKlar=null; tyst && tyst(); if(kor) ljud.framme(); klart && klart();
+
+    // Iris: nästa skärm öppnar sig från bilens plats på kartan.
+    ov.classList.add("iris");
+    const r = kKor.bilrot.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
+    const R = Math.hypot(Math.max(cx, innerWidth-cx), Math.max(cy, innerHeight-cy)) + 40, i0 = performance.now();
+    const iris = t => { if(jag !== irisNr) return; const q = Math.min(1,(t-i0)/620), rr = R*q*q;
+      ov.style.webkitMaskImage = ov.style.maskImage = `radial-gradient(circle at ${cx.toFixed(0)}px ${cy.toFixed(0)}px, transparent ${rr.toFixed(0)}px, #000 ${(rr+60).toFixed(0)}px)`;
+      if(q<1) requestAnimationFrame(iris); else stang(); };
+    requestAnimationFrame(iris); };
+  korKlar = fardig;
+  const steg = t => { const f = Math.min(1,(t-t0)/T), e = ease(f);
+    const v = lerp(A,B,e);
+    if(film){ /* filmen syns, kartan ritas inte om */ }
+    else if(kor){ const p = delbana(kKor, e); v[0] += (p[0]-mid[0])*.35*Math.sin(Math.PI*f); v[1] += (p[1]-mid[1])*.35*Math.sin(Math.PI*f); satVy(kKor, v); bil(kKor, p); }
+    else { satVy(kKor, v); bil(kKor, [till[0]+kKor.z*34, till[1]+kKor.z*14], -20); }
+    if(kor && !film) $("kor-km").textContent = (f<1 ? Math.round(kmTot*e) : "ca "+kmTot) + " km";
+    const m = Math.round(m0 + (m1-m0)*e); $("kor-tid").textContent = String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+    if(f<1) korAnim = requestAnimationFrame(steg); else { if(hem) bil(kKor, [till[0]+kKor.z*34, till[1]+kKor.z*14], -20); setTimeout(fardig, 900); } };
+  korAnim = requestAnimationFrame(steg);
+}
+$("korning").addEventListener("click", ()=>korKlar && korKlar());
+function miniVy(){
+  if(laget==="tel" || st.i>=S.length) return;
+  const p = PTS[st.i]; stoppStatus(kMini, st.i); kMini.klar.forEach((e,j)=>e.style.opacity = j < st.i ? 1 : 0);
+  satVy(kMini, vyFor(kMini, [p[0]-150, p[1]-110, 300, 220])); puck(kMini, p);
+}
+
+function visa(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on", s.id===id)); }
+
+function starta(l, fortsatt){
+  laget = l;
+  document.body.classList.toggle("tel", l==="tel");
+  document.body.classList.toggle("disk", DISK());
+  const sv=document.querySelector('.svar'); (l==="tel" || DISK() ? $("text") : $("foto")).appendChild(sv);
+  st = (fortsatt && lagra.get("rutten-tel")) || nytt();
+  hallVaken(); musRor(); byggRutt(); visa("spel"); rita(true);
+  if(!fortsatt || st.i===0){ if(st.i===0) valkommen(); kor(st.i, () => { $("valk").classList.remove("on"); spot(); }); } else ritaVem();
+}
+document.querySelectorAll(".ljudknapp").forEach(b=>{ b.classList.toggle("av", !ljud.pa); b.onclick = () => { const p = ljud.vaxla(); document.querySelectorAll(".ljudknapp").forEach(x=>x.classList.toggle("av", !p)); if(p) ljud.tick(); }; });
+koppla($("kor-film"), "gry", GRYFILM); forbered("sol", SOLFILM); forbered("villa", VILLAFILM); Object.values(LAGESFILM).forEach(([n,d])=>forbered(n,d)); forbered("pool", POOLFILM);
+function ident(klart){
+  if(RM){ klart(); return; } const el = $("ident"); let klar = false;
+  const slut = () => { if(klar) return; klar = true; el.classList.add("ut"); setTimeout(()=>{ el.className = ""; }, 500); klart(); };
+  el.className = "on"; el.onclick = slut; identSlut = slut;
+  try{ ljud.slag(); }catch(e){}
+  setTimeout(slut, 3300);
+}
+let identSlut = null;
+$("go-grupp").onclick = () => ident(() => { identSlut = null; starta("grupp"); });
+$("go-tel").onclick = () => starta("tel");
+$("fortsatt").onclick = () => starta("tel", true);
+$("hem").onclick = $("hem2").onclick = () => { visa("start"); spelaStart(); const sp=lagra.get("rutten-tel"); $("fortsatt").classList.toggle("hidden", !(sp&&sp.i>0&&sp.i<S.length)); };
+$("igen").onclick = () => { if(laget==="tel") lagra.del("rutten-tel"); starta(laget); };
+$("skriv").onclick = () => window.print();
+if(window.matchMedia("(max-width:760px)").matches){ $("go-tel").classList.remove("sek"); $("go-grupp").classList.add("sek"); }
+
+/* ---------- Ruttlinjen ---------- */
+function minuter(t){ const [h,m]=t.split(":").map(Number); return h*60+m; }
+const T0 = minuter("06:00"), T1 = minuter("16:30");
+function pos(t){ return ((minuter(t)-T0)/(T1-T0)*100); }
+function byggRutt(){
+  const r = $("rutt"); r.querySelectorAll(".stopp").forEach(e=>e.remove());
+  S.forEach((s,i)=>{ const d=document.createElement("div"); d.className="stopp"; d.style.left=pos(s.tid)+"%"; d.innerHTML=`<i>${s.tid}</i>`; d.dataset.i=i; r.appendChild(d); });
+  requestAnimationFrame(rensaEtiketter);
+}
+function rensaEtiketter(){ let hoger = -1e9; document.querySelectorAll("#rutt .stopp i").forEach(e => { e.style.visibility = ""; const b = e.getBoundingClientRect(); if(!b.width) return; if(b.left < hoger + 8){ e.style.visibility = "hidden"; } else hoger = b.right; }); }
+window.addEventListener("resize", () => requestAnimationFrame(rensaEtiketter));
+function ritaRutt(){
+  document.querySelectorAll(".stopp").forEach(d=>{
+    const i=+d.dataset.i, sv=st.svar[i];
+    d.className = "stopp" + (i===st.i && st.i<S.length ? " nu" : "") + (sv!=null ? (sv===S[i].ratt ? " klar":" fel") : "");
+  });
+  const p = st.i<S.length ? pos(S[st.i].tid) : 100;
+  $("kord").style.width = p+"%"; $("bil").style.left = p+"%";
+}
+
+/* ---------- Mätare ---------- */
+function farg(v){ return v>=70 ? "var(--ok2)" : v>=45 ? "#d9a441" : "var(--red)"; }
+function ritaMat(){
+  const tid = st.tid; $("m-tid").textContent = tid>=0 ? "I tid" : "+"+(-tid)+" min";
+  $("m-tid").style.color = tid>=-15 ? "var(--w)" : tid>=-45 ? "#f0c060" : "var(--red2)";
+  [["kv",st.kv],["ku",st.ku]].forEach(([k,v])=>{ $("m-"+k).style.width=v+"%"; $("m-"+k).style.background=farg(v); $("m-"+k+"t").textContent=Math.round(v); });
+}
+const kl = v => Math.max(0, Math.min(100, v));
+
+/* ---------- Ett läge ---------- */
+function rita(ny){
+  ritaRutt(); ritaMat();
+  if(st.i >= S.length){ slut(); return; }
+  const s = S[st.i], scen=$("scen");
+  if(ny){ scen.classList.remove("in"); void scen.offsetWidth; requestAnimationFrame(()=>scen.classList.add("in")); $("text").scrollTop=0; scen.scrollTop=0; }
+  const f = $("foto");
+  f.querySelectorAll("img,.ill,video").forEach(e=>e.remove());
+  if(s.bild && BILDER[s.bild]){ const im=new Image(); im.alt=""; im.src=BILDER[s.bild]; f.prepend(im); }
+  else { const d=document.createElement("div"); d.className="ill"; d.innerHTML=ILL[s.ikon]||""; f.prepend(d); }
+  const lf = LAGESFILM[s.id]; if(lf){ const v = document.createElement("video"); v.dataset.k = lf[0]; v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute("playsinline",""); v.className = "lagesfilm"; const fore = f.querySelector("img,.ill"); fore ? fore.after(v) : f.prepend(v);
+    forbered(lf[0], lf[1]).then(u => { if(!v.isConnected) return; v.addEventListener("playing", ()=>v.classList.add("on"), {once:true}); v.src = u; spela(v); v.addEventListener("playing", ()=>v.classList.add("on"), {once:true}); }); }
+  $("nr").textContent = `Läge ${st.i+1} av ${S.length}`;
+  $("klocka").textContent = s.tid; $("tjanst").textContent = s.tjanst + " · " + K.ort[s.id];
+  if(ny) requestAnimationFrame(miniVy);
+  $("rubrik").textContent = s.rubrik; $("lage").textContent = s.lage;
+  const box = $("alts"); box.innerHTML="";
+  const visat = st.visat, val = st.valt;
+  const summa = st.roster.reduce((a,b)=>a+b,0);
+  L.forEach((b,k)=>{
+    const el=document.createElement("div"); el.className="alt"+(val===b?" vald":"")+(visat&&s.ratt===b?" ratt":"");
+    el.setAttribute("role","button"); el.tabIndex=0; el.dataset.b=b;
+    let tagg = "";
+    if(visat && s.ratt===b) tagg = `<span class="tagg ok">Så gör vi</span>`;
+    else if(visat && val===b) tagg = `<span class="tagg no">${laget==="tel"?"Ditt val":"Gruppens val"}</span>`;
+    el.innerHTML = `<span class="bok">${b}</span><span class="txt">${s.alt[b]}${tagg}</span>`+
+      (laget==="grupp" ? `<span class="roster" aria-label="Röster"><button type="button" data-d="-1" aria-label="En röst mindre på ${b}">−</button><b>${st.roster[k]}</b><button type="button" data-d="1" aria-label="En röst till på ${b}">+</button></span>` : "")+
+      `<span class="kons">${s.kons[b].t}</span><span class="stapel" style="width:${summa? (st.roster[k]/summa*100):0}%"></span>`;
+    el.onclick = e => {
+      const btn = e.target.closest("button[data-d]");
+      if(btn){ e.stopPropagation(); if(st.visat) return; st.roster[k]=Math.max(0,st.roster[k]+(+btn.dataset.d)); const mx=Math.max(...st.roster); if(mx>0 && st.roster.filter(v=>v===mx).length===1) st.valt=L[st.roster.indexOf(mx)]; rita(false); return; }
+      valj(b);
+    };
+    el.onkeydown = e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); valj(b); } };
+    box.appendChild(el);
+  });
+  $("scen").classList.toggle("visat", visat); $("spel").classList.toggle("svarat", visat);
+  const gor=$("gor"); gor.innerHTML=""; s.gor.forEach(g=>{ const li=document.createElement("li"); li.textContent=g; gor.appendChild(li); });
+  $("varfor").textContent = s.varfor;
+  const fb = $("fe-svar"); const nyckel = visat && s.fe ? s.id : "";
+  if(fb.dataset.n !== nyckel){ fb.dataset.n = nyckel; fb.innerHTML = ""; if(nyckel) foreEfter(fb, s.fe); }
+  $("risk").classList.toggle("on", !!(visat && val && s.kons[val].risk));
+  { const tx = $("text"); tx.style.fontSize = ""; if(DISK()){ requestAnimationFrame(() => { let k = 1; while(tx.scrollHeight > tx.clientHeight + 2 && k > .62){ k -= .03; tx.style.fontSize = k + "em"; } tx.scrollTop = 0; }); } }
+  const h=$("huvud"), disk = DISK(), fasLage = disk && !visat && st.fas !== "alt";
+  $("spel").classList.toggle("fas-lage", fasLage); $("spel").classList.toggle("fas-alt", disk && !visat && !fasLage);
+  if(disk && !visat){
+    h.disabled = false; h.style.opacity = 1;
+    h.textContent = fasLage ? "Visa tre sätt att göra" : "Visa hur vi gör";
+    $("hint").innerHTML = fasLage ? "Prata ihop er först. <kbd>T</kbd> ger en minut. <kbd>→</kbd> visar tre sätt att göra." : "Klicka på det ni väljer, eller gå direkt vidare med <kbd>→</kbd>.";
+  } else if(!visat){
+    h.textContent = laget==="tel" ? "Välj ett alternativ" : (val ? "Visa svaret" : "Välj gruppens svar");
+    h.disabled = !val; h.style.opacity = val?1:.45;
+    $("hint").innerHTML = laget==="grupp" ? "Låt alla visa A, B eller C med handen. Räkna med <kbd>+</kbd>, eller tryck <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd>. <kbd>T</kbd> ger tio sekunder. <kbd>Mellanslag</kbd> visar svaret." : "";
+  } else {
+    h.disabled=false; h.style.opacity=1;
+    h.textContent = st.i===S.length-1 ? "Avsluta dagen" : "Nästa stopp: "+S[st.i+1].tid;
+    $("hint").innerHTML = laget==="grupp" ? "<kbd>→</kbd> eller <kbd>Mellanslag</kbd> för nästa stopp" : "";
+  }
+}
+
+function valj(b){
+  if(st.visat || visaSvar.igang) return;
+  if(DISK() && st.fas !== "alt") st.fas = "alt";
+  st.valt = b;
+  if(laget==="tel"){ visaSvar(); return; }
+  rita(false);
+}
+function visaSvar(){
+  if(st.visat || (!st.valt && !DISK()) || visaSvar.igang) return;
+  if(laget==="grupp" && !RM && ljud.pa){ visaSvar.igang = true; stoppNed(); ljud.virvel(850); const h = $("huvud"); h.textContent = "Rätt svar är …"; h.classList.add("spanning");
+    setTimeout(()=>{ visaSvar.igang = false; h.classList.remove("spanning"); visaSvarNu(); }, 850); return; }
+  visaSvarNu();
+}
+function visaSvarNu(){
+  if(st.visat || (!st.valt && !DISK())) return;
+  const s=S[st.i], k=st.valt ? s.kons[st.valt] : {};
+  st.svar[st.i]=st.valt; st.visat=true; if(showLage() && st.vem && !DISK()){ st.po[st.vem] = (st.po[st.vem]||0) + (st.valt===s.ratt ? 1 : 0); }
+  const kt = (st.valt===s.ratt && (k.tid||0) < 0) ? 0 : (k.tid||0); // rätt val ger ingen försening
+  st.tid += kt; st.kv = kl(st.kv + (k.kv||0)*8); st.ku = kl(st.ku + (k.ku||0)*8);
+  const chip = (id, txt, neg) => { const m = $(id).closest(".mat"); m.querySelectorAll(".dchip").forEach(e=>e.remove()); const c = document.createElement("span"); c.className = "dchip"+(neg?" neg":""); c.textContent = txt; m.appendChild(c); setTimeout(()=>c.remove(), 1800); };
+  !st.valt ? ljud.framme() : st.valt===s.ratt ? ljud.ratt() : ljud.fel();
+  if(k.kv) chip("m-kv", (k.kv>0?"+":"−")+Math.abs(k.kv*8), k.kv<0);
+  if(k.ku) chip("m-ku", (k.ku>0?"+":"−")+Math.abs(k.ku*8), k.ku<0);
+  if(kt) chip("m-tid", (kt<0?"+":"−")+Math.abs(kt)+" min", kt<0);
+  spara(); rita(false); ritaVem();
+  if(laget==="tel") setTimeout(()=>{ document.querySelector(".alt.ratt")?.scrollIntoView({behavior:"smooth",block:"center"}); }, 120);
+}
+function nasta(){
+  if(!st.visat) return;
+  st.kap = st.kap || {};
+  const efter = KAP_EFTER[S[st.i].id];
+  if(efter && !st.kap[efter]){ st.kap[efter] = true; spara(); visaKapitel(efter, ()=>{ visa("spel"); nasta(); }); return; }
+  if(S[st.i].id==="s05" && !st.kap.gag){ st.kap.gag = true; spara(); gag(()=>nasta()); return; }
+  if(S[st.i].id==="s06" && !st.kap.snabb){ st.kap.snabb = true; spara(); snabbrunda(()=>nasta()); return; }
+  stoppNed(); st.i++; st.fas="lage"; st.visat=false; st.valt=null; st.roster=[0,0,0]; $("vem").classList.remove("on"); spara();
+  if(st.i >= S.length){ kor(S.length, ()=>{ if(!st.kap.bil){ st.kap.bil = true; spara(); visaKapitel("bil", ()=>rita(true)); } else rita(true); }); return; }
+  rita(true); if(!SAMMA[st.i]) kor(st.i, spot); else spot();
+}
+function spara(){ if(laget==="tel") lagra.set("rutten-tel", st); }
+function framat(){ if(st.visat){ nasta(); return; } if(DISK() && st.fas !== "alt"){ st.fas = "alt"; stoppNed(); try{ ljud.svep(); }catch(e){} rita(false); return; } visaSvar(); }
+$("huvud").onclick = framat;
+
+document.addEventListener("keydown", e=>{
+  if(e.target.tagName==="TEXTAREA") return;
+  if(gagKlar){ if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"||e.key==="Escape"){ e.preventDefault(); gagKlar(); } return; }
+  if(snabb){ const k = e.key.toUpperCase(); if(snabb.fas==="fraga"){ if(k==="J"){ e.preventDefault(); snabb.svar(true); } else if(k==="N"){ e.preventDefault(); snabb.svar(false); } }
+    else if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"){ e.preventDefault(); snabb.fram(); } return; }
+  if(spotKlar){ if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"||e.key==="Escape"){ e.preventDefault(); spotKlar(); } return; }
+  if(e.key==="f"||e.key==="F"){ if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); return; }
+  if($("kapitel").classList.contains("on")){ if(e.key==="ArrowRight"||e.key===" "||e.key==="Enter"){ if(e.target.closest&&e.target.closest("button")&&e.key!=="ArrowRight") return; e.preventDefault(); kapFram(); } else if(e.key==="ArrowLeft"){ kapBak(); } else if(e.key==="Escape"){ $("kap-stang").click(); } return; }
+  if(korKlar){ if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"||e.key==="Escape"){ e.preventDefault(); korKlar(); } return; }
+  if(!$("spel").classList.contains("on")) return;
+  const k=e.key.toUpperCase();
+  if(["A","B","C"].includes(k)){ valj(k); }
+  else if(e.key===" "||e.key==="Enter"||e.key==="ArrowRight"){ if(e.target.closest&&e.target.closest(".alt")&&!st.visat) return; e.preventDefault(); framat(); }
+});
+
+/* ---------- Kod: svaren packade i bas 3, tecken utan förväxling ---------- */
+const ALF = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+function kodFor(svar){
+  let n=0; for(let i=svar.length-1;i>=0;i--) n = n*3 + Math.max(0,L.indexOf(svar[i]));
+  let s=""; for(let j=0;j<5;j++){ s=ALF[n%32]+s; n=Math.floor(n/32); }
+  let c=0; for(const ch of s) c=(c*7+ALF.indexOf(ch))%32;
+  return s.slice(0,3)+"-"+s.slice(3)+ALF[c];
+}
+function avkoda(kod){
+  const r=kod.toUpperCase().replace(/[^0-9A-Z]/g,""); if(r.length!==6) return null;
+  const s=r.slice(0,5), c=r[5]; let ch=0; for(const x of s){ const v=ALF.indexOf(x); if(v<0) return null; ch=(ch*7+v)%32; }
+  if(ALF[ch]!==c) return null;
+  let n=0; for(const x of s) n=n*32+ALF.indexOf(x);
+  const ut=[]; for(let i=0;i<S.length;i++){ ut.push(L[n%3]); n=Math.floor(n/3); }
+  return ut;
+}
+
+/* ---------- Slut ---------- */
+let kSlut = null;
+function slut(){
+  const r = st.svar.filter((v,i)=>v===S[i].ratt).length;
+  $("s-ratt").textContent = r+"/"+S.length;
+  $("s-tid").textContent = st.tid>=0 ? "I tid" : "+"+(-st.tid)+" min";
+  const rakna = (el, till, f) => { const t0 = performance.now(); const steg = t => { const q = Math.min(1,(t-t0)/1100), e = 1-Math.pow(1-q,3); el.textContent = f(Math.round(till*e)); if(q<1) requestAnimationFrame(steg); }; RM ? el.textContent = f(till) : requestAnimationFrame(steg); };
+  rakna($("s-kv"), Math.round(st.kv), v=>v); rakna($("s-ku"), Math.round(st.ku), v=>v); rakna($("s-ratt"), r, v=>v+"/"+S.length);
+  $("slut").classList.toggle("disk", DISK());
+  $("slut-titel").textContent = DISK() ? "Bra jobbat" : r===S.length ? "Perfekt dag" : r>=S.length-2 ? "Bra jobbat" : r>=S.length-5 ? "Godkänd dag" : "Kör dagen igen";
+  const reg=$("regler"); reg.innerHTML=""; DATA.regler.forEach(t=>{ const li=document.createElement("li"); li.textContent=t; reg.appendChild(li); });
+  const db=$("dagbok"); db.innerHTML="";
+  S.forEach((s,i)=>{ const ok=st.svar[i]===s.ratt; const tr=document.createElement("tr");
+    tr.innerHTML = DISK() ? `<td>${s.tid}</td><td><span class="prick" style="background:var(--ok2)"></span>${s.rubrik}</td>` : `<td>${s.tid}</td><td><span class="prick" style="background:${ok?"var(--ok)":"var(--red)"}"></span>${s.rubrik}${ok?"":` <span style="color:var(--t3)">· rätt: ${s.ratt}</span>`}</td>`; db.appendChild(tr); });
+  $("kodruta").classList.toggle("hidden", laget!=="tel");
+  $("lasin").classList.toggle("hidden", laget!=="grupp");
+  if(laget==="tel"){ $("kod").textContent = kodFor(st.svar); lagra.set("rutten-tel", st); }
+  { const sf = $("slut-film"); koppla(sf, "sol", SOLFILM, () => { try{ sf.currentTime = 0; }catch(e){} spela(sf); }); }
+  ritaStat(); visa("slut"); galleri(); pall(r);
+  requestAnimationFrame(()=>{ if(!kSlut) kSlut = nyKarta($("k-slut")); stoppStatus(kSlut, null); kSlut.klar.forEach(p=>p.style.opacity=1); satVy(kSlut, vyFor(kSlut, bbox(PTS,90))); bil(kSlut, [PTS[0][0]+kSlut.z*30, PTS[0][1]+kSlut.z*12], -20); });
+}
+/* ---------- Diplom och konfetti ---------- */
+function konfetti(antal){
+  const c = $("konfetti"), x = c.getContext("2d"), dpr = Math.min(2, window.devicePixelRatio||1); let W, H;
+  const mat = () => { W = c.width = innerWidth*dpr; H = c.height = innerHeight*dpr; }; mat();
+  const F = ["#e52f19","#ff5a40","#ffffff","#62c3a4","#24506f"];
+  const P = Array.from({length:antal}, (_,i)=>{ const v = i%2, a = (v ? Math.PI*1.25 : Math.PI*1.75) + (Math.random()-.5)*.9, k = (9+Math.random()*13)*dpr;
+    return { x: v ? W*1.02 : -W*.02, y: H*.72, vx: Math.cos(a)*k, vy: Math.sin(a)*k, s: (5+Math.random()*8)*dpr, r: Math.random()*6, vr: (Math.random()-.5)*.4, f: F[i%F.length], l: 1 }; });
+  const t0 = performance.now(); let forra = t0;
+  const steg = t => { const dt = Math.min(2, (t-forra)/16.7); forra = t; x.clearRect(0,0,W,H); let kvar = 0;
+    P.forEach(p=>{ p.vy += .32*dpr*dt; p.vx *= Math.pow(.992,dt); p.x += p.vx*dt; p.y += p.vy*dt; p.r += p.vr*dt; if(t-t0 > 2200) p.l -= .012*dt; if(p.l <= 0 || p.y > H+40) return; kvar++;
+      x.save(); x.globalAlpha = Math.max(0,p.l); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle = p.f; x.fillRect(-p.s/2, -p.s*.3, p.s, p.s*.6*Math.abs(Math.cos(p.r*1.7))+1); x.restore(); });
+    if(kvar && $("slut").classList.contains("on")) requestAnimationFrame(steg); else x.clearRect(0,0,W,H); };
+  requestAnimationFrame(steg);
+}
+function ritaStat(){
+  const koder = $("koder").value.split(/[\s,;]+/).filter(Boolean);
+  const ok = koder.map(avkoda).filter(Boolean);
+  const t=$("stat"); t.innerHTML="";
+  if(!koder.length) return;
+  const fel = koder.length-ok.length;
+  const h=document.createElement("tr"); h.innerHTML=`<td></td><td style="color:var(--t3)">${ok.length} koder lästa${fel?`, ${fel} gick inte att läsa`:""}</td><td></td>`; t.appendChild(h);
+  S.map((s,i)=>({s,i,p: ok.length ? ok.filter(a=>a[i]===s.ratt).length/ok.length : 0}))
+   .sort((a,b)=>a.p-b.p)
+   .forEach(({s,p})=>{ const tr=document.createElement("tr");
+     tr.innerHTML=`<td>${s.tid}</td><td>${s.rubrik}</td><td><div class="r"><b style="width:${p*100}%;background:${farg(p*100)}"></b></div><small style="color:var(--t3)">${Math.round(p*100)} % rätt</small></td>`; t.appendChild(tr); });
+}
+$("koder").addEventListener("input", ritaStat);
+__KAPITEL_JS__
+$("go-bil").onclick = () => visaKapitel("bil", () => { visa("start"); spelaStart(); });
+$("go-hus").onclick = () => visaKapitel("hus", () => { visa("start"); spelaStart(); });
+$("slut-bil").onclick = () => visaKapitel("bil", () => visa("slut"));
+$("slut-hus").onclick = () => visaKapitel("hus", () => visa("slut"));
+$("go-fe").onclick = () => { visa("galleriskarm"); galleriIn("gal-stor-a","gal-val-a"); };
+$("hem3").onclick = () => { visa("start"); spelaStart(); };
+</script>
+</body>
+</html>
